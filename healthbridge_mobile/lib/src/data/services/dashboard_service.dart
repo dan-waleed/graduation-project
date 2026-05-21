@@ -24,57 +24,6 @@ class DashboardService {
   DashboardSummaryModel _buildDemoSummary() {
     final roleKey = _extractDemoRole();
     switch (roleKey) {
-      case 'laboratory':
-        return _providerSummary(
-          role: 'Laboratory',
-          title: 'ملخص المختبر',
-          subtitle: 'بيانات تجريبية لاختبار لوحة المختبر بدون الاعتماد على الخادم.',
-          metrics: const [
-            DashboardMetricModel(key: 'lab_requests', label: 'طلبات جديدة', value: 12, icon: 'lab'),
-            DashboardMetricModel(key: 'lab_today', label: 'فحوصات اليوم', value: 7, icon: 'today'),
-            DashboardMetricModel(key: 'lab_done', label: 'تم التنفيذ', value: 19, icon: 'done'),
-            DashboardMetricModel(key: 'lab_pending', label: 'بانتظار الإرسال', value: 4, icon: 'pending'),
-          ],
-          recentActivity: [
-            _activity('CBC - أحمد خليل', 'تم استلام طلب فحص الدم من العيادة العامة.', 'Pending', 18),
-            _activity('تحاليل سكر - منى صالح', 'تم تنفيذ الفحص وإرسال النتيجة للطبيب.', 'Completed', 42),
-            _activity('وظائف كبد - باسل الجعبري', 'العينة قيد المعالجة داخل المختبر.', 'UnderReview', 95),
-          ],
-        );
-      case 'imagingcenter':
-        return _providerSummary(
-          role: 'ImagingCenter',
-          title: 'ملخص مركز التصوير',
-          subtitle: 'بيانات تجريبية لاختبار لوحة مركز التصوير الطبي.',
-          metrics: const [
-            DashboardMetricModel(key: 'imaging_requests', label: 'طلبات تصوير', value: 9, icon: 'imaging'),
-            DashboardMetricModel(key: 'today_scans', label: 'فحوصات اليوم', value: 5, icon: 'today'),
-            DashboardMetricModel(key: 'completed', label: 'منجزة', value: 14, icon: 'done'),
-            DashboardMetricModel(key: 'pending', label: 'قيد الجدولة', value: 3, icon: 'pending'),
-          ],
-          recentActivity: [
-            _activity('أشعة سينية للصدر', 'تمت إضافة طلب جديد من الطبيب المعالج.', 'Pending', 20),
-            _activity('تصوير رنين مغناطيسي', 'الموعد مؤكد غدًا الساعة 10:00.', 'Approved', 60),
-            _activity('ألتراساوند للبطن', 'أُرسل التقرير النهائي إلى السجل الطبي.', 'Completed', 120),
-          ],
-        );
-      case 'medicalcenter':
-        return _providerSummary(
-          role: 'MedicalCenter',
-          title: 'ملخص المركز الطبي',
-          subtitle: 'بيانات تجريبية لاختبار لوحة المركز الطبي.',
-          metrics: const [
-            DashboardMetricModel(key: 'medical_orders', label: 'طلبات طبية', value: 11, icon: 'medical_center'),
-            DashboardMetricModel(key: 'today_cases', label: 'حالات اليوم', value: 6, icon: 'today'),
-            DashboardMetricModel(key: 'completed', label: 'مكتملة', value: 17, icon: 'done'),
-            DashboardMetricModel(key: 'pending', label: 'قيد المتابعة', value: 5, icon: 'pending'),
-          ],
-          recentActivity: [
-            _activity('جلسة علاج طبيعي', 'طلب جديد بانتظار تحديد الموعد المناسب.', 'Pending', 22),
-            _activity('استشارة باطنية', 'تم إنهاء الخدمة وإغلاق الطلب.', 'Completed', 75),
-            _activity('إجراء بسيط', 'الطلب تحت المراجعة من الفريق الطبي.', 'UnderReview', 130),
-          ],
-        );
       case 'doctor':
         return _providerSummary(
           role: 'Doctor',

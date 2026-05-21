@@ -45,7 +45,7 @@ class InsuranceOfficerHomeScreen extends StatelessWidget {
             children: [
               const HbDashboardOverview(
                 recentTitle: 'آخر طلبات التغطية',
-                emptyMessage: 'ستظهر هنا أحدث الطلبات والقرارات التأمينية.',
+                emptyMessage: 'ستظهر هنا أحدث طلبات التغطية وحالة مراجعتها.',
               ),
               const SizedBox(height: 16),
               Text(
@@ -61,7 +61,7 @@ class InsuranceOfficerHomeScreen extends StatelessWidget {
                     width: actionWidth,
                     child: HbQuickActionCard(
                       title: 'طلبات التغطية',
-                      subtitle: 'جميع الطلبات الواردة للمراجعة',
+                      subtitle: 'جميع طلبات التغطية الواردة للمراجعة والمتابعة',
                       icon: Icons.fact_check_outlined,
                       onTap: () => context.push(InsuranceRequestsScreen.routePath),
                     ),
@@ -69,17 +69,17 @@ class InsuranceOfficerHomeScreen extends StatelessWidget {
                   SizedBox(
                     width: actionWidth,
                     child: HbQuickActionCard(
-                      title: 'الطلبات المعلقة',
-                      subtitle: 'الطلبات التي تنتظر اتخاذ قرار',
-                      icon: Icons.hourglass_top_rounded,
+                      title: 'الطلبات الحديثة',
+                      subtitle: 'عرض أحدث الطلبات التي وصلت من الأطباء',
+                      icon: Icons.history_toggle_off_rounded,
                       onTap: () => context.push(InsuranceRequestsScreen.routePath),
                     ),
                   ),
                   SizedBox(
                     width: actionWidth,
                     child: HbQuickActionCard(
-                      title: 'الطلبات المقبولة',
-                      subtitle: 'الطلبات التي تمت الموافقة عليها',
+                      title: 'الطلبات المعتمدة',
+                      subtitle: 'الطلبات التي تم اعتمادها تلقائيًا ويمكن مراجعتها',
                       icon: Icons.task_alt_rounded,
                       onTap: () => context.push(InsuranceRequestsScreen.routePath),
                     ),
@@ -125,8 +125,8 @@ class InsuranceRequestsScreen extends StatefulWidget {
 class _InsuranceRequestsScreenState extends State<InsuranceRequestsScreen> {
   static const _filterOptions = [
     HbFilterOption(value: 'الكل', label: 'الكل'),
-    HbFilterOption(value: 'Pending', label: 'معلّقة'),
     HbFilterOption(value: 'Approved', label: 'مقبولة'),
+    HbFilterOption(value: 'Pending', label: 'معلّقة قديمة'),
     HbFilterOption(value: 'Rejected', label: 'مرفوضة'),
     HbFilterOption(value: 'NeedsUpdate', label: 'تحتاج تعديل'),
   ];
@@ -389,47 +389,18 @@ class _InsuranceReviewScreenState extends State<InsuranceReviewScreen> {
                             ),
                     ),
                     const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: () async {
-                              await context.push(
-                                '${InsuranceDecisionScreen.routePath}?id=${request.id}&decision=approve',
-                              );
-                              if (!context.mounted) return;
-                              unawaited(Future<void>.microtask(_refresh));
-                            },
-                            child: const Text('موافقة'),
+                    HbSectionCard(
+                      title: 'حالة المراجعة',
+                      subtitle: 'طلبات التأمين أصبحت تعتمد تلقائيًا، ودور موظف التأمين الآن للمراجعة والمتابعة فقط.',
+                      child: Column(
+                        children: [
+                          HbInfoRow(label: 'الحالة الحالية', value: statusLabel(request.status)),
+                          HbInfoRow(
+                            label: 'ملاحظات المراجعة',
+                            value: request.responseNotes.isEmpty ? 'لا توجد ملاحظات إضافية.' : request.responseNotes,
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: OutlinedButton(
-                            onPressed: () async {
-                              await context.push(
-                                '${InsuranceDecisionScreen.routePath}?id=${request.id}&decision=reject',
-                              );
-                              if (!context.mounted) return;
-                              unawaited(Future<void>.microtask(_refresh));
-                            },
-                            child: const Text('رفض'),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: OutlinedButton(
-                            onPressed: () async {
-                              await context.push(
-                                '${InsuranceDecisionScreen.routePath}?id=${request.id}&decision=update',
-                              );
-                              if (!context.mounted) return;
-                              unawaited(Future<void>.microtask(_refresh));
-                            },
-                            child: const Text('طلب تعديل'),
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ],
                 );
@@ -494,7 +465,7 @@ class _InsuranceDecisionScreenState extends State<InsuranceDecisionScreen> {
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تم حفظ القرار بنجاح')),
+        const SnackBar(content: Text('تم حفظ ملاحظات المراجعة بنجاح')),
       );
       context.pop();
     } finally {
@@ -507,7 +478,7 @@ class _InsuranceDecisionScreenState extends State<InsuranceDecisionScreen> {
   @override
   Widget build(BuildContext context) {
     return HbScaffold(
-      title: 'اتخاذ القرار',
+      title: 'ملاحظات المراجعة',
       body: ListView(
         children: [
           Card(
@@ -519,8 +490,8 @@ class _InsuranceDecisionScreenState extends State<InsuranceDecisionScreen> {
                     controller: _decisionController,
                     readOnly: true,
                     decoration: const InputDecoration(
-                      labelText: 'اختيار القرار',
-                      hintText: 'موافقة / رفض / طلب تعديل',
+                      labelText: 'حالة الطلب',
+                      hintText: 'الحالة الحالية للطلب',
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -528,8 +499,8 @@ class _InsuranceDecisionScreenState extends State<InsuranceDecisionScreen> {
                     controller: _notesController,
                     maxLines: 4,
                     decoration: const InputDecoration(
-                      labelText: 'مربع الملاحظات',
-                      hintText: 'أدخل تفاصيل القرار هنا',
+                      labelText: 'ملاحظات المراجعة',
+                      hintText: 'أدخل ملاحظات المتابعة أو التوضيح هنا',
                     ),
                   ),
                 ],
@@ -538,7 +509,7 @@ class _InsuranceDecisionScreenState extends State<InsuranceDecisionScreen> {
           ),
           const SizedBox(height: 16),
           HbPrimaryButtonRow(
-            primaryLabel: _isSaving ? 'جاري الحفظ...' : 'حفظ القرار',
+            primaryLabel: _isSaving ? 'جاري الحفظ...' : 'حفظ الملاحظات',
             onPrimaryPressed: _isSaving ? () {} : () => _saveDecision(),
           ),
         ],

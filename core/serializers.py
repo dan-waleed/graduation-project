@@ -9,6 +9,7 @@ from rest_framework import serializers
 from drf_spectacular.utils import extend_schema_field
 
 from .models import (
+    ASSIGNABLE_USER_ROLES,
     AuditLog,
     ContractStatus,
     Dependent,
@@ -35,6 +36,7 @@ from .models import (
     ProviderServicePrice,
     ProviderType,
     ServiceType,
+    SUPPORTED_USER_ROLES,
     UserRole,
 )
 
@@ -260,6 +262,25 @@ class UserSerializer(serializers.ModelSerializer):
             "password",
         )
         read_only_fields = ("id", "created_at", "updated_at")
+
+    def validate_role(self, value):
+        if value not in SUPPORTED_USER_ROLES:
+            raise serializers.ValidationError("هذا الدور لم يعد مدعومًا في النظام.")
+
+        if self.instance is None:
+            if value == UserRole.ADMIN:
+                raise serializers.ValidationError("يوجد مدير نظام واحد فقط، ولا يمكن إنشاء مدير جديد من الواجهة.")
+            if value not in ASSIGNABLE_USER_ROLES:
+                raise serializers.ValidationError("يمكن إنشاء طبيب أو موظف جامعي أو صيدلي أو موظف تأمين فقط.")
+            return value
+
+        if self.instance.role == UserRole.ADMIN and value != UserRole.ADMIN:
+            raise serializers.ValidationError("لا يمكن تغيير دور مدير النظام الأساسي.")
+
+        if self.instance.role != UserRole.ADMIN and value == UserRole.ADMIN:
+            raise serializers.ValidationError("لا يمكن ترقية أي مستخدم إلى مدير نظام جديد.")
+
+        return value
 
     @transaction.atomic
     def create(self, validated_data):

@@ -23,6 +23,28 @@ class UserRole(models.TextChoices):
     INSURANCE_OFFICER = "InsuranceOfficer", "Insurance Officer"
 
 
+SUPPORTED_USER_ROLES = (
+    UserRole.ADMIN,
+    UserRole.DOCTOR,
+    UserRole.EMPLOYEE,
+    UserRole.PHARMACIST,
+    UserRole.INSURANCE_OFFICER,
+)
+
+ASSIGNABLE_USER_ROLES = (
+    UserRole.DOCTOR,
+    UserRole.EMPLOYEE,
+    UserRole.PHARMACIST,
+    UserRole.INSURANCE_OFFICER,
+)
+
+LEGACY_PROVIDER_ROLES = (
+    UserRole.LABORATORY,
+    UserRole.IMAGING_CENTER,
+    UserRole.MEDICAL_CENTER,
+)
+
+
 class PrescriptionStatus(models.TextChoices):
     DRAFT = "Draft", "Draft"
     SENT = "Sent", "Sent"

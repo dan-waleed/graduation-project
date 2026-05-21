@@ -10,6 +10,7 @@ import '../../../../data/models/user_model.dart';
 import '../../../../data/services/app_data_service.dart';
 import '../../../../features/common/presentation/screens/notifications_screen.dart';
 import '../../../../features/common/presentation/screens/profile_screen.dart';
+import '../../../../shared/utils/app_roles.dart';
 import '../../../../shared/utils/role_label.dart';
 import '../../../../shared/widgets/hb_custom_card.dart';
 import '../../../../shared/widgets/hb_dashboard_overview.dart';
@@ -71,7 +72,7 @@ class AdminHomeScreen extends StatelessWidget {
                     width: actionCardWidth,
                     child: _AdminActionCard(
                       title: 'إضافة مستخدم',
-                      subtitle: 'إنشاء حساب جديد للطبيب أو الموظف الجامعي أو الصيدلي أو موظف التأمين أو الجهات الطبية.',
+                      subtitle: 'إنشاء حساب جديد للطبيب أو الموظف الجامعي أو الصيدلي أو موظف التأمين فقط.',
                       icon: Icons.person_add_alt_1_rounded,
                       onTap: () => context.push(AdminUserCreateScreen.routePath),
                     ),
@@ -515,16 +516,6 @@ class _AdminUserFormScreen extends StatefulWidget {
 
 class _AdminUserFormScreenState extends State<_AdminUserFormScreen> {
   final _formKey = GlobalKey<FormState>();
-  static const _roleOptions = [
-    'مدير النظام',
-    'الطبيب',
-    'الموظف الجامعي',
-    'الصيدلي',
-    'موظف التأمين',
-    'مختبر',
-    'مركز التصوير الطبي',
-    'مركز طبي',
-  ];
 
   static const _statusOptions = [
     'فعّال',
@@ -553,7 +544,10 @@ class _AdminUserFormScreenState extends State<_AdminUserFormScreen> {
     _phoneController = TextEditingController(text: widget.initialUser?.phoneNumber ?? '');
     _passwordController = TextEditingController();
     final initialRoleArabic = widget.initialUser == null ? '' : roleLabel(widget.initialUser!.role);
-    _selectedRole = _roleOptions.contains(initialRoleArabic) ? initialRoleArabic : _roleOptions[1];
+    final assignableLabels = assignableRoleOptions.map((item) => item.label).toList();
+    _selectedRole = assignableLabels.contains(initialRoleArabic)
+        ? initialRoleArabic
+        : (widget.initialUser?.role == AppRoles.admin ? roleLabel(AppRoles.admin) : assignableRoleOptions.first.label);
     _selectedStatus = widget.initialUser?.isActive == false ? _statusOptions[1] : _statusOptions[0];
     _loadPatientDataIfNeeded();
   }
@@ -572,6 +566,7 @@ class _AdminUserFormScreenState extends State<_AdminUserFormScreen> {
   }
 
   bool get _isPatientRole => _roleToBackend(_selectedRole) == 'Employee';
+  bool get _isPrimaryAdmin => widget.initialUser?.role == AppRoles.admin;
 
   Future<void> _loadPatientDataIfNeeded() async {
     if (widget.initialUser?.role != 'Employee') {
@@ -748,15 +743,24 @@ class _AdminUserFormScreenState extends State<_AdminUserFormScreen> {
                     DropdownButtonFormField<String>(
                       initialValue: _selectedRole,
                       decoration: const InputDecoration(labelText: 'الدور'),
-                      items: _roleOptions
+                      items: (_isPrimaryAdmin
+                              ? const [
+                                  AppRoleOption(
+                                    backendValue: AppRoles.admin,
+                                    label: 'مدير النظام',
+                                  ),
+                                ]
+                              : assignableRoleOptions)
                           .map(
                             (role) => DropdownMenuItem<String>(
-                              value: role,
-                              child: Text(role),
+                              value: role.label,
+                              child: Text(role.label),
                             ),
                           )
                           .toList(),
-                      onChanged: (value) {
+                      onChanged: _isPrimaryAdmin
+                          ? null
+                          : (value) {
                         if (value == null) return;
                         setState(() => _selectedRole = value);
                       },
@@ -924,26 +928,12 @@ class _AdminUserFormScreenState extends State<_AdminUserFormScreen> {
 }
 
 String _roleToBackend(String role) {
-  switch (role) {
-    case 'مدير النظام':
-      return 'Admin';
-    case 'الطبيب':
-      return 'Doctor';
-    case 'الموظف الجامعي':
-      return 'Employee';
-    case 'الصيدلي':
-      return 'Pharmacist';
-    case 'موظف التأمين':
-      return 'InsuranceOfficer';
-    case 'مختبر':
-      return 'Laboratory';
-    case 'مركز التصوير الطبي':
-      return 'ImagingCenter';
-    case 'مركز طبي':
-      return 'MedicalCenter';
-    default:
-      return 'Employee';
+  for (final option in assignableRoleOptions) {
+    if (option.label == role) {
+      return option.backendValue;
+    }
   }
+  return role == 'مدير النظام' ? AppRoles.admin : AppRoles.employee;
 }
 
 (String, String) _splitName(String fullName) {

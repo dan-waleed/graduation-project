@@ -55,25 +55,7 @@ class _LoginScreenState extends State<LoginScreen> {
       role: 'موظف التأمين',
       username: 'insurance_demo',
       password: 'demo12345',
-      description: 'مراجعة طلبات التأمين واتخاذ القرار.',
-    ),
-    _DemoAccount(
-      role: 'المختبر',
-      username: 'lab_demo',
-      password: 'demo12345',
-      description: 'متابعة الطلبات المخبرية وتحديث نتائجها.',
-    ),
-    _DemoAccount(
-      role: 'مركز التصوير',
-      username: 'imaging_demo',
-      password: 'demo12345',
-      description: 'إدارة طلبات التصوير الطبي والفحوصات الشعاعية.',
-    ),
-    _DemoAccount(
-      role: 'المركز الطبي',
-      username: 'medical_demo',
-      password: 'demo12345',
-      description: 'تنفيذ خدمات المراكز الطبية ومتابعة الطلبات المرتبطة بها.',
+      description: 'مراجعة طلبات التأمين ومتابعة حالة التغطية.',
     ),
   ];
 

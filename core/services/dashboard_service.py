@@ -9,9 +9,6 @@ from core.models import (
     Employee,
     InsuranceRequest,
     InsuranceOfficer,
-    Laboratory,
-    MedicalCenter,
-    MedicalImagingCenter,
     Pharmacist,
     Notification,
     Pharmacy,
@@ -32,8 +29,6 @@ def build_dashboard_summary(user):
         UserRole.DOCTOR: _doctor_summary,
         UserRole.EMPLOYEE: _employee_summary,
         UserRole.PHARMACIST: _pharmacist_summary,
-        UserRole.LABORATORY: _laboratory_summary,
-        UserRole.IMAGING_CENTER: _imaging_summary,
         UserRole.INSURANCE_OFFICER: _insurance_summary,
     }
 
@@ -149,56 +144,6 @@ def _pharmacist_summary(user, display_name):
     )
 
 
-def _laboratory_summary(user, display_name):
-    laboratory = getattr(user, "laboratory_profile", None)
-    orders = Prescription.objects.filter(provider=laboratory.provider, service_type="LabTest") if laboratory else Prescription.objects.none()
-    totals = orders.aggregate(total=Sum("final_price"), covered=Sum("covered_amount"), share=Sum("employee_share"))
-    metrics = [
-        _metric("lab_orders", "طلبات المختبر", orders.count(), "lab"),
-        _metric("approved", "جاهزة للتنفيذ", orders.filter(status="Approved").count(), "approved"),
-        _metric("performed", "تم تنفيذها", orders.filter(status="Performed").count(), "done"),
-        _metric("pending", "بانتظار الإجراء", orders.exclude(status__in=["Performed", "Cancelled"]).count(), "pending"),
-        _metric("cost", "إجمالي التكلفة", int(totals["total"] or 0), "payments"),
-        _metric("covered", "إجمالي المغطى", int(totals["covered"] or 0), "insurance"),
-        _metric("share", "إجمالي حصة الموظف", int(totals["share"] or 0), "payments"),
-    ]
-    activity = [
-        _activity(
-            title=f"طلب مختبر {item.prescription_number}",
-            subtitle=f"{item.employee.user.get_full_name() or item.employee.user.username} • {item.diagnosis or 'بدون ملاحظات'}",
-            status=item.status,
-            created_at=item.created_at,
-        )
-        for item in orders.select_related("employee__user").order_by("-created_at")[:5]
-    ]
-    return (f"أهلاً بك، {display_name}", "ملخص طلبات المختبر الحالية", metrics, activity)
-
-
-def _imaging_summary(user, display_name):
-    center = getattr(user, "imaging_center_profile", None)
-    orders = Prescription.objects.filter(provider=center.provider, service_type="Imaging") if center else Prescription.objects.none()
-    totals = orders.aggregate(total=Sum("final_price"), covered=Sum("covered_amount"), share=Sum("employee_share"))
-    metrics = [
-        _metric("imaging_orders", "طلبات الأشعة", orders.count(), "imaging"),
-        _metric("approved", "جاهزة للتنفيذ", orders.filter(status="Approved").count(), "approved"),
-        _metric("performed", "تم تنفيذها", orders.filter(status="Performed").count(), "done"),
-        _metric("pending", "بانتظار الإجراء", orders.exclude(status__in=["Performed", "Cancelled"]).count(), "pending"),
-        _metric("cost", "إجمالي التكلفة", int(totals["total"] or 0), "payments"),
-        _metric("covered", "إجمالي المغطى", int(totals["covered"] or 0), "insurance"),
-        _metric("share", "إجمالي حصة الموظف", int(totals["share"] or 0), "payments"),
-    ]
-    activity = [
-        _activity(
-            title=f"طلب أشعة {item.prescription_number}",
-            subtitle=f"{item.employee.user.get_full_name() or item.employee.user.username} • {item.diagnosis or 'بدون ملاحظات'}",
-            status=item.status,
-            created_at=item.created_at,
-        )
-        for item in orders.select_related("employee__user").order_by("-created_at")[:5]
-    ]
-    return (f"أهلاً بك، {display_name}", "ملخص طلبات الأشعة الحالية", metrics, activity)
-
-
 def _insurance_summary(user, display_name):
     requests = InsuranceRequest.objects.all()
     related_orders = Prescription.objects.filter(insurance_request__isnull=False)
@@ -240,9 +185,6 @@ def _admin_summary(user, display_name):
         _metric("employees", "عدد الموظفين الجامعيين", Employee.objects.count(), "employee"),
         _metric("pharmacies", "عدد الصيدليات", Pharmacy.objects.count(), "pharmacy"),
         _metric("pharmacists", "عدد الصيادلة", Pharmacist.objects.count(), "pharmacy"),
-        _metric("laboratories", "عدد المختبرات", Laboratory.objects.count(), "lab"),
-        _metric("imaging_centers", "عدد مراكز التصوير", MedicalImagingCenter.objects.count(), "imaging"),
-        _metric("medical_centers", "عدد المراكز الطبية", MedicalCenter.objects.count(), "medical_center"),
         _metric("insurance_officers", "عدد موظفي التأمين", InsuranceOfficer.objects.count(), "insurance"),
         _metric("orders", "عدد الطلبات الطبية", Prescription.objects.count(), "prescriptions"),
         _metric("coverage_requests", "طلبات التغطية", InsuranceRequest.objects.count(), "insurance"),

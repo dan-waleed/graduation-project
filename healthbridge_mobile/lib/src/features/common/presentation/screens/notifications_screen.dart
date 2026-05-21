@@ -172,12 +172,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           context.push('${DoctorPrescriptionDetailScreen.routePath}?id=$relatedId');
         case 'Pharmacist':
           context.push('${PharmacistPrescriptionDetailScreen.routePath}?id=$relatedId');
-        case 'Laboratory':
-          context.push('${LaboratoryRequestDetailScreen.routePath}?id=$relatedId');
-        case 'ImagingCenter':
-          context.push('${ImagingRequestDetailScreen.routePath}?id=$relatedId');
-        case 'MedicalCenter':
-          context.push('${MedicalCenterRequestDetailScreen.routePath}?id=$relatedId');
         default:
           context.push('${PatientPrescriptionDetailScreen.routePath}?id=$relatedId');
       }

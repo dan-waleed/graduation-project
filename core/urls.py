@@ -10,10 +10,7 @@ from .views import (
     EmployeeViewSet,
     InsuranceOfficerViewSet,
     InsuranceRequestViewSet,
-    LaboratoryViewSet,
     MedicationViewSet,
-    MedicalCenterViewSet,
-    MedicalImagingCenterViewSet,
     MedicalServiceViewSet,
     NotificationViewSet,
     PharmacistViewSet,
@@ -33,9 +30,6 @@ router.register("insurance-officers", InsuranceOfficerViewSet, basename="insuran
 router.register("providers", ProviderViewSet, basename="provider")
 router.register("pharmacies", PharmacyViewSet, basename="pharmacy")
 router.register("pharmacists", PharmacistViewSet, basename="pharmacist")
-router.register("laboratories", LaboratoryViewSet, basename="laboratory")
-router.register("imaging-centers", MedicalImagingCenterViewSet, basename="imaging-center")
-router.register("medical-centers", MedicalCenterViewSet, basename="medical-center")
 router.register("medical-services", MedicalServiceViewSet, basename="medical-service")
 router.register("provider-service-prices", ProviderServicePriceViewSet, basename="provider-service-price")
 router.register("dependents", DependentViewSet, basename="dependent")

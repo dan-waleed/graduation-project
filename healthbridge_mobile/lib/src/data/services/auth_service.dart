@@ -4,6 +4,7 @@ import '../../core/network/api_client.dart';
 import '../models/session_model.dart';
 import '../models/user_model.dart';
 import '../storage/token_storage.dart';
+import '../../shared/utils/app_roles.dart';
 
 class AuthService {
   AuthService({
@@ -133,7 +134,7 @@ const List<_DemoAuthAccount> _demoAccounts = [
       id: 9001,
       username: 'admin_demo',
       email: 'admin@healthbridge.test',
-      role: 'Admin',
+      role: AppRoles.admin,
       firstName: 'System',
       lastName: 'Admin',
       phoneNumber: '0599000001',
@@ -146,7 +147,7 @@ const List<_DemoAuthAccount> _demoAccounts = [
       id: 9002,
       username: 'doctor_demo',
       email: 'doctor@healthbridge.test',
-      role: 'Doctor',
+      role: AppRoles.doctor,
       firstName: 'Ahmad',
       lastName: 'Khalil',
       phoneNumber: '0599000002',
@@ -159,7 +160,7 @@ const List<_DemoAuthAccount> _demoAccounts = [
       id: 9003,
       username: 'employee_demo',
       email: 'employee@healthbridge.test',
-      role: 'Employee',
+      role: AppRoles.employee,
       firstName: 'Mona',
       lastName: 'Saleh',
       phoneNumber: '0599000003',
@@ -172,7 +173,7 @@ const List<_DemoAuthAccount> _demoAccounts = [
       id: 9004,
       username: 'pharmacist_demo',
       email: 'pharmacy@healthbridge.test',
-      role: 'Pharmacist',
+      role: AppRoles.pharmacist,
       firstName: 'Rami',
       lastName: 'Nassar',
       phoneNumber: '0599000004',
@@ -185,49 +186,10 @@ const List<_DemoAuthAccount> _demoAccounts = [
       id: 9005,
       username: 'insurance_demo',
       email: 'insurance@healthbridge.test',
-      role: 'InsuranceOfficer',
+      role: AppRoles.insuranceOfficer,
       firstName: 'Lina',
       lastName: 'Hamdan',
       phoneNumber: '0599000005',
-      isActive: true,
-    ),
-    password: 'demo12345',
-  ),
-  _DemoAuthAccount(
-    user: UserModel(
-      id: 9006,
-      username: 'lab_demo',
-      email: 'lab@healthbridge.test',
-      role: 'Laboratory',
-      firstName: 'Samer',
-      lastName: 'Qawasmi',
-      phoneNumber: '0599000006',
-      isActive: true,
-    ),
-    password: 'demo12345',
-  ),
-  _DemoAuthAccount(
-    user: UserModel(
-      id: 9007,
-      username: 'imaging_demo',
-      email: 'imaging@healthbridge.test',
-      role: 'ImagingCenter',
-      firstName: 'Dana',
-      lastName: 'Abu Ayyash',
-      phoneNumber: '0599000007',
-      isActive: true,
-    ),
-    password: 'demo12345',
-  ),
-  _DemoAuthAccount(
-    user: UserModel(
-      id: 9008,
-      username: 'medical_demo',
-      email: 'medical@healthbridge.test',
-      role: 'MedicalCenter',
-      firstName: 'Yousef',
-      lastName: 'Amro',
-      phoneNumber: '0599000008',
       isActive: true,
     ),
     password: 'demo12345',

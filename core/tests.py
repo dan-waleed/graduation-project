@@ -183,7 +183,7 @@ class HealthBridgeWorkflowTests(BaseAPITestCase):
         self.assertIn("doctor1", usernames)
         self.assertIn("employee1", usernames)
 
-    def test_admin_role_user_created_from_api_is_staff(self):
+    def test_api_rejects_creating_a_second_admin_user(self):
         self.auth(self.admin)
         response = self.client.post(
             "/api/users/",
@@ -198,9 +198,8 @@ class HealthBridgeWorkflowTests(BaseAPITestCase):
             },
             format="json",
         )
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        created = User.objects.get(username="new_admin")
-        self.assertTrue(created.is_staff)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertFalse(User.objects.filter(username="new_admin").exists())
 
     def test_employee_role_user_created_from_api_gets_employee_profile(self):
         self.auth(self.admin)
@@ -298,7 +297,7 @@ class HealthBridgeWorkflowTests(BaseAPITestCase):
         self.assertFalse(User.objects.filter(email="invalid-dependent@example.com").exists())
         self.assertIn("dependents", response.data)
 
-    def test_insurance_approval_updates_prescription_status(self):
+    def test_insurance_request_is_auto_approved_on_create(self):
         prescription = Prescription.objects.create(
             prescription_number="RX-INS-001",
             employee=self.employee,
@@ -306,23 +305,46 @@ class HealthBridgeWorkflowTests(BaseAPITestCase):
             status=PrescriptionStatus.SENT,
             issued_at=timezone.now(),
         )
+        self.auth(self.doctor_user)
+        response = self.client.post(
+            "/api/insurance/",
+            {
+                "prescription": prescription.id,
+                "request_number": "INS-REQ-001",
+                "status": InsuranceRequestStatus.PENDING,
+                "submitted_at": timezone.now().isoformat(),
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        insurance_request = InsuranceRequest.objects.get(request_number="INS-REQ-001")
+        prescription.refresh_from_db()
+        self.assertEqual(insurance_request.status, InsuranceRequestStatus.APPROVED)
+        self.assertIsNotNone(insurance_request.reviewed_at)
+        self.assertEqual(prescription.status, PrescriptionStatus.APPROVED)
+
+    def test_insurance_officer_can_review_but_cannot_change_request_status(self):
+        prescription = Prescription.objects.create(
+            prescription_number="RX-INS-002",
+            employee=self.employee,
+            doctor=self.doctor,
+            status=PrescriptionStatus.APPROVED,
+            issued_at=timezone.now(),
+        )
         insurance_request = InsuranceRequest.objects.create(
             prescription=prescription,
-            request_number="INS-REQ-001",
-            status=InsuranceRequestStatus.PENDING,
+            request_number="INS-REQ-002",
+            status=InsuranceRequestStatus.APPROVED,
             submitted_at=timezone.now(),
+            reviewed_at=timezone.now(),
         )
         self.auth(self.officer_user)
         response = self.client.patch(
             f"/api/insurance/{insurance_request.id}/",
-            {"status": InsuranceRequestStatus.APPROVED},
+            {"status": InsuranceRequestStatus.REJECTED},
             format="json",
         )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        insurance_request.refresh_from_db()
-        prescription.refresh_from_db()
-        self.assertEqual(insurance_request.reviewed_by, self.officer)
-        self.assertEqual(prescription.status, PrescriptionStatus.APPROVED)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_pharmacist_completed_dispense_marks_prescription_dispensed(self):
         prescription = Prescription.objects.create(

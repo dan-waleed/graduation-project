@@ -9,8 +9,8 @@ import '../../features/doctor/presentation/screens/doctor_home_screen.dart';
 import '../../features/insurance_officer/presentation/screens/insurance_officer_home_screen.dart';
 import '../../features/patient/presentation/screens/patient_home_screen.dart';
 import '../../features/pharmacist/presentation/screens/pharmacist_home_screen.dart';
-import '../../features/provider_roles/presentation/screens/provider_roles_screens.dart';
 import '../../features/splash/presentation/screens/splash_screen.dart';
+import '../../shared/utils/app_roles.dart';
 
 class AppRouter {
   AppRouter(this.authController);
@@ -173,68 +173,9 @@ class AppRouter {
         ),
       ),
       GoRoute(
-        path: InsuranceDecisionScreen.routePath,
-        name: InsuranceDecisionScreen.routeName,
-        builder: (_, state) => InsuranceDecisionScreen(
-          decision: state.uri.queryParameters['decision'] ?? 'موافقة',
-          requestId: int.tryParse(state.uri.queryParameters['id'] ?? ''),
-        ),
-      ),
-      GoRoute(
         path: InsuranceCoverageCatalogScreen.routePath,
         name: InsuranceCoverageCatalogScreen.routeName,
         builder: (_, __) => const InsuranceCoverageCatalogScreen(),
-      ),
-      GoRoute(
-        path: LaboratoryHomeScreen.routePath,
-        name: LaboratoryHomeScreen.routeName,
-        builder: (_, __) => const LaboratoryHomeScreen(),
-      ),
-      GoRoute(
-        path: LaboratoryRequestsScreen.routePath,
-        name: LaboratoryRequestsScreen.routeName,
-        builder: (_, __) => const LaboratoryRequestsScreen(),
-      ),
-      GoRoute(
-        path: LaboratoryRequestDetailScreen.routePath,
-        name: LaboratoryRequestDetailScreen.routeName,
-        builder: (_, state) => LaboratoryRequestDetailScreen(
-          orderId: int.tryParse(state.uri.queryParameters['id'] ?? ''),
-        ),
-      ),
-      GoRoute(
-        path: MedicalImagingCenterHomeScreen.routePath,
-        name: MedicalImagingCenterHomeScreen.routeName,
-        builder: (_, __) => const MedicalImagingCenterHomeScreen(),
-      ),
-      GoRoute(
-        path: ImagingRequestsScreen.routePath,
-        name: ImagingRequestsScreen.routeName,
-        builder: (_, __) => const ImagingRequestsScreen(),
-      ),
-      GoRoute(
-        path: ImagingRequestDetailScreen.routePath,
-        name: ImagingRequestDetailScreen.routeName,
-        builder: (_, state) => ImagingRequestDetailScreen(
-          orderId: int.tryParse(state.uri.queryParameters['id'] ?? ''),
-        ),
-      ),
-      GoRoute(
-        path: MedicalCenterHomeScreen.routePath,
-        name: MedicalCenterHomeScreen.routeName,
-        builder: (_, __) => const MedicalCenterHomeScreen(),
-      ),
-      GoRoute(
-        path: MedicalCenterRequestsScreen.routePath,
-        name: MedicalCenterRequestsScreen.routeName,
-        builder: (_, __) => const MedicalCenterRequestsScreen(),
-      ),
-      GoRoute(
-        path: MedicalCenterRequestDetailScreen.routePath,
-        name: MedicalCenterRequestDetailScreen.routeName,
-        builder: (_, state) => MedicalCenterRequestDetailScreen(
-          orderId: int.tryParse(state.uri.queryParameters['id'] ?? ''),
-        ),
       ),
       GoRoute(
         path: AdminHomeScreen.routePath,
@@ -296,22 +237,16 @@ class AppRouter {
 
   String _routeForRole(String? role) {
     switch (role) {
-      case 'Doctor':
+      case AppRoles.doctor:
         return DoctorHomeScreen.routePath;
-      case 'Employee':
+      case AppRoles.employee:
       case 'Patient':
         return PatientHomeScreen.routePath;
-      case 'Pharmacist':
+      case AppRoles.pharmacist:
         return PharmacistHomeScreen.routePath;
-      case 'Laboratory':
-        return LaboratoryHomeScreen.routePath;
-      case 'ImagingCenter':
-        return MedicalImagingCenterHomeScreen.routePath;
-      case 'MedicalCenter':
-        return MedicalCenterHomeScreen.routePath;
-      case 'InsuranceOfficer':
+      case AppRoles.insuranceOfficer:
         return InsuranceOfficerHomeScreen.routePath;
-      case 'Admin':
+      case AppRoles.admin:
       default:
         return AdminHomeScreen.routePath;
     }
@@ -324,7 +259,7 @@ class AppRouter {
     };
 
     switch (role) {
-      case 'Doctor':
+      case AppRoles.doctor:
         return {
           ...commonRoutes,
           DoctorHomeScreen.routePath,
@@ -335,7 +270,7 @@ class AppRouter {
           DoctorPrescriptionHistoryScreen.routePath,
           DoctorPrescriptionDetailScreen.routePath,
         };
-      case 'Employee':
+      case AppRoles.employee:
       case 'Patient':
         return {
           ...commonRoutes,
@@ -347,7 +282,7 @@ class AppRouter {
           PatientDependentsScreen.routePath,
           EmployeeDoctorSearchScreen.routePath,
         };
-      case 'Pharmacist':
+      case AppRoles.pharmacist:
         return {
           ...commonRoutes,
           PharmacistHomeScreen.routePath,
@@ -357,37 +292,15 @@ class AppRouter {
           PharmacistDispenseConfirmScreen.routePath,
           PharmacistDispenseHistoryScreen.routePath,
         };
-      case 'Laboratory':
-        return {
-          ...commonRoutes,
-          LaboratoryHomeScreen.routePath,
-          LaboratoryRequestsScreen.routePath,
-          LaboratoryRequestDetailScreen.routePath,
-        };
-      case 'ImagingCenter':
-        return {
-          ...commonRoutes,
-          MedicalImagingCenterHomeScreen.routePath,
-          ImagingRequestsScreen.routePath,
-          ImagingRequestDetailScreen.routePath,
-        };
-      case 'MedicalCenter':
-        return {
-          ...commonRoutes,
-          MedicalCenterHomeScreen.routePath,
-          MedicalCenterRequestsScreen.routePath,
-          MedicalCenterRequestDetailScreen.routePath,
-        };
-      case 'InsuranceOfficer':
+      case AppRoles.insuranceOfficer:
         return {
           ...commonRoutes,
           InsuranceOfficerHomeScreen.routePath,
           InsuranceRequestsScreen.routePath,
           InsuranceReviewScreen.routePath,
-          InsuranceDecisionScreen.routePath,
           InsuranceCoverageCatalogScreen.routePath,
         };
-      case 'Admin':
+      case AppRoles.admin:
       default:
         return {
           ...commonRoutes,

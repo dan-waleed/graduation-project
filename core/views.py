@@ -10,6 +10,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from .models import (
+    LEGACY_PROVIDER_ROLES,
     AuditLog,
     Dependent,
     Dispense,
@@ -17,6 +18,7 @@ from .models import (
     Employee,
     InsuranceOfficer,
     InsuranceRequest,
+    InsuranceRequestStatus,
     Laboratory,
     Medication,
     MedicalCenter,
@@ -138,7 +140,7 @@ class UserViewSet(BaseOwnedModelViewSet):
     def get_queryset(self):
         user = self.request.user
         if user.role == "Admin" or user.is_superuser:
-            return self.queryset
+            return self.queryset.exclude(role__in=LEGACY_PROVIDER_ROLES)
         return self.queryset.filter(pk=user.pk)
 
 
@@ -447,8 +449,8 @@ class PrescriptionViewSet(BaseOwnedModelViewSet):
     }
     role_permissions = {
         "create": [UserRole.ADMIN, UserRole.DOCTOR],
-        "update": [UserRole.ADMIN, UserRole.DOCTOR, UserRole.LABORATORY, UserRole.IMAGING_CENTER, UserRole.MEDICAL_CENTER],
-        "partial_update": [UserRole.ADMIN, UserRole.DOCTOR, UserRole.LABORATORY, UserRole.IMAGING_CENTER, UserRole.MEDICAL_CENTER],
+        "update": [UserRole.ADMIN, UserRole.DOCTOR],
+        "partial_update": [UserRole.ADMIN, UserRole.DOCTOR],
         "destroy": [UserRole.ADMIN, UserRole.DOCTOR],
     }
 
@@ -462,12 +464,6 @@ class PrescriptionViewSet(BaseOwnedModelViewSet):
             return self.queryset.filter(doctor__user=user)
         if user.role == "Pharmacist":
             return self.queryset.filter(service_type="Medication", status__in=["Approved", "Dispensed"]).distinct()
-        if user.role == UserRole.LABORATORY:
-            return self.queryset.filter(service_type="LabTest").distinct()
-        if user.role == UserRole.IMAGING_CENTER:
-            return self.queryset.filter(service_type="Imaging").distinct()
-        if user.role == UserRole.MEDICAL_CENTER:
-            return self.queryset.filter(service_type__in=["Procedure", "Consultation"]).distinct()
         if user.role == "InsuranceOfficer":
             return self.queryset.filter(insurance_request__isnull=False).distinct()
         return self.queryset.none()
@@ -529,8 +525,8 @@ class InsuranceRequestViewSet(BaseOwnedModelViewSet):
     }
     role_permissions = {
         "create": [UserRole.ADMIN, UserRole.DOCTOR],
-        "update": [UserRole.ADMIN, UserRole.INSURANCE_OFFICER],
-        "partial_update": [UserRole.ADMIN, UserRole.INSURANCE_OFFICER],
+        "update": [UserRole.ADMIN],
+        "partial_update": [UserRole.ADMIN],
         "destroy": [UserRole.ADMIN],
     }
 
@@ -574,11 +570,14 @@ class InsuranceRequestViewSet(BaseOwnedModelViewSet):
 
     @transaction.atomic
     def perform_create(self, serializer):
-        insurance_request = serializer.save()
+        review_payload = {
+            "status": InsuranceRequestStatus.APPROVED,
+            "reviewed_at": timezone.now(),
+        }
+        insurance_request = serializer.save(**review_payload)
         prescription = insurance_request.prescription
-        if prescription.status == "Sent":
-            prescription.status = "PendingInsuranceApproval"
-            prescription.save(update_fields=["status", "updated_at"])
+        prescription.status = "Approved"
+        prescription.save(update_fields=["status", "updated_at"])
         self.log_action("Insurance request created", insurance_request)
         notify_insurance_updated(insurance_request)
 
