@@ -4,9 +4,6 @@ class AppRoles {
   static const employee = 'Employee';
   static const pharmacist = 'Pharmacist';
   static const insuranceOfficer = 'InsuranceOfficer';
-  static const laboratory = 'Laboratory';
-  static const imagingCenter = 'ImagingCenter';
-  static const medicalCenter = 'MedicalCenter';
 
   static const supportedRoles = <String>{
     admin,
@@ -54,12 +51,6 @@ String arabicRoleLabel(String role) {
       return 'الصيدلي';
     case AppRoles.insuranceOfficer:
       return 'موظف التأمين';
-    case AppRoles.laboratory:
-      return 'المختبر';
-    case AppRoles.imagingCenter:
-      return 'مركز التصوير الطبي';
-    case AppRoles.medicalCenter:
-      return 'المركز الطبي';
     default:
       return role;
   }

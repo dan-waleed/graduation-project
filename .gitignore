@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+.DS_Store
+
+# Local Python environment
+.venv/
+
+# Django runtime artifacts
+db.sqlite3
+media/
+staticfiles/
+
+# Flutter / Dart local tooling
+.dart_tool/
+build/

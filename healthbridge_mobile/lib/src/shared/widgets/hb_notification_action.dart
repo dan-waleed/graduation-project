@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import '../../features/common/presentation/screens/notifications_screen.dart';
-import '../../features/common/presentation/controller/notification_center_controller.dart';
+import '../../features/common/presentation/viewmodels/notification_center_view_model.dart';
+import '../../features/common/presentation/views/notifications_screen.dart';
 
 class HbNotificationAction extends StatefulWidget {
   const HbNotificationAction({super.key});
@@ -17,12 +17,12 @@ class _HbNotificationActionState extends State<HbNotificationAction> {
   @override
   void initState() {
     super.initState();
-    context.read<NotificationCenterController>().initialize();
+    context.read<NotificationCenterViewModel>().initialize();
   }
 
   @override
   Widget build(BuildContext context) {
-    final notificationCenter = context.watch<NotificationCenterController>();
+    final notificationCenter = context.watch<NotificationCenterViewModel>();
     final unreadCount = notificationCenter.unreadCount;
     return Stack(
       clipBehavior: Clip.none,

@@ -4,7 +4,6 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth import authenticate
 from django.db import transaction
 from django.utils import timezone
-from django.utils.text import slugify
 from rest_framework import serializers
 from drf_spectacular.utils import extend_schema_field
 
@@ -39,205 +38,17 @@ from .models import (
     SUPPORTED_USER_ROLES,
     UserRole,
 )
+from .services import (
+    DISPENSE_ALLOWED_TRANSITIONS,
+    INSURANCE_ALLOWED_TRANSITIONS,
+    PRESCRIPTION_ALLOWED_TRANSITIONS,
+    apply_coverage_calculations,
+    build_unique_username,
+    ensure_role_profile,
+    split_full_name,
+)
 
 User = get_user_model()
-
-
-def _split_full_name(full_name):
-    normalized = " ".join((full_name or "").split()).strip()
-    if not normalized:
-        return "", ""
-    parts = normalized.split(" ", 1)
-    if len(parts) == 1:
-        return parts[0], ""
-    return parts[0], parts[1]
-
-
-def _build_unique_username(email="", full_name="", fallback_prefix="employee"):
-    base = ""
-    if email:
-        base = email.split("@", 1)[0]
-    if not base and full_name:
-        base = slugify(full_name.replace(" ", ".")) or slugify(full_name) or fallback_prefix
-    base = base or fallback_prefix
-    candidate = base
-    suffix = 1
-    while User.objects.filter(username=candidate).exists():
-        suffix += 1
-        candidate = f"{base}{suffix}"
-    return candidate
-
-
-def _ensure_role_profile(user):
-    if user.role == "Admin":
-        return
-
-    if user.role == UserRole.EMPLOYEE:
-        Employee.objects.get_or_create(
-            user=user,
-            defaults={
-                "medical_record_number": f"MRN-{user.id:04d}",
-                "insurance_provider": "",
-                "address": "",
-            },
-        )
-        return
-
-    if user.role == "Doctor":
-        provider, _ = Provider.objects.get_or_create(
-            provider_name=f"Clinic {user.id:04d}",
-            provider_type=ProviderType.DOCTOR,
-            defaults={
-                "city": "",
-                "address": "",
-                "phone": "",
-                "google_maps_url": "",
-                "working_hours": "",
-                "contract_status": ContractStatus.ACTIVE,
-            },
-        )
-        Doctor.objects.get_or_create(
-            user=user,
-            defaults={
-                "license_number": f"DOC-{user.id:04d}",
-                "specialization": "عام",
-                "clinic_name": "عيادة HealthBridge",
-                "clinic_address": "",
-                "consultation_price": 0,
-                "contract_status": ContractStatus.ACTIVE,
-            },
-        )
-        return
-
-    if user.role == "InsuranceOfficer":
-        InsuranceOfficer.objects.get_or_create(
-            user=user,
-            defaults={
-                "organization_name": "قسم التأمين الصحي",
-                "employee_id": f"INS-{user.id:04d}",
-            },
-        )
-        return
-
-    if user.role == "Pharmacist":
-        pharmacy, _ = Pharmacy.objects.get_or_create(
-            license_number="PHA-DEFAULT-001",
-            defaults={
-                "name": "صيدلية النظام",
-                "address": "الفرع الرئيسي",
-                "phone_number": "",
-                "is_active": True,
-            },
-        )
-        Pharmacist.objects.get_or_create(
-            user=user,
-            defaults={
-                "pharmacy": pharmacy,
-                "license_number": f"PHARM-{user.id:04d}",
-            },
-        )
-        return
-
-    if user.role == UserRole.LABORATORY:
-        provider, _ = Provider.objects.get_or_create(
-            provider_name=f"Laboratory {user.id:04d}",
-            provider_type=ProviderType.LABORATORY,
-            defaults={"contract_status": ContractStatus.ACTIVE},
-        )
-        Laboratory.objects.get_or_create(
-            user=user,
-            defaults={
-                "provider": provider,
-                "license_number": f"LAB-{user.id:04d}",
-            },
-        )
-        return
-
-    if user.role == UserRole.IMAGING_CENTER:
-        provider, _ = Provider.objects.get_or_create(
-            provider_name=f"Imaging Center {user.id:04d}",
-            provider_type=ProviderType.IMAGING_CENTER,
-            defaults={"contract_status": ContractStatus.ACTIVE},
-        )
-        MedicalImagingCenter.objects.get_or_create(
-            user=user,
-            defaults={
-                "provider": provider,
-                "license_number": f"IMG-{user.id:04d}",
-            },
-        )
-        return
-
-    if user.role == UserRole.MEDICAL_CENTER:
-        provider, _ = Provider.objects.get_or_create(
-            provider_name=f"Medical Center {user.id:04d}",
-            provider_type=ProviderType.MEDICAL_CENTER,
-            defaults={"contract_status": ContractStatus.ACTIVE},
-        )
-        MedicalCenter.objects.get_or_create(
-            user=user,
-            defaults={
-                "provider": provider,
-                "license_number": f"MED-{user.id:04d}",
-            },
-        )
-
-
-PRESCRIPTION_ALLOWED_TRANSITIONS = {
-    PrescriptionStatus.DRAFT: {PrescriptionStatus.SENT, PrescriptionStatus.CANCELLED},
-    PrescriptionStatus.SENT: {
-        PrescriptionStatus.PENDING_EMPLOYEE_SELECTION,
-        PrescriptionStatus.PENDING_INSURANCE_APPROVAL,
-        PrescriptionStatus.APPROVED,
-        PrescriptionStatus.REJECTED,
-        PrescriptionStatus.CANCELLED,
-    },
-    PrescriptionStatus.PENDING_EMPLOYEE_SELECTION: {
-        PrescriptionStatus.PENDING_INSURANCE_APPROVAL,
-        PrescriptionStatus.APPROVED,
-        PrescriptionStatus.REJECTED,
-        PrescriptionStatus.CANCELLED,
-    },
-    PrescriptionStatus.PENDING_INSURANCE_APPROVAL: {
-        PrescriptionStatus.APPROVED,
-        PrescriptionStatus.REJECTED,
-        PrescriptionStatus.CANCELLED,
-    },
-    PrescriptionStatus.APPROVED: {
-        PrescriptionStatus.DISPENSED,
-        PrescriptionStatus.PERFORMED,
-        PrescriptionStatus.CANCELLED,
-        PrescriptionStatus.EXPIRED,
-    },
-    PrescriptionStatus.REJECTED: {PrescriptionStatus.SENT, PrescriptionStatus.CANCELLED},
-    PrescriptionStatus.DISPENSED: set(),
-    PrescriptionStatus.PERFORMED: set(),
-    PrescriptionStatus.CANCELLED: set(),
-    PrescriptionStatus.EXPIRED: set(),
-}
-
-
-INSURANCE_ALLOWED_TRANSITIONS = {
-    InsuranceRequestStatus.PENDING: {
-        InsuranceRequestStatus.APPROVED,
-        InsuranceRequestStatus.REJECTED,
-        InsuranceRequestStatus.NEEDS_UPDATE,
-    },
-    InsuranceRequestStatus.NEEDS_UPDATE: {
-        InsuranceRequestStatus.PENDING,
-        InsuranceRequestStatus.APPROVED,
-        InsuranceRequestStatus.REJECTED,
-    },
-    InsuranceRequestStatus.APPROVED: set(),
-    InsuranceRequestStatus.REJECTED: set(),
-}
-
-
-DISPENSE_ALLOWED_TRANSITIONS = {
-    DispenseStatus.PARTIAL: {DispenseStatus.COMPLETED, DispenseStatus.CANCELLED},
-    DispenseStatus.COMPLETED: set(),
-    DispenseStatus.CANCELLED: set(),
-}
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -294,7 +105,7 @@ class UserSerializer(serializers.ModelSerializer):
         else:
             user.set_unusable_password()
         user.save()
-        _ensure_role_profile(user)
+        ensure_role_profile(user)
         return user
 
     @transaction.atomic
@@ -310,8 +121,64 @@ class UserSerializer(serializers.ModelSerializer):
         if password:
             instance.set_password(password)
         instance.save()
-        _ensure_role_profile(instance)
+        ensure_role_profile(instance)
         return instance
+
+
+class UserUpdateSerializer(serializers.ModelSerializer):
+    """Simple serializer used for updating existing users."""
+
+    password = serializers.CharField(write_only=True, required=False, style={"input_type": "password"})
+
+    class Meta:
+        model = User
+        fields = (
+            "id",
+            "username",
+            "first_name",
+            "last_name",
+            "email",
+            "phone_number",
+            "role",
+            "is_active",
+            "is_staff",
+            "password",
+        )
+        read_only_fields = ("id",)
+
+    
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        password = validated_data.pop("password", None)
+        role = validated_data.get("role", instance.role)
+
+        if role == UserRole.ADMIN:
+            validated_data["is_staff"] = True
+        elif not instance.is_superuser:
+            validated_data["is_staff"] = False
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        if password:
+            instance.set_password(password)
+
+        instance.save()
+        ensure_role_profile(instance)
+        return instance
+    
+    def validate_role(self, value):
+        if value not in SUPPORTED_USER_ROLES:
+            raise serializers.ValidationError("هذا الدور لم يعد مدعومًا في النظام.")
+
+        if self.instance and self.instance.role == UserRole.ADMIN and value != UserRole.ADMIN:
+            raise serializers.ValidationError("لا يمكن تغيير دور مدير النظام الأساسي.")
+
+        if self.instance and self.instance.role != UserRole.ADMIN and value == UserRole.ADMIN:
+            raise serializers.ValidationError("لا يمكن ترقية أي مستخدم إلى مدير نظام جديد.")
+
+        return value
+
 
 
 class LoginRequestSerializer(serializers.Serializer):
@@ -399,10 +266,10 @@ class EmployeeCreateUserSerializer(serializers.Serializer):
             )
 
         if not attrs.get("username"):
-            attrs["username"] = _build_unique_username(email=email, full_name=full_name)
+            attrs["username"] = build_unique_username(email=email, full_name=full_name)
 
         if full_name and not first_name:
-            generated_first_name, generated_last_name = _split_full_name(full_name)
+            generated_first_name, generated_last_name = split_full_name(full_name)
             attrs["first_name"] = generated_first_name
             attrs["last_name"] = last_name or generated_last_name
 
@@ -410,6 +277,18 @@ class EmployeeCreateUserSerializer(serializers.Serializer):
             attrs["phone_number"] = attrs["phone"]
 
         return attrs
+
+
+class DoctorCreateUserSerializer(serializers.Serializer):
+    """Simple nested user payload for doctor create/update operations."""
+
+    username = serializers.CharField(required=False, allow_blank=False)
+    first_name = serializers.CharField(required=False, allow_blank=True)
+    last_name = serializers.CharField(required=False, allow_blank=True)
+    email = serializers.EmailField(required=False)
+    phone_number = serializers.CharField(required=False, allow_blank=True)
+    password = serializers.CharField(required=False, write_only=True, style={"input_type": "password"})
+    is_active = serializers.BooleanField(required=False)
 
 
 class EmployeeSerializer(serializers.ModelSerializer):
@@ -539,6 +418,7 @@ class EmployeeSerializer(serializers.ModelSerializer):
 class DoctorSerializer(serializers.ModelSerializer):
     """Serializer for doctor profiles."""
 
+    user = DoctorCreateUserSerializer(required=False)
     user_details = UserSerializer(source="user", read_only=True)
     provider_name = serializers.CharField(source="provider.provider_name", read_only=True)
     provider_city = serializers.CharField(source="provider.city", read_only=True)
@@ -571,6 +451,93 @@ class DoctorSerializer(serializers.ModelSerializer):
             "provider_city",
             "provider_address",
         )
+
+    def validate_user(self, value):
+        if isinstance(value, dict):
+            serializer = DoctorCreateUserSerializer(data=value)
+            serializer.is_valid(raise_exception=True)
+            return serializer.validated_data
+        if isinstance(value, User):
+            return value
+        if isinstance(value, int):
+            try:
+                return User.objects.get(pk=value)
+            except User.DoesNotExist as exc:
+                raise serializers.ValidationError("المستخدم المحدد غير موجود.") from exc
+        raise serializers.ValidationError("حقل user يجب أن يكون كائنًا أو معرف مستخدم صالحًا.")
+
+    @transaction.atomic
+    def create(self, validated_data):
+        user_payload = validated_data.pop("user", None)
+
+        if isinstance(user_payload, User):
+            user = user_payload
+        else:
+            user_data = dict(user_payload or {})
+            user_data["role"] = UserRole.DOCTOR
+            user_serializer = UserSerializer(data=user_data, context=self.context)
+            user_serializer.is_valid(raise_exception=True)
+            user = user_serializer.save()
+
+        doctor = Doctor.objects.create(user=user, **validated_data)
+        return doctor
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        user_data = validated_data.pop("user", None)
+        if isinstance(user_data, dict):
+            user = instance.user
+            for attr, value in user_data.items():
+                if attr not in {"username", "role"}:
+                    setattr(user, attr, value)
+            if user_data.get("password"):
+                user.set_password(user_data["password"])
+            user.save()
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        instance.save()
+        return instance
+
+
+class DoctorSerializerForPUT(serializers.ModelSerializer):
+    """Simple update serializer for doctor records."""
+
+    user = UserUpdateSerializer(required=False)
+
+    class Meta:
+        model = Doctor
+        fields = (
+            "id",
+            "user",
+            "license_number",
+            "specialization",
+            "clinic_name",
+            "clinic_address",
+            "consultation_price",
+            "contract_status",
+        )
+        read_only_fields = ("id",)
+
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        user_data = validated_data.pop("user", None)
+        if user_data:
+            user = instance.user
+            password = user_data.pop("password", None)
+            for attr, value in user_data.items():
+                if attr not in {"username", "role"}:
+                    setattr(user, attr, value)
+            if password:
+                user.set_password(password)
+            user.save()
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        instance.save()
+        return instance
 
 
 class ProviderSerializer(serializers.ModelSerializer):
@@ -942,50 +909,29 @@ class PrescriptionSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"items": "Only medication orders may include medication items."})
         return attrs
 
-    def _apply_coverage_calculations(self, payload):
-        service = payload.get("service")
-        provider = payload.get("provider")
-
-        if service is None:
-            return payload
-
-        provider_price = None
-        if provider is not None:
-            provider_price = ProviderServicePrice.objects.filter(
-                provider=provider,
-                service=service,
-                is_available=True,
-            ).first()
-
-        base_price = provider_price.price if provider_price is not None else service.default_price
-        coverage_percentage = (
-            provider_price.coverage_percentage if provider_price is not None else service.coverage_percentage
-        )
-        requires_approval = (
-            provider_price.requires_pre_approval
-            if provider_price is not None
-            else service.requires_insurance_approval
-        )
-        covered_amount = (base_price * coverage_percentage) / Decimal("100")
-        employee_share = base_price - covered_amount
-
-        payload.setdefault("final_price", base_price)
-        payload["coverage_percentage"] = coverage_percentage
-        payload["covered_amount"] = covered_amount
-        payload["employee_share"] = employee_share
-        payload["requires_insurance_approval"] = requires_approval
-        return payload
-
+    @transaction.atomic
     def create(self, validated_data):
         items_data = validated_data.pop("items", [])
-        validated_data = self._apply_coverage_calculations(validated_data)
+        validated_data = apply_coverage_calculations(validated_data)
         prescription = Prescription.objects.create(**validated_data)
-        for item_data in items_data:
-            PrescriptionItem.objects.create(prescription=prescription, **item_data)
+        self._replace_items(prescription, items_data)
         return prescription
 
+    @transaction.atomic
     def update(self, instance, validated_data):
         items_data = validated_data.pop("items", None)
+        validated_data = self._recalculate_coverage(instance, validated_data)
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        if items_data is not None:
+            self._replace_items(instance, items_data)
+
+        return instance
+
+    def _recalculate_coverage(self, instance, validated_data):
         merged_data = {
             "service": validated_data.get("service", instance.service),
             "provider": validated_data.get("provider", instance.provider),
@@ -998,7 +944,7 @@ class PrescriptionSerializer(serializers.ModelSerializer):
                 instance.requires_insurance_approval,
             ),
         }
-        recalculated = self._apply_coverage_calculations(merged_data)
+        recalculated = apply_coverage_calculations(merged_data)
         validated_data.update(
             {
                 "final_price": recalculated.get("final_price"),
@@ -1008,16 +954,15 @@ class PrescriptionSerializer(serializers.ModelSerializer):
                 "requires_insurance_approval": recalculated.get("requires_insurance_approval"),
             }
         )
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
-        instance.save()
+        return validated_data
 
-        if items_data is not None:
-            instance.items.all().delete()
-            for item_data in items_data:
-                PrescriptionItem.objects.create(prescription=instance, **item_data)
+    def _replace_items(self, prescription, items_data):
+        if items_data is None:
+            return
 
-        return instance
+        prescription.items.all().delete()
+        for item_data in items_data:
+            PrescriptionItem.objects.create(prescription=prescription, **item_data)
 
     @extend_schema_field({"type": "object"})
     def get_qr_payload(self, obj):
@@ -1142,7 +1087,14 @@ class DispenseSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         )
-        read_only_fields = ("id", "created_at", "updated_at", "prescription_number", "pharmacist_name")
+        read_only_fields = (
+            "id",
+            "created_at",
+            "updated_at",
+            "prescription_number",
+            "pharmacist",
+            "pharmacist_name",
+        )
 
     def validate(self, attrs):
         prescription = attrs.get("prescription", getattr(self.instance, "prescription", None))
@@ -1196,11 +1148,17 @@ class NotificationSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         is_read = validated_data.get("is_read")
+
         if is_read is True and instance.read_at is None:
             validated_data["read_at"] = timezone.now()
-        if is_read is False:
+        elif is_read is False:
             validated_data["read_at"] = None
-        return super().update(instance, validated_data)
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        instance.save()
+        return instance
 
 
 class AuditLogSerializer(serializers.ModelSerializer):

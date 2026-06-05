@@ -1,6 +1,11 @@
 import 'package:flutter/foundation.dart';
 
 class AppConfig {
+  static const bool enableLocalDemoMode = bool.fromEnvironment(
+    'ENABLE_LOCAL_DEMO_MODE',
+    defaultValue: false,
+  );
+
   static const String envApiBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
     defaultValue: '',

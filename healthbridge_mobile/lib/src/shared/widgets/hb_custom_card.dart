@@ -19,12 +19,20 @@ class HbCustomCard extends StatelessWidget {
     final content = Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(28),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.white,
+            AppTheme.surfaceAlt,
+          ],
+        ),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.primary.withValues(alpha: 0.08),
-            blurRadius: 22,
-            offset: const Offset(0, 10),
+            color: AppTheme.primary.withValues(alpha: 0.06),
+            blurRadius: 28,
+            offset: const Offset(0, 16),
           ),
         ],
         border: Border.all(color: AppTheme.border),
@@ -41,7 +49,7 @@ class HbCustomCard extends StatelessWidget {
 
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(28),
       child: content,
     );
   }

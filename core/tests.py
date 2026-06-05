@@ -1,5 +1,5 @@
-from importlib.util import find_spec
 
+from importlib.util import find_spec
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.utils import timezone
@@ -94,7 +94,7 @@ class HealthBridgeWorkflowTests(BaseAPITestCase):
             dosage_form="Capsule",
         )
 
-    def test_login_endpoint_returns_token_and_user(self):
+    def test_login_endpoint_rXeturns_token_and_user(self):
         response = self.client.post(
             reverse("api-login"),
             {"username": "doctor1", "password": "pass12345"},

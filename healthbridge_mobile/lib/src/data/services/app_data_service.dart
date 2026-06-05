@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 
+import '../../core/config/app_config.dart';
+import '../../core/errors/app_exception.dart';
 import '../../core/network/api_client.dart';
 import '../../shared/utils/app_roles.dart';
 import '../models/app_models.dart';
@@ -8,9 +10,12 @@ import '../models/user_model.dart';
 class AppDataService {
   AppDataService({
     required ApiClient apiClient,
-  }) : _apiClient = apiClient;
+    bool enableLocalDemoMode = AppConfig.enableLocalDemoMode,
+  })  : _apiClient = apiClient,
+        _enableLocalDemoMode = enableLocalDemoMode;
 
   ApiClient _apiClient;
+  final bool _enableLocalDemoMode;
   final List<NotificationModel> _debugNotifications = List<NotificationModel>.from(_buildDebugNotifications());
   final List<EmployeeModel> _debugEmployees = List<EmployeeModel>.from(_buildDebugEmployees());
   final List<MedicationModel> _debugMedications = List<MedicationModel>.from(_buildDebugMedications());
@@ -27,6 +32,9 @@ class AppDataService {
   void rebind(ApiClient apiClient) {
     _apiClient = apiClient;
   }
+
+  bool get _shouldUseDemoMode => _enableLocalDemoMode && _apiClient.isDemoToken;
+  bool get _allowLocalDemoFallback => _enableLocalDemoMode && kDebugMode;
 
   Map<String, dynamic> _normalizedDemoUserPayload(Map<String, dynamic> payload) {
     final nestedUser = payload['user'];
@@ -101,7 +109,7 @@ class AppDataService {
   }
 
   Future<List<NotificationModel>> getNotifications() async {
-    if (_apiClient.isDemoToken) {
+    if (_shouldUseDemoMode) {
       return List<NotificationModel>.from(_debugNotifications);
     }
 
@@ -113,7 +121,7 @@ class AppDataService {
           .toList();
       return _mergeWithDebugNotifications(notifications);
     } catch (_) {
-      if (kDebugMode) {
+      if (_allowLocalDemoFallback) {
         return List<NotificationModel>.from(_debugNotifications);
       }
       rethrow;
@@ -121,7 +129,7 @@ class AppDataService {
   }
 
   Future<List<NotificationModel>> getUnreadNotifications() async {
-    if (_apiClient.isDemoToken) {
+    if (_shouldUseDemoMode) {
       return _debugNotifications.where((item) => !item.isRead).toList();
     }
 
@@ -133,7 +141,7 @@ class AppDataService {
           .toList();
       return _mergeWithDebugNotifications(notifications.where((item) => !item.isRead).toList());
     } catch (_) {
-      if (kDebugMode) {
+      if (_allowLocalDemoFallback) {
         return _debugNotifications.where((item) => !item.isRead).toList();
       }
       rethrow;
@@ -141,7 +149,7 @@ class AppDataService {
   }
 
   Future<int> getUnreadNotificationCount() async {
-    if (_apiClient.isDemoToken) {
+    if (_shouldUseDemoMode) {
       return _debugNotifications.where((item) => !item.isRead).length;
     }
 
@@ -150,7 +158,7 @@ class AppDataService {
       final backendCount = response['count'] as int? ?? 0;
       return backendCount + _debugNotifications.where((item) => !item.isRead).length;
     } catch (_) {
-      if (kDebugMode) {
+      if (_allowLocalDemoFallback) {
         return _debugNotifications.where((item) => !item.isRead).length;
       }
       rethrow;
@@ -199,12 +207,12 @@ class AppDataService {
     try {
       await _apiClient.post('notifications/mark-all-read/', body: const {});
     } catch (_) {
-      if (!kDebugMode) rethrow;
+      if (!_allowLocalDemoFallback) rethrow;
     }
   }
 
   List<NotificationModel> _mergeWithDebugNotifications(List<NotificationModel> notifications) {
-    if (!kDebugMode) return notifications;
+    if (!_allowLocalDemoFallback) return notifications;
     return [..._debugNotifications, ...notifications];
   }
 
@@ -260,7 +268,7 @@ class AppDataService {
   }
 
   Future<List<EmployeeModel>> getEmployees() async {
-    if (_apiClient.isDemoToken) {
+    if (_shouldUseDemoMode) {
       return List<EmployeeModel>.from(_debugEmployees);
     }
 
@@ -269,7 +277,7 @@ class AppDataService {
       final employees = response.whereType<Map<String, dynamic>>().map(EmployeeModel.fromJson).toList();
       return _mergeWithDebugEmployees(employees);
     } catch (_) {
-      if (kDebugMode) {
+      if (_allowLocalDemoFallback) {
         return List<EmployeeModel>.from(_debugEmployees);
       }
       rethrow;
@@ -280,7 +288,7 @@ class AppDataService {
 
   Future<EmployeeModel> getEmployee(int id) async {
     final debugMatch = _debugEmployees.where((employee) => employee.id == id).toList();
-    if (debugMatch.isNotEmpty) {
+    if (_shouldUseDemoMode && debugMatch.isNotEmpty) {
       return debugMatch.first;
     }
 
@@ -309,7 +317,7 @@ class AppDataService {
   }) => getEmployeeByUser(username: username, email: email);
 
   Future<EmployeeModel> createEmployee(Map<String, dynamic> payload) async {
-    if (_apiClient.isDemoToken) {
+    if (_shouldUseDemoMode) {
       final userPayload = _normalizedDemoUserPayload(payload);
       final dependentPayloads = _normalizedDemoDependentsPayload(payload);
       final createdDependents = dependentPayloads.map((dependentPayload) {
@@ -365,7 +373,7 @@ class AppDataService {
 
   Future<EmployeeModel> updateEmployee(int id, Map<String, dynamic> payload) async {
     final debugIndex = _debugEmployees.indexWhere((item) => item.id == id);
-    if (debugIndex != -1) {
+    if (_shouldUseDemoMode && debugIndex != -1) {
       final current = _debugEmployees[debugIndex];
       final updated = EmployeeModel(
         id: current.id,
@@ -395,7 +403,7 @@ class AppDataService {
 
   Future<List<DependentModel>> getDependents({int? employeeId, int? patientId}) async {
     final selectedEmployeeId = employeeId ?? patientId;
-    if (_apiClient.isDemoToken) {
+    if (_shouldUseDemoMode) {
       if (selectedEmployeeId == null) {
         return List<DependentModel>.from(_debugDependents);
       }
@@ -412,7 +420,7 @@ class AppDataService {
       final response = await _apiClient.getList(endpoint);
       return response.whereType<Map<String, dynamic>>().map(DependentModel.fromJson).toList();
     } catch (_) {
-      if (kDebugMode) {
+      if (_allowLocalDemoFallback) {
         if (selectedEmployeeId == null) {
           return List<DependentModel>.from(_debugDependents);
         }
@@ -424,7 +432,7 @@ class AppDataService {
   }
 
   Future<DependentModel> createDependent(Map<String, dynamic> payload) async {
-    if (_apiClient.isDemoToken) {
+    if (_shouldUseDemoMode) {
       final dependent = DependentModel(
         id: DateTime.now().millisecondsSinceEpoch,
         fullName: payload['full_name'] as String? ?? 'مستفيد تجريبي',
@@ -451,7 +459,7 @@ class AppDataService {
 
   Future<DependentModel> updateDependent(int id, Map<String, dynamic> payload) async {
     final debugIndex = _debugDependents.indexWhere((item) => item.id == id);
-    if (debugIndex != -1) {
+    if (_shouldUseDemoMode && debugIndex != -1) {
       final current = _debugDependents[debugIndex];
       final updated = DependentModel(
         id: current.id,
@@ -475,7 +483,7 @@ class AppDataService {
   }
 
   Future<void> deleteDependent(int id) {
-    if (_apiClient.isDemoToken) {
+    if (_shouldUseDemoMode) {
       _debugDependents.removeWhere((item) => item.id == id);
       _removeDependentFromEmployees(id);
       return Future.value();
@@ -484,7 +492,7 @@ class AppDataService {
   }
 
   Future<List<MedicationModel>> getMedications() async {
-    if (_apiClient.isDemoToken) {
+    if (_shouldUseDemoMode) {
       return List<MedicationModel>.from(_debugMedications);
     }
 
@@ -496,7 +504,7 @@ class AppDataService {
           .toList();
       return _mergeWithDebugMedications(medications);
     } catch (_) {
-      if (kDebugMode) {
+      if (_allowLocalDemoFallback) {
         return List<MedicationModel>.from(_debugMedications);
       }
       rethrow;
@@ -510,8 +518,9 @@ class AppDataService {
   }) async {
     final normalizedCategory = category?.trim().toLowerCase();
     final normalizedProviderType = providerType?.trim().toLowerCase();
+    final normalizedCoverage = _normalizedDebugCoverageCatalog();
 
-    return _debugCoverageCatalog.where((item) {
+    return normalizedCoverage.where((item) {
       final matchesCategory = normalizedCategory == null ||
           normalizedCategory.isEmpty ||
           item.category.toLowerCase() == normalizedCategory;
@@ -527,7 +536,7 @@ class AppDataService {
     final medicationName = medication.name.trim().toLowerCase();
     final genericName = medication.genericName.trim().toLowerCase();
 
-    for (final item in _debugCoverageCatalog) {
+    for (final item in _normalizedDebugCoverageCatalog()) {
       if (item.category != 'Medication') continue;
       final itemTitle = item.title.trim().toLowerCase();
       final itemGeneric = item.genericName.trim().toLowerCase();
@@ -538,7 +547,104 @@ class AppDataService {
         return item;
       }
     }
-    return null;
+
+    return CoverageCatalogItemModel(
+      id: 7000 + medication.id,
+      code: 'MED-${medication.id}',
+      title: medication.name.isEmpty ? medication.genericName : medication.name,
+      category: 'Medication',
+      providerType: 'Pharmacy',
+      providerName: 'شبكة الصيدليات المتعاقدة',
+      unitPrice: _debugMedicationPrice(medication),
+      coveragePercentage: 70,
+      maxQuantity: 3,
+      requiresInsuranceApproval: medication.dosageForm == 'Injection',
+      isActive: true,
+      description: 'تغطية تلقائية لهذا الدواء.',
+      notes: 'تم تعيين سعر افتراضي ونسبة تغطية 70٪.',
+      genericName: medication.genericName,
+      strength: medication.strength,
+    );
+  }
+
+  List<CoverageCatalogItemModel> _normalizedDebugCoverageCatalog() {
+    final normalized = _debugCoverageCatalog.map((item) {
+      if (item.category == 'Medication' && item.providerType == 'Pharmacy') {
+        return _copyCoverageItem(
+          item,
+          coveragePercentage: 70,
+        );
+      }
+      return item;
+    }).toList();
+
+    final existingMedicationNames =
+        normalized.where((item) => item.category == 'Medication').map((item) => item.title.trim().toLowerCase()).toSet();
+
+    for (final medication in _debugMedications) {
+      if (existingMedicationNames.contains(medication.name.trim().toLowerCase())) {
+        continue;
+      }
+      normalized.add(
+        CoverageCatalogItemModel(
+          id: 7000 + medication.id,
+          code: 'MED-${medication.id}',
+          title: medication.name,
+          category: 'Medication',
+          providerType: 'Pharmacy',
+          providerName: 'شبكة الصيدليات المتعاقدة',
+          unitPrice: _debugMedicationPrice(medication),
+          coveragePercentage: 70,
+          maxQuantity: 3,
+          requiresInsuranceApproval: medication.dosageForm == 'Injection',
+          isActive: true,
+          description: 'تغطية دوائية افتراضية لهذا الصنف.',
+          notes: 'نسبة التغطية الموحدة للأدوية 70٪.',
+          genericName: medication.genericName,
+          strength: medication.strength,
+        ),
+      );
+    }
+
+    return normalized;
+  }
+
+  CoverageCatalogItemModel _copyCoverageItem(
+    CoverageCatalogItemModel item, {
+    double? coveragePercentage,
+  }) {
+    return CoverageCatalogItemModel(
+      id: item.id,
+      code: item.code,
+      title: item.title,
+      category: item.category,
+      providerType: item.providerType,
+      providerName: item.providerName,
+      unitPrice: item.unitPrice,
+      coveragePercentage: coveragePercentage ?? item.coveragePercentage,
+      maxQuantity: item.maxQuantity,
+      requiresInsuranceApproval: item.requiresInsuranceApproval,
+      isActive: item.isActive,
+      description: item.description,
+      notes: item.notes,
+      genericName: item.genericName,
+      strength: item.strength,
+    );
+  }
+
+  double _debugMedicationPrice(MedicationModel medication) {
+    switch (medication.dosageForm.trim()) {
+      case 'Injection':
+        return 45;
+      case 'Inhaler':
+        return 38;
+      case 'Capsule':
+        return 24;
+      case 'Tablet':
+        return 18;
+      default:
+        return 20;
+    }
   }
 
   Future<CoverageCatalogItemModel> createCoverageCatalogItem({
@@ -561,12 +667,12 @@ class AppDataService {
   }
 
   List<EmployeeModel> _mergeWithDebugEmployees(List<EmployeeModel> employees) {
-    if (!kDebugMode) return employees;
+    if (!_allowLocalDemoFallback) return employees;
     return [..._debugEmployees, ...employees];
   }
 
   List<MedicationModel> _mergeWithDebugMedications(List<MedicationModel> medications) {
-    if (!kDebugMode) return medications;
+    if (!_allowLocalDemoFallback) return medications;
     return [..._debugMedications, ...medications];
   }
 
@@ -1296,16 +1402,6 @@ class AppDataService {
         isActive: true,
       ),
       UserModel(
-        id: 9004,
-        username: 'pharmacist_demo',
-        email: 'pharmacy@healthbridge.test',
-        role: AppRoles.pharmacist,
-        firstName: 'Rami',
-        lastName: 'Nassar',
-        phoneNumber: '0599000004',
-        isActive: true,
-      ),
-      UserModel(
         id: 9005,
         username: 'insurance_demo',
         email: 'insurance@healthbridge.test',
@@ -1325,7 +1421,7 @@ class AppDataService {
     String providerName = '',
     bool activeOnly = false,
   }) async {
-    if (_apiClient.isDemoToken) {
+    if (_shouldUseDemoMode) {
       final normalizedName = name.trim().toLowerCase();
       final normalizedSpecialty = specialty.trim().toLowerCase();
       final normalizedCity = city.trim().toLowerCase();
@@ -1356,8 +1452,24 @@ class AppDataService {
     return response.whereType<Map<String, dynamic>>().map(DoctorDirectoryModel.fromJson).toList();
   }
 
+  Future<int> getDoctorProfileIdForUser(int userId) async {
+    if (_shouldUseDemoMode) {
+      if (userId == 9002 && _debugDoctors.isNotEmpty) {
+        return _debugDoctors.first.id;
+      }
+      throw const AppException('تعذر تحديد ملف الطبيب الحالي.');
+    }
+
+    final response = await _apiClient.getList('doctors/?user=$userId');
+    final doctors = response.whereType<Map<String, dynamic>>().toList();
+    if (doctors.isEmpty) {
+      throw const AppException('تعذر تحديد ملف الطبيب الحالي.');
+    }
+    return doctors.first['id'] as int;
+  }
+
   Future<List<PrescriptionModel>> getPrescriptions({String? status}) async {
-    if (_apiClient.isDemoToken) {
+    if (_shouldUseDemoMode) {
       return _filterDebugPrescriptions(status: status);
     }
 
@@ -1366,7 +1478,7 @@ class AppDataService {
       final response = await _apiClient.getList(endpoint);
       return response.whereType<Map<String, dynamic>>().map(PrescriptionModel.fromJson).toList();
     } catch (_) {
-      if (kDebugMode) {
+      if (_allowLocalDemoFallback) {
         return _filterDebugPrescriptions(status: status);
       }
       rethrow;
@@ -1374,7 +1486,7 @@ class AppDataService {
   }
 
   Future<List<PrescriptionModel>> searchPrescriptions(String query) async {
-    if (_apiClient.isDemoToken) {
+    if (_shouldUseDemoMode) {
       final normalizedQuery = query.trim().toLowerCase();
       return _debugPrescriptions.where((item) {
         if (normalizedQuery.isEmpty) return true;
@@ -1395,7 +1507,7 @@ class AppDataService {
 
   Future<PrescriptionModel> getPrescription(int id) async {
     final debugMatch = _debugPrescriptions.where((item) => item.id == id).toList();
-    if (debugMatch.isNotEmpty) {
+    if (_shouldUseDemoMode && debugMatch.isNotEmpty) {
       return debugMatch.first;
     }
 
@@ -1406,6 +1518,7 @@ class AppDataService {
   Future<PrescriptionModel> createPrescription({
     int? employeeId,
     int? patientId,
+    required int doctorId,
     int? dependentId,
     required String diagnosis,
     required String notes,
@@ -1425,7 +1538,7 @@ class AppDataService {
       throw ArgumentError('employeeId is required');
     }
 
-    if (_apiClient.isDemoToken) {
+    if (_shouldUseDemoMode) {
       final employee = _debugEmployees.firstWhere(
         (item) => item.id == selectedEmployeeId,
         orElse: () => _debugEmployees.first,
@@ -1437,9 +1550,9 @@ class AppDataService {
         employeeId: employee.id,
         employeeName: employee.fullName,
         employeeRecordNumber: employee.medicalRecordNumber,
-        doctorId: 9002,
+        doctorId: doctorId,
         doctorName: 'د. أحمد خليل',
-        status: status == 'Sent' && requiresInsuranceApproval ? 'PendingInsuranceApproval' : status,
+        status: status == 'Sent' ? 'Approved' : status,
         diagnosis: diagnosis,
         notes: notes,
         items: items.map((item) {
@@ -1471,6 +1584,9 @@ class AppDataService {
         validUntil: DateTime.now().add(const Duration(days: 14)),
       );
       _debugPrescriptions.insert(0, prescription);
+      if (status == 'Sent') {
+        _upsertAutoApprovedDebugInsuranceRequest(prescription);
+      }
       return prescription;
     }
 
@@ -1480,8 +1596,15 @@ class AppDataService {
       body: {
         'prescription_number': 'RX-$timestamp',
         'employee': selectedEmployeeId,
+        'doctor': doctorId,
         'beneficiary': dependentId,
+        'service_type': serviceType,
         'status': status,
+        'requires_insurance_approval': requiresInsuranceApproval,
+        'coverage_percentage': coveragePercentage,
+        'covered_amount': coveredAmount,
+        'employee_share': employeeShare,
+        'final_price': finalPrice,
         'diagnosis': diagnosis,
         'notes': notes,
         'issued_at': DateTime.now().toIso8601String(),
@@ -1498,7 +1621,7 @@ class AppDataService {
     double? finalPrice,
   }) async {
     final debugIndex = _debugPrescriptions.indexWhere((item) => item.id == id);
-    if (debugIndex != -1) {
+    if (_shouldUseDemoMode && debugIndex != -1) {
       final current = _debugPrescriptions[debugIndex];
       final updated = PrescriptionModel(
         id: current.id,
@@ -1508,7 +1631,7 @@ class AppDataService {
         employeeRecordNumber: current.employeeRecordNumber,
         doctorId: current.doctorId,
         doctorName: current.doctorName,
-        status: status,
+        status: status == 'Sent' ? 'Approved' : status,
         diagnosis: current.diagnosis,
         notes: current.notes,
         items: current.items,
@@ -1529,6 +1652,9 @@ class AppDataService {
         performedAt: status == 'Performed' ? DateTime.now() : current.performedAt,
       );
       _debugPrescriptions[debugIndex] = updated;
+      if (status == 'Sent') {
+        _upsertAutoApprovedDebugInsuranceRequest(updated);
+      }
       return updated;
     }
 
@@ -1553,6 +1679,41 @@ class AppDataService {
       return List<PrescriptionModel>.from(_debugPrescriptions);
     }
     return _debugPrescriptions.where((item) => item.status == status).toList();
+  }
+
+  void _upsertAutoApprovedDebugInsuranceRequest(PrescriptionModel prescription) {
+    final existingIndex =
+        _debugInsuranceRequests.indexWhere((item) => item.prescriptionId == prescription.id);
+    final request = InsuranceRequestModel(
+      id: existingIndex == -1
+          ? DateTime.now().millisecondsSinceEpoch
+          : _debugInsuranceRequests[existingIndex].id,
+      prescriptionId: prescription.id,
+      prescriptionNumber: prescription.prescriptionNumber,
+      employeeName: prescription.employeeName,
+      doctorName: prescription.doctorName,
+      status: 'Approved',
+      requestNumber: existingIndex == -1
+          ? 'INS-${prescription.prescriptionNumber}'
+          : _debugInsuranceRequests[existingIndex].requestNumber,
+      responseNotes: 'تمت الموافقة تلقائيًا من النظام.',
+      providerName: prescription.providerName,
+      serviceName: prescription.serviceName,
+      serviceType: prescription.serviceType,
+      totalPrice: prescription.finalPrice,
+      coveragePercentage: prescription.coveragePercentage,
+      coveredAmount: prescription.coveredAmount,
+      employeeShare: prescription.employeeShare,
+      prescriptionStatus: 'Approved',
+      beneficiaryName: prescription.beneficiaryName,
+      submittedAt: DateTime.now(),
+    );
+
+    if (existingIndex == -1) {
+      _debugInsuranceRequests.insert(0, request);
+    } else {
+      _debugInsuranceRequests[existingIndex] = request;
+    }
   }
 
   static List<PrescriptionModel> _buildDebugPrescriptions() {
@@ -1743,7 +1904,7 @@ class AppDataService {
   }
 
   Future<String> getPrescriptionQrSvg(int id) {
-    if (_apiClient.isDemoToken) {
+    if (_shouldUseDemoMode) {
       return Future.value(
         '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200">'
         '<rect width="200" height="200" fill="white"/>'
@@ -1758,7 +1919,7 @@ class AppDataService {
   }
 
   Future<List<InsuranceRequestModel>> getInsuranceRequests() async {
-    if (_apiClient.isDemoToken) {
+    if (_shouldUseDemoMode) {
       return List<InsuranceRequestModel>.from(_debugInsuranceRequests);
     }
 
@@ -1769,33 +1930,13 @@ class AppDataService {
   Future<InsuranceRequestModel> createInsuranceRequest({
     required int prescriptionId,
   }) async {
-    if (_apiClient.isDemoToken) {
+    if (_shouldUseDemoMode) {
       final prescription = _debugPrescriptions.firstWhere(
         (item) => item.id == prescriptionId,
         orElse: () => _debugPrescriptions.first,
       );
-      final request = InsuranceRequestModel(
-        id: DateTime.now().millisecondsSinceEpoch,
-        prescriptionId: prescription.id,
-        prescriptionNumber: prescription.prescriptionNumber,
-        employeeName: prescription.employeeName,
-        doctorName: prescription.doctorName,
-        status: 'Pending',
-        requestNumber: 'INS-${DateTime.now().millisecondsSinceEpoch}',
-        responseNotes: '',
-        providerName: prescription.providerName,
-        serviceName: prescription.serviceName,
-        serviceType: prescription.serviceType,
-        totalPrice: prescription.finalPrice,
-        coveragePercentage: prescription.coveragePercentage,
-        coveredAmount: prescription.coveredAmount,
-        employeeShare: prescription.employeeShare,
-        prescriptionStatus: prescription.status,
-        beneficiaryName: prescription.beneficiaryName,
-        submittedAt: DateTime.now(),
-      );
-      _debugInsuranceRequests.insert(0, request);
-      return request;
+      _upsertAutoApprovedDebugInsuranceRequest(prescription);
+      return _debugInsuranceRequests.firstWhere((item) => item.prescriptionId == prescription.id);
     }
 
     final timestamp = DateTime.now().millisecondsSinceEpoch;
@@ -1817,7 +1958,7 @@ class AppDataService {
     required String notes,
   }) async {
     final debugIndex = _debugInsuranceRequests.indexWhere((item) => item.id == id);
-    if (debugIndex != -1) {
+    if (_shouldUseDemoMode && debugIndex != -1) {
       final current = _debugInsuranceRequests[debugIndex];
       final updated = InsuranceRequestModel(
         id: current.id,
@@ -1893,7 +2034,7 @@ class AppDataService {
   }
 
   Future<List<DispenseModel>> getDispenses() async {
-    if (_apiClient.isDemoToken) {
+    if (_shouldUseDemoMode) {
       return List<DispenseModel>.from(_debugDispenses);
     }
 
@@ -1907,7 +2048,7 @@ class AppDataService {
     required String status,
     required String notes,
   }) async {
-    if (_apiClient.isDemoToken) {
+    if (_shouldUseDemoMode) {
       final prescription = _debugPrescriptions.firstWhere(
         (item) => item.id == prescriptionId,
         orElse: () => _debugPrescriptions.first,
@@ -1974,7 +2115,7 @@ class AppDataService {
   }
 
   Future<List<UserModel>> getUsers() async {
-    if (_apiClient.isDemoToken) {
+    if (_shouldUseDemoMode) {
       return List<UserModel>.from(_debugUsers);
     }
 
@@ -1983,7 +2124,7 @@ class AppDataService {
   }
 
   Future<UserModel> createUser(Map<String, dynamic> payload) async {
-    if (_apiClient.isDemoToken) {
+    if (_shouldUseDemoMode) {
       final user = UserModel(
         id: DateTime.now().millisecondsSinceEpoch,
         username: payload['username'] as String? ?? 'demo_user',
@@ -2004,7 +2145,7 @@ class AppDataService {
 
   Future<UserModel> updateUser(int id, Map<String, dynamic> payload) async {
     final debugIndex = _debugUsers.indexWhere((item) => item.id == id);
-    if (debugIndex != -1) {
+    if (_shouldUseDemoMode && debugIndex != -1) {
       final current = _debugUsers[debugIndex];
       final updated = UserModel(
         id: current.id,
@@ -2022,5 +2163,15 @@ class AppDataService {
 
     final response = await _apiClient.patch('users/$id/', body: payload);
     return UserModel.fromJson(response);
+  }
+
+  Future<void> deleteUser(int id) async {
+    final debugIndex = _debugUsers.indexWhere((item) => item.id == id);
+    if (_shouldUseDemoMode && debugIndex != -1) {
+      _debugUsers.removeAt(debugIndex);
+      return;
+    }
+
+    await _apiClient.delete('users/$id/');
   }
 }

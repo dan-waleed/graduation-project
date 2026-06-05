@@ -1,19 +1,23 @@
+import '../../core/config/app_config.dart';
 import '../../core/network/api_client.dart';
 import '../models/dashboard_summary_model.dart';
 
 class DashboardService {
   DashboardService({
     required ApiClient apiClient,
-  }) : _apiClient = apiClient;
+    bool enableLocalDemoMode = AppConfig.enableLocalDemoMode,
+  })  : _apiClient = apiClient,
+        _enableLocalDemoMode = enableLocalDemoMode;
 
   ApiClient _apiClient;
+  final bool _enableLocalDemoMode;
 
   void rebind(ApiClient apiClient) {
     _apiClient = apiClient;
   }
 
   Future<DashboardSummaryModel> fetchSummary() async {
-    if (_apiClient.isDemoToken) {
+    if (_enableLocalDemoMode && _apiClient.isDemoToken) {
       return _buildDemoSummary();
     }
 

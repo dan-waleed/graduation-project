@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../app/theme/app_theme.dart';
+import 'hb_bottom_nav.dart';
 import 'hb_university_brand.dart';
 
 class HbScaffold extends StatelessWidget {
@@ -39,13 +41,25 @@ class HbScaffold extends StatelessWidget {
         scrolledUnderElevation: 0,
       ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(18, 12, 18, 18),
-          child: body,
+        child: DecoratedBox(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                AppTheme.background,
+                AppTheme.surfaceAlt,
+              ],
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(18, 12, 18, 18),
+            child: body,
+          ),
         ),
       ),
       floatingActionButton: floatingActionButton,
-      bottomNavigationBar: bottomNavigationBar,
+      bottomNavigationBar: bottomNavigationBar ?? const HbBottomNav(),
     );
   }
 }

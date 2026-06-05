@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
-import '../features/auth/presentation/controller/auth_controller.dart';
+import '../features/auth/presentation/viewmodels/auth_view_model.dart';
 import 'router/app_router.dart';
 import 'theme/app_theme.dart';
 
@@ -19,12 +19,12 @@ class _HealthBridgeAppState extends State<HealthBridgeApp> {
   @override
   void initState() {
     super.initState();
-    _appRouter = AppRouter(context.read<AuthController>());
+    _appRouter = AppRouter(context.read<AuthViewModel>());
   }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<AuthController>(
+    return Consumer<AuthViewModel>(
       builder: (context, _, __) {
         return MaterialApp.router(
           title: 'هيلث بريدج',

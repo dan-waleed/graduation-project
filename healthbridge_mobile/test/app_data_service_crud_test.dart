@@ -6,7 +6,7 @@ import 'package:healthbridge_mobile/src/data/services/app_data_service.dart';
 
 AppDataService _createService() {
   final apiClient = ApiClient()..updateToken('demo-token-test-suite');
-  return AppDataService(apiClient: apiClient);
+  return AppDataService(apiClient: apiClient, enableLocalDemoMode: true);
 }
 
 void main() {

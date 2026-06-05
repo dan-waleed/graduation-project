@@ -3,8 +3,8 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../app/theme/app_theme.dart';
+import '../../data/repositories/dashboard_repository.dart';
 import '../../data/models/dashboard_summary_model.dart';
-import '../../data/services/dashboard_service.dart';
 import 'hb_empty_state.dart';
 import 'hb_section_card.dart';
 import 'hb_stat_card.dart';
@@ -30,7 +30,7 @@ class _HbDashboardOverviewState extends State<HbDashboardOverview> {
   @override
   void initState() {
     super.initState();
-    _summaryFuture = context.read<DashboardService>().fetchSummary();
+    _summaryFuture = context.read<DashboardRepository>().fetchSummary();
   }
 
   @override
@@ -183,21 +183,33 @@ class _ActivityTile extends StatelessWidget {
         : DateFormat('yyyy/MM/dd - HH:mm').format(activity.createdAt!.toLocal());
 
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(22),
         border: Border.all(color: AppTheme.border),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.primary.withValues(alpha: 0.04),
+            blurRadius: 18,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 40,
-            height: 40,
+            width: 48,
+            height: 48,
             decoration: BoxDecoration(
-              color: AppTheme.primary.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(12),
+              gradient: LinearGradient(
+                colors: [
+                  AppTheme.primary.withValues(alpha: 0.16),
+                  AppTheme.secondary.withValues(alpha: 0.10),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(16),
             ),
             child: const Icon(
               Icons.history_rounded,

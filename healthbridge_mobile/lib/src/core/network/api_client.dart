@@ -120,11 +120,11 @@ class ApiClient {
         return await action(candidate).timeout(_requestTimeout);
       } on TimeoutException {
         lastError = AppException(
-          'انتهت مهلة الاتصال بالخادم. تمّت المحاولة عبر: ${AppConfig.candidateBaseUrls.join(", ")}. تأكد من أن خادم Django يعمل ويمكن الوصول إليه من هذا الجهاز.',
+          'انتهت مهلة الاتصال بالخادم. يرجى المحاولة مرة أخرى.',
         );
       } on http.ClientException {
         lastError = AppException(
-          'تعذر الوصول إلى الخادم. تمّت المحاولة عبر: ${AppConfig.candidateBaseUrls.join(", ")}. إذا كنت تستخدم هاتفًا حقيقيًا، فيجب استخدام عنوان الشبكة المحلي لجهازك.',
+          'تعذر الوصول إلى الخادم. يرجى المحاولة مرة أخرى.',
         );
       }
     }

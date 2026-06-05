@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import '../../core/config/app_config.dart';
 import '../../core/network/api_client.dart';
 import '../models/session_model.dart';
 import '../models/user_model.dart';
@@ -10,11 +11,14 @@ class AuthService {
   AuthService({
     required ApiClient apiClient,
     required TokenStorage tokenStorage,
+    bool enableLocalDemoMode = AppConfig.enableLocalDemoMode,
   })  : _apiClient = apiClient,
-        _tokenStorage = tokenStorage;
+        _tokenStorage = tokenStorage,
+        _enableLocalDemoMode = enableLocalDemoMode;
 
   ApiClient _apiClient;
   TokenStorage _tokenStorage;
+  final bool _enableLocalDemoMode;
 
   void rebind({
     required ApiClient apiClient,
@@ -28,29 +32,32 @@ class AuthService {
     required String username,
     required String password,
   }) async {
-    final demoSession = _tryDemoLogin(username: username, password: password);
-    if (demoSession != null) {
-      _apiClient.updateToken(demoSession.token);
-      await _tokenStorage.saveSession(demoSession);
-      return demoSession;
+    try {
+      final response = await _apiClient.post(
+        'auth/login/',
+        body: {
+          'username': username,
+          'password': password,
+        },
+      );
+
+      final session = SessionModel(
+        token: response['token'] as String,
+        user: UserModel.fromJson(response['user'] as Map<String, dynamic>),
+      );
+
+      _apiClient.updateToken(session.token);
+      await _tokenStorage.saveSession(session);
+      return session;
+    } catch (_) {
+      final demoSession = _tryDemoLogin(username: username, password: password);
+      if (demoSession != null) {
+        _apiClient.updateToken(demoSession.token);
+        await _tokenStorage.saveSession(demoSession);
+        return demoSession;
+      }
+      rethrow;
     }
-
-    final response = await _apiClient.post(
-      'auth/login/',
-      body: {
-        'username': username,
-        'password': password,
-      },
-    );
-
-    final session = SessionModel(
-      token: response['token'] as String,
-      user: UserModel.fromJson(response['user'] as Map<String, dynamic>),
-    );
-
-    _apiClient.updateToken(session.token);
-    await _tokenStorage.saveSession(session);
-    return session;
   }
 
   Future<SessionModel?> restoreSession() async {
@@ -99,7 +106,7 @@ class AuthService {
     required String username,
     required String password,
   }) {
-    if (!kDebugMode) return null;
+    if (!_enableLocalDemoMode || !kDebugMode) return null;
 
     final normalizedUsername = username.trim().toLowerCase();
     for (final account in _demoAccounts) {
@@ -172,7 +179,7 @@ const List<_DemoAuthAccount> _demoAccounts = [
     user: UserModel(
       id: 9004,
       username: 'pharmacist_demo',
-      email: 'pharmacy@healthbridge.test',
+      email: 'pharmacist@healthbridge.test',
       role: AppRoles.pharmacist,
       firstName: 'Rami',
       lastName: 'Nassar',
