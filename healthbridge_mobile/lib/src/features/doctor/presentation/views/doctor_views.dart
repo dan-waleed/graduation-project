@@ -41,14 +41,15 @@ class DoctorHomeScreen extends StatelessWidget {
           final actionWidth = constraints.maxWidth > 960
               ? (constraints.maxWidth - 24) / 3
               : constraints.maxWidth > 620
-                  ? (constraints.maxWidth - 12) / 2
-                  : constraints.maxWidth;
+              ? (constraints.maxWidth - 12) / 2
+              : constraints.maxWidth;
 
           return ListView(
             children: [
               const HbDashboardOverview(
                 recentTitle: 'آخر الوصفات',
-                emptyMessage: 'ستظهر هنا الوصفات الحديثة التي قمت بإنشائها أو إرسالها.',
+                emptyMessage:
+                    'ستظهر هنا الوصفات الحديثة التي قمت بإنشائها أو إرسالها.',
               ),
               const SizedBox(height: 16),
               Text(
@@ -64,9 +65,11 @@ class DoctorHomeScreen extends StatelessWidget {
                     width: actionWidth,
                     child: HbQuickActionCard(
                       title: 'البحث عن مريض',
-                      subtitle: 'الوصول السريع إلى بيانات الموظفين الجامعيين والمستفيدين',
+                      subtitle:
+                          'الوصول السريع إلى بيانات الموظفين الجامعيين والمستفيدين',
                       icon: Icons.search_rounded,
-                      onTap: () => context.push(DoctorPatientSearchScreen.routePath),
+                      onTap: () =>
+                          context.push(DoctorPatientSearchScreen.routePath),
                     ),
                   ),
                   SizedBox(
@@ -75,7 +78,9 @@ class DoctorHomeScreen extends StatelessWidget {
                       title: 'إنشاء وصفة جديدة',
                       subtitle: 'بدء وصفة طبية إلكترونية جديدة',
                       icon: Icons.note_add_rounded,
-                      onTap: () => context.push(DoctorPrescriptionCreateScreen.routePath),
+                      onTap: () => context.push(
+                        DoctorPrescriptionCreateScreen.routePath,
+                      ),
                     ),
                   ),
                   SizedBox(
@@ -84,7 +89,9 @@ class DoctorHomeScreen extends StatelessWidget {
                       title: 'الوصفات السابقة',
                       subtitle: 'استعراض سجل الوصفات السابقة',
                       icon: Icons.history_rounded,
-                      onTap: () => context.push(DoctorPrescriptionHistoryScreen.routePath),
+                      onTap: () => context.push(
+                        DoctorPrescriptionHistoryScreen.routePath,
+                      ),
                     ),
                   ),
                   SizedBox(
@@ -113,14 +120,13 @@ class DoctorPatientSearchScreen extends StatefulWidget {
   static const routePath = '/doctor/patients';
 
   @override
-  State<DoctorPatientSearchScreen> createState() => _DoctorPatientSearchScreenState();
+  State<DoctorPatientSearchScreen> createState() =>
+      _DoctorPatientSearchScreenState();
 }
 
 class _DoctorPatientSearchScreenState extends State<DoctorPatientSearchScreen> {
   static const _patientFilterOptions = [
     HbFilterOption(value: 'الكل', label: 'الكل'),
-    HbFilterOption(value: 'لديه تأمين', label: 'لديه تأمين'),
-    HbFilterOption(value: 'بدون تأمين', label: 'بدون تأمين'),
   ];
 
   final _searchController = TextEditingController();
@@ -155,17 +161,14 @@ class _DoctorPatientSearchScreenState extends State<DoctorPatientSearchScreen> {
           final patients = snapshot.data ?? const [];
           final normalizedQuery = _query.trim().toLowerCase();
           final filteredPatients = patients.where((patient) {
-            final matchesSearch = normalizedQuery.isEmpty ||
+            final matchesSearch =
+                normalizedQuery.isEmpty ||
                 patient.fullName.toLowerCase().contains(normalizedQuery) ||
-                patient.medicalRecordNumber.toLowerCase().contains(normalizedQuery);
+                patient.medicalRecordNumber.toLowerCase().contains(
+                  normalizedQuery,
+                );
 
-            final hasInsurance = patient.insuranceProvider.trim().isNotEmpty;
-            final matchesFilter = switch (_selectedFilter) {
-              'لديه تأمين' => hasInsurance,
-              'بدون تأمين' => !hasInsurance,
-              _ => true,
-            };
-            return matchesSearch && matchesFilter;
+            return matchesSearch;
           }).toList();
 
           return ListView(
@@ -191,7 +194,8 @@ class _DoctorPatientSearchScreenState extends State<DoctorPatientSearchScreen> {
               if (filteredPatients.isEmpty)
                 const HbEmptyState(
                   title: 'لا توجد نتائج',
-                  message: 'لم يتم العثور على موظفين جامعيين مطابقين للبحث أو الفلتر الحالي.',
+                  message:
+                      'لم يتم العثور على موظفين جامعيين مطابقين للبحث أو الفلتر الحالي.',
                 )
               else
                 ...filteredPatients.map(
@@ -207,10 +211,11 @@ class _DoctorPatientSearchScreenState extends State<DoctorPatientSearchScreen> {
                             radius: 24,
                             backgroundColor: const Color(0x122D8CFF),
                             child: Text(
-                              patient.fullName.isEmpty ? '-' : patient.fullName.characters.first,
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    color: const Color(0xFF2D8CFF),
-                                  ),
+                              patient.fullName.isEmpty
+                                  ? '-'
+                                  : patient.fullName.characters.first,
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(color: const Color(0xFF2D8CFF)),
                             ),
                           ),
                           const SizedBox(width: 14),
@@ -220,22 +225,22 @@ class _DoctorPatientSearchScreenState extends State<DoctorPatientSearchScreen> {
                               children: [
                                 Text(
                                   patient.fullName,
-                                  style: Theme.of(context).textTheme.titleMedium,
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.titleMedium,
                                 ),
                                 const SizedBox(height: 6),
                                 Text(
                                   'رقم الملف الطبي: ${patient.medicalRecordNumber}',
                                   style: Theme.of(context).textTheme.bodySmall,
                                 ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  'جهة التأمين: ${patient.insuranceProvider.isEmpty ? "غير محدد" : patient.insuranceProvider}',
-                                  style: Theme.of(context).textTheme.bodySmall,
-                                ),
                               ],
                             ),
                           ),
-                          const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
+                          const Icon(
+                            Icons.arrow_back_ios_new_rounded,
+                            size: 18,
+                          ),
                         ],
                       ),
                     ),
@@ -250,10 +255,7 @@ class _DoctorPatientSearchScreenState extends State<DoctorPatientSearchScreen> {
 }
 
 class DoctorPatientDetailScreen extends StatelessWidget {
-  const DoctorPatientDetailScreen({
-    super.key,
-    this.patientId,
-  });
+  const DoctorPatientDetailScreen({super.key, this.patientId});
 
   static const routeName = 'doctor-patient-detail';
   static const routePath = '/doctor/patient-detail';
@@ -273,7 +275,9 @@ class DoctorPatientDetailScreen extends StatelessWidget {
           : FutureBuilder<List<dynamic>>(
               future: Future.wait([
                 context.read<AppRepository>().getEmployee(patientId!),
-                context.read<AppRepository>().getDependents(employeeId: patientId),
+                context.read<AppRepository>().getDependents(
+                  employeeId: patientId,
+                ),
                 context.read<AppRepository>().getPrescriptions(),
               ]),
               builder: (context, snapshot) {
@@ -290,10 +294,11 @@ class DoctorPatientDetailScreen extends StatelessWidget {
 
                 final patient = snapshot.data![0] as EmployeeModel;
                 final dependents = snapshot.data![1] as List<DependentModel>;
-                final prescriptions = (snapshot.data![2] as List<PrescriptionModel>)
-                    .where((item) => item.patientId == patient.id)
-                    .take(3)
-                    .toList();
+                final prescriptions =
+                    (snapshot.data![2] as List<PrescriptionModel>)
+                        .where((item) => item.patientId == patient.id)
+                        .take(3)
+                        .toList();
 
                 return ListView(
                   children: [
@@ -302,12 +307,35 @@ class DoctorPatientDetailScreen extends StatelessWidget {
                       subtitle: patient.fullName,
                       child: Column(
                         children: [
-                          HbInfoRow(label: 'رقم الملف الطبي', value: patient.medicalRecordNumber),
-                          HbInfoRow(label: 'البريد الإلكتروني', value: patient.email.isEmpty ? 'غير متوفر' : patient.email),
-                          HbInfoRow(label: 'رقم الهاتف', value: patient.phoneNumber.isEmpty ? 'غير متوفر' : patient.phoneNumber),
-                          HbInfoRow(label: 'جهة التأمين', value: patient.insuranceProvider.isEmpty ? 'غير محدد' : patient.insuranceProvider),
-                          HbInfoRow(label: 'تاريخ الميلاد', value: _formatDate(patient.dateOfBirth, fallback: 'غير محدد')),
-                          HbInfoRow(label: 'العنوان', value: patient.address.isEmpty ? 'غير متوفر' : patient.address),
+                          HbInfoRow(
+                            label: 'رقم الملف الطبي',
+                            value: patient.medicalRecordNumber,
+                          ),
+                          HbInfoRow(
+                            label: 'البريد الإلكتروني',
+                            value: patient.email.isEmpty
+                                ? 'غير متوفر'
+                                : patient.email,
+                          ),
+                          HbInfoRow(
+                            label: 'رقم الهاتف',
+                            value: patient.phoneNumber.isEmpty
+                                ? 'غير متوفر'
+                                : patient.phoneNumber,
+                          ),
+                          HbInfoRow(
+                            label: 'تاريخ الميلاد',
+                            value: _formatDate(
+                              patient.dateOfBirth,
+                              fallback: 'غير محدد',
+                            ),
+                          ),
+                          HbInfoRow(
+                            label: 'العنوان',
+                            value: patient.address.isEmpty
+                                ? 'غير متوفر'
+                                : patient.address,
+                          ),
                         ],
                       ),
                     ),
@@ -316,7 +344,9 @@ class DoctorPatientDetailScreen extends StatelessWidget {
                       title: 'الوصفات السابقة',
                       subtitle: 'آخر الطلبات الطبية المسجلة للموظف داخل النظام',
                       child: prescriptions.isEmpty
-                          ? const Text('لا توجد طلبات طبية سابقة لهذا الموظف الجامعي.')
+                          ? const Text(
+                              'لا توجد طلبات طبية سابقة لهذا الموظف الجامعي.',
+                            )
                           : Column(
                               children: prescriptions.map((prescription) {
                                 return Padding(
@@ -328,25 +358,39 @@ class DoctorPatientDetailScreen extends StatelessWidget {
                                     padding: const EdgeInsets.all(14),
                                     child: Row(
                                       children: [
-                                        const Icon(Icons.description_outlined, color: Color(0xFF2D8CFF)),
+                                        const Icon(
+                                          Icons.description_outlined,
+                                          color: Color(0xFF2D8CFF),
+                                        ),
                                         const SizedBox(width: 10),
                                         Expanded(
                                           child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
                                             children: [
                                               Text(
-                                                prescription.diagnosis.isEmpty ? 'وصفة طبية' : prescription.diagnosis,
-                                                style: Theme.of(context).textTheme.titleMedium,
+                                                prescription.diagnosis.isEmpty
+                                                    ? 'وصفة طبية'
+                                                    : prescription.diagnosis,
+                                                style: Theme.of(
+                                                  context,
+                                                ).textTheme.titleMedium,
                                               ),
                                               const SizedBox(height: 4),
                                               Text(
-                                                _formatDate(prescription.issuedAt),
-                                                style: Theme.of(context).textTheme.bodySmall,
+                                                _formatDate(
+                                                  prescription.issuedAt,
+                                                ),
+                                                style: Theme.of(
+                                                  context,
+                                                ).textTheme.bodySmall,
                                               ),
                                             ],
                                           ),
                                         ),
-                                        HbStatusChip(statusLabel(prescription.status)),
+                                        HbStatusChip(
+                                          statusLabel(prescription.status),
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -358,7 +402,9 @@ class DoctorPatientDetailScreen extends StatelessWidget {
                     HbSectionCard(
                       title: 'المستفيدون / المعالون',
                       child: dependents.isEmpty
-                          ? const Text('لا يوجد مستفيدون مسجلون لهذا الموظف الجامعي.')
+                          ? const Text(
+                              'لا يوجد مستفيدون مسجلون لهذا الموظف الجامعي.',
+                            )
                           : Column(
                               children: dependents.map((dependent) {
                                 return ListTile(
@@ -388,10 +434,7 @@ class DoctorPatientDetailScreen extends StatelessWidget {
 }
 
 class DoctorPrescriptionCreateScreen extends StatelessWidget {
-  const DoctorPrescriptionCreateScreen({
-    super.key,
-    this.patientId,
-  });
+  const DoctorPrescriptionCreateScreen({super.key, this.patientId});
 
   static const routeName = 'doctor-prescription-create';
   static const routePath = '/doctor/prescriptions/create';
@@ -479,31 +522,24 @@ class _PrescriptionCoverageSummary {
 }
 
 class _DoctorPrescriptionCreateForm extends StatefulWidget {
-  const _DoctorPrescriptionCreateForm({
-    required this.patientId,
-  });
+  const _DoctorPrescriptionCreateForm({required this.patientId});
 
   final int? patientId;
 
   @override
-  State<_DoctorPrescriptionCreateForm> createState() => _DoctorPrescriptionCreateFormState();
+  State<_DoctorPrescriptionCreateForm> createState() =>
+      _DoctorPrescriptionCreateFormState();
 }
 
-class _DoctorPrescriptionCreateFormState extends State<_DoctorPrescriptionCreateForm> {
-  static const _requestTypes = [
-    'Medication',
-  ];
-
+class _DoctorPrescriptionCreateFormState
+    extends State<_DoctorPrescriptionCreateForm> {
   final _diagnosisController = TextEditingController();
   final _notesController = TextEditingController();
-  final _serviceQuantityController = TextEditingController(text: '1');
   bool _isSubmitting = false;
   int? _selectedPatientId;
   int? _selectedDependentId;
   List<DependentModel> _currentDependents = const [];
   final List<_DraftPrescriptionItem> _items = [];
-  String _selectedRequestType = 'Medication';
-  CoverageCatalogItemModel? _selectedServiceCoverageItem;
   late final Future<List<dynamic>> _formSetupFuture;
   bool _didLoadInitialDependents = false;
 
@@ -513,7 +549,7 @@ class _DoctorPrescriptionCreateFormState extends State<_DoctorPrescriptionCreate
     _selectedPatientId = widget.patientId;
     _formSetupFuture = Future.wait([
       context.read<AppRepository>().getEmployees(),
-      context.read<AppRepository>().getCoverageCatalog(),
+      context.read<AppRepository>().getCoverageCatalog(category: 'Medication'),
     ]);
 
     if (widget.patientId != null) {
@@ -526,7 +562,6 @@ class _DoctorPrescriptionCreateFormState extends State<_DoctorPrescriptionCreate
   void dispose() {
     _diagnosisController.dispose();
     _notesController.dispose();
-    _serviceQuantityController.dispose();
     super.dispose();
   }
 
@@ -539,54 +574,36 @@ class _DoctorPrescriptionCreateFormState extends State<_DoctorPrescriptionCreate
       return;
     }
 
-    final dependents = await context.read<AppRepository>().getDependents(employeeId: patientId);
+    final dependents = await context.read<AppRepository>().getDependents(
+      employeeId: patientId,
+    );
     if (!mounted) return;
     setState(() {
       _currentDependents = dependents;
-      final stillValid = dependents.any((item) => item.id == _selectedDependentId);
+      final stillValid = dependents.any(
+        (item) => item.id == _selectedDependentId,
+      );
       if (!stillValid) {
         _selectedDependentId = null;
       }
     });
   }
 
-  int _parseRequestedQuantity(String rawValue, {int fallback = 1}) {
-    final normalized = rawValue.trim();
-    if (normalized.isEmpty) return fallback;
-
-    final match = RegExp(r'\d+').firstMatch(normalized);
-    final parsed = int.tryParse(match?.group(0) ?? '');
-    if (parsed == null || parsed <= 0) {
-      return fallback;
-    }
-    return parsed;
-  }
-
-  void _syncCoverageSelection(List<CoverageCatalogItemModel> coverageItems) {
-    if (_selectedRequestType == 'Medication') {
-      _selectedServiceCoverageItem = null;
-      return;
-    }
-
-    if (coverageItems.isEmpty) {
-      _selectedServiceCoverageItem = null;
-      return;
-    }
-
-    final hasCurrentSelection = coverageItems.any(
-      (item) => item.id == _selectedServiceCoverageItem?.id,
-    );
-    if (!hasCurrentSelection) {
-      _selectedServiceCoverageItem = coverageItems.first;
-    }
-  }
-
   _PrescriptionCoverageSummary? _buildMedicationCoverageSummary() {
     if (_items.isEmpty) return null;
 
-    final totalPrice = _items.fold<double>(0, (sum, item) => sum + item.totalPrice);
-    final coveredAmount = _items.fold<double>(0, (sum, item) => sum + item.coveredAmount);
-    final employeeShare = _items.fold<double>(0, (sum, item) => sum + item.employeeShare);
+    final totalPrice = _items.fold<double>(
+      0,
+      (sum, item) => sum + item.totalPrice,
+    );
+    final coveredAmount = _items.fold<double>(
+      0,
+      (sum, item) => sum + item.coveredAmount,
+    );
+    final employeeShare = _items.fold<double>(
+      0,
+      (sum, item) => sum + item.employeeShare,
+    );
     final providerNames = _items
         .map((item) => item.providerName.trim())
         .where((name) => name.isNotEmpty)
@@ -601,32 +618,19 @@ class _DoctorPrescriptionCreateFormState extends State<_DoctorPrescriptionCreate
       totalPrice: totalPrice,
       coveredAmount: coveredAmount,
       employeeShare: employeeShare,
-      coveragePercentage: totalPrice == 0 ? 0 : (coveredAmount / totalPrice) * 100,
-      requiresInsuranceApproval: _items.any((item) => item.requiresInsuranceApproval),
-      providerName: providerNames.length == 1 ? providerNames.first : 'أكثر من شبكة دوائية',
+      coveragePercentage: totalPrice == 0
+          ? 0
+          : (coveredAmount / totalPrice) * 100,
+      requiresInsuranceApproval: _items.any(
+        (item) => item.requiresInsuranceApproval,
+      ),
+      providerName: providerNames.length == 1
+          ? providerNames.first
+          : 'أكثر من شبكة دوائية',
       serviceName: _items.length == 1
           ? _items.first.serviceName
           : 'وصفة دوائية (${_items.length} أصناف)',
       coverageNotes: coverageNotes,
-    );
-  }
-
-  _PrescriptionCoverageSummary? _buildSelectedServiceSummary() {
-    final item = _selectedServiceCoverageItem;
-    if (item == null) return null;
-
-    final requestedQuantity = _parseRequestedQuantity(_serviceQuantityController.text);
-    final totalPrice = item.unitPrice * requestedQuantity;
-
-    return _PrescriptionCoverageSummary(
-      totalPrice: totalPrice,
-      coveredAmount: item.coveredAmountFor(totalPrice),
-      employeeShare: item.employeeShareFor(totalPrice),
-      coveragePercentage: item.coveragePercentage,
-      requiresInsuranceApproval: item.requiresInsuranceApproval,
-      providerName: item.providerName,
-      serviceName: item.title,
-      coverageNotes: item.notes,
     );
   }
 
@@ -646,18 +650,31 @@ class _DoctorPrescriptionCreateFormState extends State<_DoctorPrescriptionCreate
             HbInfoRow(label: 'الخدمة', value: summary.serviceName),
             HbInfoRow(
               label: 'الجهة المنفذة',
-              value: summary.providerName.isEmpty ? 'غير محددة' : summary.providerName,
+              value: summary.providerName.isEmpty
+                  ? 'غير محددة'
+                  : summary.providerName,
             ),
-            HbInfoRow(label: 'السعر الإجمالي', value: _formatCurrency(summary.totalPrice)),
+            HbInfoRow(
+              label: 'السعر الإجمالي',
+              value: _formatCurrency(summary.totalPrice),
+            ),
             HbInfoRow(
               label: 'نسبة التغطية',
               value: '${summary.coveragePercentage.toStringAsFixed(0)}%',
             ),
-            HbInfoRow(label: 'حصة التأمين', value: _formatCurrency(summary.coveredAmount)),
-            HbInfoRow(label: 'حصة الموظف', value: _formatCurrency(summary.employeeShare)),
+            HbInfoRow(
+              label: 'حصة التأمين',
+              value: _formatCurrency(summary.coveredAmount),
+            ),
+            HbInfoRow(
+              label: 'حصة الموظف',
+              value: _formatCurrency(summary.employeeShare),
+            ),
             HbInfoRow(
               label: 'موافقة مسبقة',
-              value: summary.requiresInsuranceApproval ? 'مطلوبة' : 'غير مطلوبة',
+              value: summary.requiresInsuranceApproval
+                  ? 'مطلوبة'
+                  : 'غير مطلوبة',
             ),
             if (summary.coverageNotes.trim().isNotEmpty)
               HbInfoRow(label: 'ملاحظات التغطية', value: summary.coverageNotes),
@@ -668,7 +685,9 @@ class _DoctorPrescriptionCreateFormState extends State<_DoctorPrescriptionCreate
   }
 
   Future<void> _addMedication() async {
-    final item = await context.push<_DraftPrescriptionItem>(DoctorMedicationAddScreen.routePath);
+    final item = await context.push<_DraftPrescriptionItem>(
+      DoctorMedicationAddScreen.routePath,
+    );
     if (item == null || !mounted) return;
     setState(() => _items.add(item));
   }
@@ -681,36 +700,15 @@ class _DoctorPrescriptionCreateFormState extends State<_DoctorPrescriptionCreate
       return;
     }
 
-    final isMedicationRequest = _selectedRequestType == 'Medication';
-    if (isMedicationRequest && _items.isEmpty) {
+    if (_items.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('يرجى إضافة دواء واحد على الأقل قبل الحفظ أو الإرسال')),
-      );
-      return;
-    }
-
-    if (!isMedicationRequest && _selectedServiceCoverageItem == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('يرجى اختيار خدمة مغطاة من كتالوج التأمين أولًا')),
-      );
-      return;
-    }
-
-    final requestedQuantity = _parseRequestedQuantity(_serviceQuantityController.text);
-    if (!isMedicationRequest && requestedQuantity > (_selectedServiceCoverageItem?.maxQuantity ?? 0)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'الكمية المطلوبة تتجاوز الحد المغطى (${_selectedServiceCoverageItem?.maxQuantity ?? 0})',
-          ),
+        const SnackBar(
+          content: Text('يرجى إضافة دواء واحد على الأقل قبل الحفظ أو الإرسال'),
         ),
       );
       return;
     }
-
-    final coverageSummary = isMedicationRequest
-        ? _buildMedicationCoverageSummary()
-        : _buildSelectedServiceSummary();
+    final coverageSummary = _buildMedicationCoverageSummary();
     if (coverageSummary == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('تعذر حساب بيانات التغطية لهذا الطلب')),
@@ -733,8 +731,8 @@ class _DoctorPrescriptionCreateFormState extends State<_DoctorPrescriptionCreate
         diagnosis: _diagnosisController.text.trim(),
         notes: _notesController.text.trim(),
         status: status,
-        items: isMedicationRequest ? _items.map((item) => item.toPayload()).toList() : const [],
-        serviceType: _selectedRequestType,
+        items: _items.map((item) => item.toPayload()).toList(),
+        serviceType: 'Medication',
         providerName: coverageSummary.providerName,
         serviceName: coverageSummary.serviceName,
         coveragePercentage: coverageSummary.coveragePercentage,
@@ -747,17 +745,19 @@ class _DoctorPrescriptionCreateFormState extends State<_DoctorPrescriptionCreate
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(status == 'Draft'
-              ? 'تم حفظ الوصفة كمسودة'
-              : 'تم إرسال الوصفة بنجاح'),
+          content: Text(
+            status == 'Draft'
+                ? 'تم حفظ الوصفة كمسودة'
+                : 'تم إرسال الوصفة بنجاح',
+          ),
         ),
       );
       context.go(DoctorPrescriptionHistoryScreen.routePath);
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error.toString())),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.toString())));
     } finally {
       if (mounted) {
         setState(() => _isSubmitting = false);
@@ -785,8 +785,8 @@ class _DoctorPrescriptionCreateFormState extends State<_DoctorPrescriptionCreate
           }
 
           final patients = snapshot.data![0] as List<EmployeeModel>;
-          final coverageCatalog = snapshot.data![1] as List<CoverageCatalogItemModel>;
-          final effectivePatientId = _selectedPatientId ??
+          final effectivePatientId =
+              _selectedPatientId ??
               widget.patientId ??
               (patients.isNotEmpty ? patients.first.id : null);
           _selectedPatientId = effectivePatientId;
@@ -795,15 +795,14 @@ class _DoctorPrescriptionCreateFormState extends State<_DoctorPrescriptionCreate
             unawaited(_loadDependentsForPatient(effectivePatientId));
           }
 
-          final filteredCoverageItems = coverageCatalog
-              .where((item) => item.category == _selectedRequestType)
-              .toList();
-          _syncCoverageSelection(filteredCoverageItems);
           final matchingPatients = widget.patientId == null
               ? patients
-              : patients.where((patient) => patient.id == widget.patientId).toList();
-          final selectedPatient =
-              matchingPatients.isNotEmpty ? matchingPatients.first : null;
+              : patients
+                    .where((patient) => patient.id == widget.patientId)
+                    .toList();
+          final selectedPatient = matchingPatients.isNotEmpty
+              ? matchingPatients.first
+              : null;
 
           return ListView(
             children: [
@@ -814,12 +813,16 @@ class _DoctorPrescriptionCreateFormState extends State<_DoctorPrescriptionCreate
                     children: [
                       DropdownButtonFormField<int>(
                         initialValue: _selectedPatientId ?? selectedPatient?.id,
-                        decoration: const InputDecoration(labelText: 'اختيار الموظف الجامعي'),
+                        decoration: const InputDecoration(
+                          labelText: 'اختيار الموظف الجامعي',
+                        ),
                         items: patients
-                            .map((patient) => DropdownMenuItem<int>(
-                                  value: patient.id,
-                                  child: Text(patient.fullName),
-                                ))
+                            .map(
+                              (patient) => DropdownMenuItem<int>(
+                                value: patient.id,
+                                child: Text(patient.fullName),
+                              ),
+                            )
                             .toList(),
                         onChanged: (value) async {
                           setState(() => _selectedPatientId = value);
@@ -827,49 +830,29 @@ class _DoctorPrescriptionCreateFormState extends State<_DoctorPrescriptionCreate
                         },
                       ),
                       const SizedBox(height: 12),
-                      DropdownButtonFormField<String>(
-                        initialValue: _selectedRequestType,
-                        decoration: const InputDecoration(labelText: 'نوع الطلب الطبي'),
-                        items: _requestTypes
-                            .map(
-                              (requestType) => DropdownMenuItem<String>(
-                                value: requestType,
-                                child: Text(_requestTypeLabel(requestType)),
-                              ),
-                            )
-                            .toList(),
-                        onChanged: (value) {
-                          if (value == null) return;
-                          setState(() {
-                            _selectedRequestType = value;
-                            if (value == 'Medication') {
-                              _selectedServiceCoverageItem = null;
-                            } else {
-                              final matchingCoverageItems = coverageCatalog
-                                  .where((item) => item.category == value)
-                                  .toList();
-                              _selectedServiceCoverageItem = matchingCoverageItems.isEmpty
-                                  ? null
-                                  : matchingCoverageItems.first;
-                            }
-                          });
-                        },
-                      ),
-                      const SizedBox(height: 12),
                       DropdownButtonFormField<int?>(
                         initialValue: _selectedDependentId,
-                        decoration: const InputDecoration(labelText: 'اختيار المستفيد (اختياري)'),
+                        decoration: const InputDecoration(
+                          labelText: 'المستفيد من عائلة الموظف (اختياري)',
+                          helperText:
+                              'يمكنك اختيار الزوجة أو الأبناء المسجلين لهذا الموظف',
+                        ),
                         items: [
                           const DropdownMenuItem<int?>(
                             value: null,
-                            child: Text('لا يوجد'),
+                            child: Text('الموظف نفسه'),
                           ),
-                          ..._currentDependents.map((dependent) => DropdownMenuItem<int?>(
-                                value: dependent.id,
-                                child: Text(dependent.fullName),
-                              )),
+                          ..._currentDependents.map(
+                            (dependent) => DropdownMenuItem<int?>(
+                              value: dependent.id,
+                              child: Text(
+                                '${dependent.fullName} (${_dependentRelationLabel(dependent)})',
+                              ),
+                            ),
+                          ),
                         ],
-                        onChanged: (value) => setState(() => _selectedDependentId = value),
+                        onChanged: (value) =>
+                            setState(() => _selectedDependentId = value),
                       ),
                       const SizedBox(height: 12),
                       TextField(
@@ -899,7 +882,10 @@ class _DoctorPrescriptionCreateFormState extends State<_DoctorPrescriptionCreate
                   padding: EdgeInsets.all(16),
                   child: Row(
                     children: [
-                      Icon(Icons.info_outline_rounded, color: Color(0xFF0E5C4A)),
+                      Icon(
+                        Icons.info_outline_rounded,
+                        color: Color(0xFF0E5C4A),
+                      ),
                       SizedBox(width: 10),
                       Expanded(
                         child: Text(
@@ -911,124 +897,53 @@ class _DoctorPrescriptionCreateFormState extends State<_DoctorPrescriptionCreate
                 ),
               ),
               const SizedBox(height: 16),
-              if (_selectedRequestType == 'Medication') ...[
-                HbSectionCard(
-                  title: 'الأدوية المضافة',
-                  trailing: FilledButton.icon(
-                    onPressed: _addMedication,
-                    icon: const Icon(Icons.add_rounded),
-                    label: const Text('إضافة دواء'),
-                  ),
-                  child: _items.isEmpty
-                      ? const Text('لم تتم إضافة أي دواء بعد.')
-                      : Column(
-                          children: _items.map((item) {
-                            return Card(
-                              elevation: 0,
-                              color: const Color(0xFFF8FBFD),
-                              child: ListTile(
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                                title: Text(item.medicationName),
-                                subtitle: Text(
-                                  '${item.dosageInstructions} • ${item.duration}\n'
-                                  'التغطية ${item.coveragePercentage.toStringAsFixed(0)}% • '
-                                  'التأمين ${_formatCurrency(item.coveredAmount)} • '
-                                  'الموظف ${_formatCurrency(item.employeeShare)}',
-                                ),
-                                trailing: Text(item.quantity),
-                              ),
-                            );
-                          }).toList(),
-                        ),
+              HbSectionCard(
+                title: 'الأدوية المضافة',
+                trailing: FilledButton.icon(
+                  onPressed: _addMedication,
+                  icon: const Icon(Icons.add_rounded),
+                  label: const Text('إضافة دواء'),
                 ),
-                const SizedBox(height: 12),
-                if (_buildMedicationCoverageSummary() case final summary?)
-                  _buildCoverageSummaryCard(summary),
-              ] else ...[
-                HbSectionCard(
-                  title: 'الخدمة المغطاة',
-                  subtitle: 'اختر الفحص أو خدمة التصوير أو خدمة المركز الطبي من كتالوج التأمين',
-                  child: filteredCoverageItems.isEmpty
-                      ? const Text('لا توجد عناصر مفعلة لهذا النوع داخل كتالوج التغطية.')
-                      : Column(
-                          children: [
-                            DropdownButtonFormField<CoverageCatalogItemModel>(
-                              initialValue: _selectedServiceCoverageItem,
-                              decoration: const InputDecoration(labelText: 'الخدمة المغطاة'),
-                              items: filteredCoverageItems
-                                  .map(
-                                    (item) => DropdownMenuItem<CoverageCatalogItemModel>(
-                                      value: item,
-                                      child: Text('${item.title} • ${item.code}'),
-                                    ),
-                                  )
-                                  .toList(),
-                              onChanged: (value) => setState(() => _selectedServiceCoverageItem = value),
-                            ),
-                            const SizedBox(height: 12),
-                            HbCustomInput(
-                              controller: _serviceQuantityController,
-                              label: 'الكمية المطلوبة',
-                              hint: 'مثال: 1 أو 6 جلسات',
-                            ),
-                            const SizedBox(height: 12),
-                            if (_selectedServiceCoverageItem case final selectedItem?)
-                              Card(
-                                elevation: 0,
-                                color: const Color(0xFFF8FBFD),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(14),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        selectedItem.title,
-                                        style: Theme.of(context).textTheme.titleMedium,
-                                      ),
-                                      const SizedBox(height: 10),
-                                      HbInfoRow(label: 'الكود', value: selectedItem.code),
-                                      HbInfoRow(
-                                        label: 'نوع الجهة',
-                                        value: _providerTypeLabel(selectedItem.providerType),
-                                      ),
-                                      HbInfoRow(label: 'الجهة المنفذة', value: selectedItem.providerName),
-                                      HbInfoRow(
-                                        label: 'سعر الوحدة',
-                                        value: _formatCurrency(selectedItem.unitPrice),
-                                      ),
-                                      HbInfoRow(
-                                        label: 'نسبة التغطية',
-                                        value: '${selectedItem.coveragePercentage.toStringAsFixed(0)}%',
-                                      ),
-                                      HbInfoRow(
-                                        label: 'الحد الأعلى المغطى',
-                                        value: '${selectedItem.maxQuantity}',
-                                      ),
-                                      HbInfoRow(
-                                        label: 'موافقة مسبقة',
-                                        value: selectedItem.requiresInsuranceApproval ? 'مطلوبة' : 'غير مطلوبة',
-                                      ),
-                                      if (selectedItem.description.trim().isNotEmpty)
-                                        HbInfoRow(label: 'الوصف', value: selectedItem.description),
-                                      if (selectedItem.notes.trim().isNotEmpty)
-                                        HbInfoRow(label: 'ملاحظات', value: selectedItem.notes),
-                                    ],
-                                  ),
-                                ),
+                child: _items.isEmpty
+                    ? const Text('لم تتم إضافة أي دواء بعد.')
+                    : Column(
+                        children: _items.map((item) {
+                          return Card(
+                            elevation: 0,
+                            color: const Color(0xFFF8FBFD),
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 4,
                               ),
-                          ],
-                        ),
-                ),
-                const SizedBox(height: 12),
-                if (_buildSelectedServiceSummary() case final summary?)
-                  _buildCoverageSummaryCard(summary),
-              ],
+                              title: Text(item.medicationName),
+                              subtitle: Text(
+                                '${item.dosageInstructions} • ${item.duration}\n'
+                                'التغطية ${item.coveragePercentage.toStringAsFixed(0)}% • '
+                                'التأمين ${_formatCurrency(item.coveredAmount)} • '
+                                'الموظف ${_formatCurrency(item.employeeShare)}',
+                              ),
+                              trailing: Text(item.quantity),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+              ),
+              const SizedBox(height: 12),
+              if (_buildMedicationCoverageSummary() case final summary?)
+                _buildCoverageSummaryCard(summary),
               const SizedBox(height: 16),
               HbPrimaryButtonRow(
-                primaryLabel: _isSubmitting ? 'جاري الإرسال...' : 'إرسال الوصفة',
-                onPrimaryPressed: _isSubmitting ? null : () => _savePrescription('Sent'),
+                primaryLabel: _isSubmitting
+                    ? 'جاري الإرسال...'
+                    : 'إرسال الوصفة',
+                onPrimaryPressed: _isSubmitting
+                    ? null
+                    : () => _savePrescription('Sent'),
                 secondaryLabel: 'حفظ الوصفة',
-                onSecondaryPressed: _isSubmitting ? null : () => _savePrescription('Draft'),
+                onSecondaryPressed: _isSubmitting
+                    ? null
+                    : () => _savePrescription('Draft'),
               ),
             ],
           );
@@ -1045,15 +960,42 @@ class DoctorMedicationAddScreen extends StatefulWidget {
   static const routePath = '/doctor/prescriptions/add-medication';
 
   @override
-  State<DoctorMedicationAddScreen> createState() => _DoctorMedicationAddScreenState();
+  State<DoctorMedicationAddScreen> createState() =>
+      _DoctorMedicationAddScreenState();
 }
 
 class _DoctorMedicationAddScreenState extends State<DoctorMedicationAddScreen> {
   int? _selectedMedicationId;
+  final _searchController = TextEditingController();
+  final _searchFocusNode = FocusNode();
   final _durationController = TextEditingController();
+  String _searchQuery = '';
+  Timer? _searchDebounce;
+
+  void _applyMedicationSearch([String? value]) {
+    if (!mounted) return;
+    setState(() => _searchQuery = (value ?? _searchController.text).trim());
+  }
+
+  void _scheduleMedicationSearch(String value) {
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(
+      const Duration(milliseconds: 450),
+      () => _applyMedicationSearch(value),
+    );
+  }
+
+  void _submitMedicationSearch([String? value]) {
+    _searchDebounce?.cancel();
+    _applyMedicationSearch(value);
+    _searchFocusNode.unfocus();
+  }
 
   @override
   void dispose() {
+    _searchDebounce?.cancel();
+    _searchController.dispose();
+    _searchFocusNode.dispose();
     _durationController.dispose();
     super.dispose();
   }
@@ -1065,7 +1007,9 @@ class _DoctorMedicationAddScreenState extends State<DoctorMedicationAddScreen> {
       body: FutureBuilder<List<dynamic>>(
         future: Future.wait([
           context.read<AppRepository>().getMedications(),
-          context.read<AppRepository>().getCoverageCatalog(category: 'Medication'),
+          context.read<AppRepository>().getCoverageCatalog(
+            category: 'Medication',
+          ),
         ]),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -1080,7 +1024,8 @@ class _DoctorMedicationAddScreenState extends State<DoctorMedicationAddScreen> {
           }
 
           final medications = snapshot.data![0] as List<MedicationModel>;
-          final coverageCatalog = snapshot.data![1] as List<CoverageCatalogItemModel>;
+          final coverageCatalog =
+              snapshot.data![1] as List<CoverageCatalogItemModel>;
           if (medications.isEmpty) {
             return const HbEmptyState(
               title: 'لا توجد أدوية',
@@ -1088,22 +1033,77 @@ class _DoctorMedicationAddScreenState extends State<DoctorMedicationAddScreen> {
             );
           }
 
-          _selectedMedicationId ??= medications.first.id;
-          final selectedMedication = medications.cast<MedicationModel?>().firstWhere(
+          final normalizedQuery = _searchQuery.trim().toLowerCase();
+          final filteredMedications = medications.where((item) {
+            if (normalizedQuery.isEmpty) return true;
+            return item.name.toLowerCase().contains(normalizedQuery) ||
+                item.genericName.toLowerCase().contains(normalizedQuery) ||
+                item.strength.toLowerCase().contains(normalizedQuery) ||
+                item.manufacturer.toLowerCase().contains(normalizedQuery);
+          }).toList();
+
+          if (filteredMedications.isEmpty) {
+            return ListView(
+              children: [
+                HbCustomCard(
+                  child: Column(
+                    children: [
+                      TextField(
+                        controller: _searchController,
+                        focusNode: _searchFocusNode,
+                        decoration: const InputDecoration(
+                          labelText: 'البحث عن دواء',
+                          hintText: 'ابحث بالاسم أو الاسم العلمي أو التركيز',
+                          prefixIcon: Icon(Icons.search_rounded),
+                        ),
+                        textInputAction: TextInputAction.search,
+                        onChanged: _scheduleMedicationSearch,
+                        onEditingComplete: _submitMedicationSearch,
+                        onSubmitted: _submitMedicationSearch,
+                        onTapOutside: (_) => _submitMedicationSearch(),
+                      ),
+                      const SizedBox(height: 16),
+                      const HbEmptyState(
+                        title: 'لا توجد نتائج',
+                        message: 'لم يتم العثور على دواء مطابق لعبارة البحث.',
+                        icon: Icons.search_off_rounded,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          }
+
+          if (_selectedMedicationId == null ||
+              !filteredMedications.any(
+                (item) => item.id == _selectedMedicationId,
+              )) {
+            _selectedMedicationId = filteredMedications.first.id;
+          }
+
+          final selectedMedication = filteredMedications
+              .cast<MedicationModel?>()
+              .firstWhere(
                 (item) => item?.id == _selectedMedicationId,
-                orElse: () => medications.first,
+                orElse: () => filteredMedications.first,
               );
-          _selectedMedicationId = selectedMedication?.id ?? medications.first.id;
+          _selectedMedicationId =
+              selectedMedication?.id ?? filteredMedications.first.id;
           final coverageItem = selectedMedication == null
               ? null
               : coverageCatalog.cast<CoverageCatalogItemModel?>().firstWhere(
                   (item) =>
                       item != null &&
-                      (item.title.toLowerCase() == selectedMedication.name.toLowerCase() ||
+                      (item.title.toLowerCase() ==
+                              selectedMedication.name.toLowerCase() ||
                           (selectedMedication.genericName.isNotEmpty &&
                               item.genericName.toLowerCase() ==
-                                  selectedMedication.genericName.toLowerCase())),
-                  orElse: () => context.read<AppRepository>().findCoverageForMedication(selectedMedication),
+                                  selectedMedication.genericName
+                                      .toLowerCase())),
+                  orElse: () => context
+                      .read<AppRepository>()
+                      .findCoverageForMedication(selectedMedication),
                 );
           final fixedUsageCount = _fixedUsageCount(selectedMedication);
           final fixedQuantity = _fixedQuantity(selectedMedication);
@@ -1114,13 +1114,28 @@ class _DoctorMedicationAddScreenState extends State<DoctorMedicationAddScreen> {
               HbCustomCard(
                 child: Column(
                   children: [
+                    TextField(
+                      controller: _searchController,
+                      focusNode: _searchFocusNode,
+                      decoration: const InputDecoration(
+                        labelText: 'البحث عن دواء',
+                        hintText: 'ابحث بالاسم أو الاسم العلمي أو التركيز',
+                        prefixIcon: Icon(Icons.search_rounded),
+                      ),
+                      textInputAction: TextInputAction.search,
+                      onChanged: _scheduleMedicationSearch,
+                      onEditingComplete: _submitMedicationSearch,
+                      onSubmitted: _submitMedicationSearch,
+                      onTapOutside: (_) => _submitMedicationSearch(),
+                    ),
+                    const SizedBox(height: 12),
                     DropdownButtonFormField<int>(
                       key: ValueKey(_selectedMedicationId),
                       initialValue: _selectedMedicationId,
                       decoration: const InputDecoration(
                         labelText: 'اختيار الدواء من قائمة',
                       ),
-                      items: medications
+                      items: filteredMedications
                           .map(
                             (item) => DropdownMenuItem<int>(
                               value: item.id,
@@ -1135,33 +1150,49 @@ class _DoctorMedicationAddScreenState extends State<DoctorMedicationAddScreen> {
                     ),
                     const SizedBox(height: 12),
                     TextField(
-                      controller: TextEditingController(text: selectedMedication?.name ?? ''),
+                      controller: TextEditingController(
+                        text: selectedMedication?.name ?? '',
+                      ),
                       readOnly: true,
-                      decoration: const InputDecoration(labelText: 'اسم الدواء'),
+                      decoration: const InputDecoration(
+                        labelText: 'اسم الدواء',
+                      ),
                     ),
                     const SizedBox(height: 12),
                     TextField(
-                      controller: TextEditingController(text: selectedMedication?.genericName ?? ''),
+                      controller: TextEditingController(
+                        text: selectedMedication?.genericName ?? '',
+                      ),
                       readOnly: true,
-                      decoration: const InputDecoration(labelText: 'الاسم العلمي'),
+                      decoration: const InputDecoration(
+                        labelText: 'الاسم العلمي',
+                      ),
                     ),
                     const SizedBox(height: 12),
                     TextField(
-                      controller: TextEditingController(text: selectedMedication?.strength ?? ''),
+                      controller: TextEditingController(
+                        text: selectedMedication?.strength ?? '',
+                      ),
                       readOnly: true,
                       decoration: const InputDecoration(labelText: 'التركيز'),
                     ),
                     const SizedBox(height: 12),
                     TextField(
-                      controller: TextEditingController(text: selectedMedication?.dosageForm ?? ''),
+                      controller: TextEditingController(
+                        text: selectedMedication?.dosageForm ?? '',
+                      ),
                       readOnly: true,
-                      decoration: const InputDecoration(labelText: 'الشكل الدوائي'),
+                      decoration: const InputDecoration(
+                        labelText: 'الشكل الدوائي',
+                      ),
                     ),
                     const SizedBox(height: 12),
                     TextField(
                       controller: TextEditingController(text: fixedUsageCount),
                       readOnly: true,
-                      decoration: const InputDecoration(labelText: 'عدد مرات الاستخدام'),
+                      decoration: const InputDecoration(
+                        labelText: 'عدد مرات الاستخدام',
+                      ),
                     ),
                     const SizedBox(height: 12),
                     HbCustomInput(
@@ -1177,10 +1208,14 @@ class _DoctorMedicationAddScreenState extends State<DoctorMedicationAddScreen> {
                     ),
                     const SizedBox(height: 12),
                     TextField(
-                      controller: TextEditingController(text: fixedInstructions),
+                      controller: TextEditingController(
+                        text: fixedInstructions,
+                      ),
                       readOnly: true,
                       maxLines: 3,
-                      decoration: const InputDecoration(labelText: 'التعليمات الثابتة'),
+                      decoration: const InputDecoration(
+                        labelText: 'التعليمات الثابتة',
+                      ),
                     ),
                     const SizedBox(height: 12),
                     if (coverageItem != null)
@@ -1197,15 +1232,22 @@ class _DoctorMedicationAddScreenState extends State<DoctorMedicationAddScreen> {
                                 style: Theme.of(context).textTheme.titleMedium,
                               ),
                               const SizedBox(height: 10),
-                              HbInfoRow(label: 'كود التغطية', value: coverageItem.code),
-                              HbInfoRow(label: 'الشبكة', value: coverageItem.providerName),
+                              HbInfoRow(
+                                label: 'كود التغطية',
+                                value: coverageItem.code,
+                              ),
+                              HbInfoRow(
+                                label: 'الشبكة',
+                                value: coverageItem.providerName,
+                              ),
                               HbInfoRow(
                                 label: 'سعر الوحدة',
                                 value: _formatCurrency(coverageItem.unitPrice),
                               ),
                               HbInfoRow(
                                 label: 'نسبة التغطية',
-                                value: '${coverageItem.coveragePercentage.toStringAsFixed(0)}%',
+                                value:
+                                    '${coverageItem.coveragePercentage.toStringAsFixed(0)}%',
                               ),
                               HbInfoRow(
                                 label: 'الحد الأعلى',
@@ -1213,10 +1255,15 @@ class _DoctorMedicationAddScreenState extends State<DoctorMedicationAddScreen> {
                               ),
                               HbInfoRow(
                                 label: 'موافقة مسبقة',
-                                value: coverageItem.requiresInsuranceApproval ? 'مطلوبة' : 'غير مطلوبة',
+                                value: coverageItem.requiresInsuranceApproval
+                                    ? 'مطلوبة'
+                                    : 'غير مطلوبة',
                               ),
                               if (coverageItem.notes.trim().isNotEmpty)
-                                HbInfoRow(label: 'ملاحظات', value: coverageItem.notes),
+                                HbInfoRow(
+                                  label: 'ملاحظات',
+                                  value: coverageItem.notes,
+                                ),
                             ],
                           ),
                         ),
@@ -1232,14 +1279,24 @@ class _DoctorMedicationAddScreenState extends State<DoctorMedicationAddScreen> {
                   if (medication == null) {
                     return;
                   }
-                  final selectedCoverageItem = coverageItem ??
-                      context.read<AppRepository>().findCoverageForMedication(medication);
-                  final requestedUnits = _firstNumberInText(fixedQuantity, fallback: 1);
+                  final selectedCoverageItem =
+                      coverageItem ??
+                      context.read<AppRepository>().findCoverageForMedication(
+                        medication,
+                      );
+                  final requestedUnits = _firstNumberInText(
+                    fixedQuantity,
+                    fallback: 1,
+                  );
                   final unitPrice = selectedCoverageItem?.unitPrice ?? 0;
                   final totalPrice = unitPrice * requestedUnits;
-                  final coveragePercentage = selectedCoverageItem?.coveragePercentage ?? 0;
-                  final coveredAmount = selectedCoverageItem?.coveredAmountFor(totalPrice) ?? 0;
-                  final employeeShare = selectedCoverageItem?.employeeShareFor(totalPrice) ?? totalPrice;
+                  final coveragePercentage =
+                      selectedCoverageItem?.coveragePercentage ?? 0;
+                  final coveredAmount =
+                      selectedCoverageItem?.coveredAmountFor(totalPrice) ?? 0;
+                  final employeeShare =
+                      selectedCoverageItem?.employeeShareFor(totalPrice) ??
+                      totalPrice;
                   Navigator.of(context).pop(
                     _DraftPrescriptionItem(
                       medicationId: medication.id,
@@ -1247,7 +1304,8 @@ class _DoctorMedicationAddScreenState extends State<DoctorMedicationAddScreen> {
                       serviceName: medication.name,
                       strength: medication.strength,
                       dosageForm: medication.dosageForm,
-                      dosageInstructions: '$fixedUsageCount • $fixedInstructions',
+                      dosageInstructions:
+                          '$fixedUsageCount • $fixedInstructions',
                       quantity: fixedQuantity,
                       duration: _durationController.text.trim().isEmpty
                           ? 'غير محدد'
@@ -1258,8 +1316,11 @@ class _DoctorMedicationAddScreenState extends State<DoctorMedicationAddScreen> {
                       coveragePercentage: coveragePercentage,
                       coveredAmount: coveredAmount,
                       employeeShare: employeeShare,
-                      requiresInsuranceApproval: selectedCoverageItem?.requiresInsuranceApproval ?? false,
-                      providerName: selectedCoverageItem?.providerName ?? 'غير محدد',
+                      requiresInsuranceApproval:
+                          selectedCoverageItem?.requiresInsuranceApproval ??
+                          false,
+                      providerName:
+                          selectedCoverageItem?.providerName ?? 'غير محدد',
                       coverageCode: selectedCoverageItem?.code ?? '',
                       coverageNotes: selectedCoverageItem?.notes ?? '',
                     ),
@@ -1326,10 +1387,12 @@ class DoctorPrescriptionHistoryScreen extends StatefulWidget {
   static const routePath = '/doctor/prescriptions/history';
 
   @override
-  State<DoctorPrescriptionHistoryScreen> createState() => _DoctorPrescriptionHistoryScreenState();
+  State<DoctorPrescriptionHistoryScreen> createState() =>
+      _DoctorPrescriptionHistoryScreenState();
 }
 
-class _DoctorPrescriptionHistoryScreenState extends State<DoctorPrescriptionHistoryScreen> {
+class _DoctorPrescriptionHistoryScreenState
+    extends State<DoctorPrescriptionHistoryScreen> {
   static const _filterOptions = [
     HbFilterOption(value: 'الكل', label: 'الكل'),
     HbFilterOption(value: 'Draft', label: 'مسودة'),
@@ -1365,7 +1428,8 @@ class _DoctorPrescriptionHistoryScreenState extends State<DoctorPrescriptionHist
       body: FutureBuilder<List<PrescriptionModel>>(
         future: _prescriptionsFuture,
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
+          if (snapshot.connectionState == ConnectionState.waiting &&
+              !snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
@@ -1379,7 +1443,9 @@ class _DoctorPrescriptionHistoryScreenState extends State<DoctorPrescriptionHist
           final prescriptions = snapshot.data ?? const [];
           final filteredPrescriptions = _selectedFilter == 'الكل'
               ? prescriptions
-              : prescriptions.where((item) => item.status == _selectedFilter).toList();
+              : prescriptions
+                    .where((item) => item.status == _selectedFilter)
+                    .toList();
           return ListView.separated(
             itemCount: 1,
             separatorBuilder: (_, __) => const SizedBox.shrink(),
@@ -1389,7 +1455,8 @@ class _DoctorPrescriptionHistoryScreenState extends State<DoctorPrescriptionHist
                   HbFilterBar(
                     options: _filterOptions,
                     selectedValue: _selectedFilter,
-                    onChanged: (value) => setState(() => _selectedFilter = value),
+                    onChanged: (value) =>
+                        setState(() => _selectedFilter = value),
                   ),
                   const SizedBox(height: 16),
                   if (filteredPrescriptions.isEmpty)
@@ -1457,9 +1524,15 @@ class _RecordActionTile extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(title, style: Theme.of(context).textTheme.titleMedium),
+                      Text(
+                        title,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
                       const SizedBox(height: 6),
-                      Text(subtitle, style: Theme.of(context).textTheme.bodyMedium),
+                      Text(
+                        subtitle,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
                     ],
                   ),
                 ),
@@ -1470,10 +1543,7 @@ class _RecordActionTile extends StatelessWidget {
             const SizedBox(height: 12),
             Align(
               alignment: Alignment.centerLeft,
-              child: TextButton(
-                onPressed: onPressed,
-                child: Text(actionLabel),
-              ),
+              child: TextButton(onPressed: onPressed, child: Text(actionLabel)),
             ),
           ],
         ),
@@ -1483,10 +1553,7 @@ class _RecordActionTile extends StatelessWidget {
 }
 
 class DoctorPrescriptionDetailScreen extends StatefulWidget {
-  const DoctorPrescriptionDetailScreen({
-    super.key,
-    this.prescriptionId,
-  });
+  const DoctorPrescriptionDetailScreen({super.key, this.prescriptionId});
 
   static const routeName = 'doctor-prescription-detail';
   static const routePath = '/doctor/prescriptions/detail';
@@ -1494,10 +1561,12 @@ class DoctorPrescriptionDetailScreen extends StatefulWidget {
   final int? prescriptionId;
 
   @override
-  State<DoctorPrescriptionDetailScreen> createState() => _DoctorPrescriptionDetailScreenState();
+  State<DoctorPrescriptionDetailScreen> createState() =>
+      _DoctorPrescriptionDetailScreenState();
 }
 
-class _DoctorPrescriptionDetailScreenState extends State<DoctorPrescriptionDetailScreen> {
+class _DoctorPrescriptionDetailScreenState
+    extends State<DoctorPrescriptionDetailScreen> {
   bool _isSubmitting = false;
 
   Future<void> _submitPrescription(PrescriptionModel prescription) async {
@@ -1506,23 +1575,19 @@ class _DoctorPrescriptionDetailScreenState extends State<DoctorPrescriptionDetai
     try {
       final nextStatus = 'Sent';
       await service.updatePrescriptionStatus(
-            id: prescription.id,
-            status: nextStatus,
-          );
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'تم إرسال الطلب الطبي بنجاح',
-          ),
-        ),
+        id: prescription.id,
+        status: nextStatus,
       );
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('تم إرسال الطلب الطبي بنجاح')));
       context.go(DoctorPrescriptionHistoryScreen.routePath);
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error.toString())),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.toString())));
     } finally {
       if (mounted) {
         setState(() => _isSubmitting = false);
@@ -1541,7 +1606,9 @@ class _DoctorPrescriptionDetailScreenState extends State<DoctorPrescriptionDetai
               message: 'يرجى اختيار وصفة أولًا.',
             )
           : FutureBuilder<PrescriptionModel>(
-              future: context.read<AppRepository>().getPrescription(widget.prescriptionId!),
+              future: context.read<AppRepository>().getPrescription(
+                widget.prescriptionId!,
+              ),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -1562,14 +1629,15 @@ class _DoctorPrescriptionDetailScreenState extends State<DoctorPrescriptionDetai
                   );
                 }
 
-                final canSubmit = !_isSubmitting && prescription.status == 'Draft';
+                final canSubmit =
+                    !_isSubmitting && prescription.status == 'Draft';
                 final submitLabel = _isSubmitting
                     ? 'جاري الإرسال...'
                     : canSubmit
-                        ? (prescription.requiresInsuranceApproval
-                            ? 'إرسال لمراجعة التأمين'
-                            : 'إرسال الطلب الطبي')
-                        : 'تم إرسال الوصفة';
+                    ? (prescription.requiresInsuranceApproval
+                          ? 'إرسال لمراجعة التأمين'
+                          : 'إرسال الطلب الطبي')
+                    : 'تم إرسال الوصفة';
 
                 return ListView(
                   children: [
@@ -1577,16 +1645,25 @@ class _DoctorPrescriptionDetailScreenState extends State<DoctorPrescriptionDetai
                       title: 'بيانات الوصفة',
                       child: Column(
                         children: [
-                          HbInfoRow(label: 'اسم الموظف الجامعي', value: prescription.employeeName),
+                          HbInfoRow(
+                            label: 'اسم الموظف الجامعي',
+                            value: prescription.employeeName,
+                          ),
                           HbInfoRow(
                             label: 'اسم المستفيد',
                             value: prescription.dependentName ?? 'لا يوجد',
                           ),
-                          HbInfoRow(label: 'اسم الطبيب', value: prescription.doctorName),
                           HbInfoRow(
-                            label: 'نوع الطلب',
-                            value: _requestTypeLabel(prescription.serviceType),
+                            label: 'اسم الطبيب',
+                            value: prescription.doctorName,
                           ),
+                          if (prescription.serviceType != 'Medication')
+                            HbInfoRow(
+                              label: 'نوع الطلب',
+                              value: _requestTypeLabel(
+                                prescription.serviceType,
+                              ),
+                            ),
                           HbInfoRow(
                             label: 'الخدمة',
                             value: prescription.serviceName.isEmpty
@@ -1599,10 +1676,26 @@ class _DoctorPrescriptionDetailScreenState extends State<DoctorPrescriptionDetai
                                 ? 'غير محددة'
                                 : prescription.providerName,
                           ),
-                          HbInfoRow(label: 'التشخيص', value: prescription.diagnosis.isEmpty ? 'غير محدد' : prescription.diagnosis),
-                          HbInfoRow(label: 'الملاحظات', value: prescription.notes.isEmpty ? 'لا توجد ملاحظات' : prescription.notes),
-                          HbInfoRow(label: 'تاريخ الوصفة', value: _formatDate(prescription.issuedAt)),
-                          HbInfoRow(label: 'حالة الوصفة', value: statusLabel(prescription.status)),
+                          HbInfoRow(
+                            label: 'التشخيص',
+                            value: prescription.diagnosis.isEmpty
+                                ? 'غير محدد'
+                                : prescription.diagnosis,
+                          ),
+                          HbInfoRow(
+                            label: 'الملاحظات',
+                            value: prescription.notes.isEmpty
+                                ? 'لا توجد ملاحظات'
+                                : prescription.notes,
+                          ),
+                          HbInfoRow(
+                            label: 'تاريخ الوصفة',
+                            value: _formatDate(prescription.issuedAt),
+                          ),
+                          HbInfoRow(
+                            label: 'حالة الوصفة',
+                            value: statusLabel(prescription.status),
+                          ),
                         ],
                       ),
                     ),
@@ -1620,13 +1713,21 @@ class _DoctorPrescriptionDetailScreenState extends State<DoctorPrescriptionDetai
                                   child: Padding(
                                     padding: const EdgeInsets.all(14),
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
-                                        Text(item.medicationName, style: Theme.of(context).textTheme.titleMedium),
+                                        Text(
+                                          item.medicationName,
+                                          style: Theme.of(
+                                            context,
+                                          ).textTheme.titleMedium,
+                                        ),
                                         const SizedBox(height: 8),
                                         Text('الكمية: ${item.quantity}'),
                                         Text('المدة: ${item.duration}'),
-                                        Text('التعليمات: ${item.dosageInstructions}'),
+                                        Text(
+                                          'التعليمات: ${item.dosageInstructions}',
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -1638,7 +1739,9 @@ class _DoctorPrescriptionDetailScreenState extends State<DoctorPrescriptionDetai
                                 HbInfoRow(
                                   label: 'اسم الخدمة',
                                   value: prescription.serviceName.isEmpty
-                                      ? _requestTypeLabel(prescription.serviceType)
+                                      ? _requestTypeLabel(
+                                          prescription.serviceType,
+                                        )
                                       : prescription.serviceName,
                                 ),
                                 HbInfoRow(
@@ -1647,7 +1750,9 @@ class _DoctorPrescriptionDetailScreenState extends State<DoctorPrescriptionDetai
                                       ? 'مطلوبة'
                                       : 'غير مطلوبة',
                                 ),
-                                if (prescription.providerNotes.trim().isNotEmpty)
+                                if (prescription.providerNotes
+                                    .trim()
+                                    .isNotEmpty)
                                   HbInfoRow(
                                     label: 'ملاحظات الجهة',
                                     value: prescription.providerNotes,
@@ -1666,7 +1771,8 @@ class _DoctorPrescriptionDetailScreenState extends State<DoctorPrescriptionDetai
                           ),
                           HbInfoRow(
                             label: 'نسبة التغطية',
-                            value: '${prescription.coveragePercentage.toStringAsFixed(0)}%',
+                            value:
+                                '${prescription.coveragePercentage.toStringAsFixed(0)}%',
                           ),
                           HbInfoRow(
                             label: 'حصة التأمين',
@@ -1683,7 +1789,9 @@ class _DoctorPrescriptionDetailScreenState extends State<DoctorPrescriptionDetai
                     HbCustomButton(
                       label: submitLabel,
                       icon: Icons.send_rounded,
-                      onPressed: canSubmit ? () => _submitPrescription(prescription) : null,
+                      onPressed: canSubmit
+                          ? () => _submitPrescription(prescription)
+                          : null,
                     ),
                     const SizedBox(height: 12),
                     HbCustomButton(
@@ -1732,12 +1840,19 @@ String _requestTypeLabel(String value) {
   }
 }
 
-String _providerTypeLabel(String value) {
-  switch (value) {
-    case 'Pharmacy':
-      return 'صيدلية';
+String _dependentRelationLabel(DependentModel dependent) {
+  final relation = dependent.relation.trim().toLowerCase();
+  switch (relation) {
+    case 'son':
+      return 'ابن';
+    case 'daughter':
+      return 'ابنة';
+    case 'wife':
+      return 'زوجة';
     default:
-      return value;
+      return dependent.relationship.trim().isEmpty
+          ? 'مستفيد'
+          : dependent.relationship;
   }
 }
 

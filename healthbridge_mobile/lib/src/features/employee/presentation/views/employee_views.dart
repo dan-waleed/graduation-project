@@ -40,14 +40,15 @@ class EmployeeHomeScreen extends StatelessWidget {
           final actionWidth = constraints.maxWidth > 960
               ? (constraints.maxWidth - 24) / 3
               : constraints.maxWidth > 620
-                  ? (constraints.maxWidth - 12) / 2
-                  : constraints.maxWidth;
+              ? (constraints.maxWidth - 12) / 2
+              : constraints.maxWidth;
 
           return ListView(
             children: [
               const HbDashboardOverview(
                 recentTitle: 'آخر الوصفات',
-                emptyMessage: 'ستظهر هنا الوصفات والتنبيهات الحديثة المرتبطة بحسابك.',
+                emptyMessage:
+                    'ستظهر هنا الوصفات والتنبيهات الحديثة المرتبطة بحسابك.',
               ),
               const SizedBox(height: 16),
               Text(
@@ -65,7 +66,8 @@ class EmployeeHomeScreen extends StatelessWidget {
                       title: 'الوصفات الطبية',
                       subtitle: 'مراجعة جميع الطلبات الطبية الحالية والسابقة',
                       icon: Icons.medical_information_outlined,
-                      onTap: () => context.push(EmployeePrescriptionsView.routePath),
+                      onTap: () =>
+                          context.push(EmployeePrescriptionsView.routePath),
                     ),
                   ),
                   SizedBox(
@@ -74,7 +76,8 @@ class EmployeeHomeScreen extends StatelessWidget {
                       title: 'السجل الدوائي',
                       subtitle: 'متابعة الأدوية والطلبات السابقة',
                       icon: Icons.menu_book_rounded,
-                      onTap: () => context.push(EmployeeMedicationHistoryView.routePath),
+                      onTap: () =>
+                          context.push(EmployeeMedicationHistoryView.routePath),
                     ),
                   ),
                   SizedBox(
@@ -83,16 +86,8 @@ class EmployeeHomeScreen extends StatelessWidget {
                       title: 'المستفيدون',
                       subtitle: 'عرض المستفيدين المرتبطين بالحساب',
                       icon: Icons.family_restroom_rounded,
-                      onTap: () => context.push(EmployeeDependentsView.routePath),
-                    ),
-                  ),
-                  SizedBox(
-                    width: actionWidth,
-                    child: HbQuickActionCard(
-                      title: 'البحث عن الأطباء',
-                      subtitle: 'استعراض الأطباء المتعاقدين والبحث حسب التخصص والمنطقة',
-                      icon: Icons.medical_services_outlined,
-                      onTap: () => context.push(EmployeeDoctorSearchScreen.routePath),
+                      onTap: () =>
+                          context.push(EmployeeDependentsView.routePath),
                     ),
                   ),
                   SizedBox(
@@ -121,7 +116,8 @@ class EmployeePrescriptionsView extends StatefulWidget {
   static const routePath = '/employee/prescriptions';
 
   @override
-  State<EmployeePrescriptionsView> createState() => _EmployeePrescriptionsViewState();
+  State<EmployeePrescriptionsView> createState() =>
+      _EmployeePrescriptionsViewState();
 }
 
 class _EmployeePrescriptionsViewState extends State<EmployeePrescriptionsView> {
@@ -159,7 +155,8 @@ class _EmployeePrescriptionsViewState extends State<EmployeePrescriptionsView> {
       body: FutureBuilder<List<PrescriptionModel>>(
         future: _prescriptionsFuture,
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
+          if (snapshot.connectionState == ConnectionState.waiting &&
+              !snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
@@ -173,7 +170,9 @@ class _EmployeePrescriptionsViewState extends State<EmployeePrescriptionsView> {
           final prescriptions = snapshot.data ?? const [];
           final filteredPrescriptions = _selectedFilter == 'الكل'
               ? prescriptions
-              : prescriptions.where((item) => item.status == _selectedFilter).toList();
+              : prescriptions
+                    .where((item) => item.status == _selectedFilter)
+                    .toList();
           if (prescriptions.isEmpty) {
             return const HbEmptyState(
               title: 'لا توجد طلبات طبية',
@@ -199,25 +198,25 @@ class _EmployeePrescriptionsViewState extends State<EmployeePrescriptionsView> {
                   icon: Icons.filter_alt_off_rounded,
                 )
               else
-              ...filteredPrescriptions.map((prescription) {
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: _EmployeeRecordActionTile(
-                    title: prescription.doctorName,
-                    subtitle:
-                        '${_formatDate(prescription.issuedAt)} • ${prescription.serviceType} • ${prescription.providerName.isEmpty ? "لم يتم اختيار جهة بعد" : prescription.providerName}',
-                    status: statusLabel(prescription.status),
-                    actionLabel: 'عرض التفاصيل',
-                    onPressed: () async {
-                      await context.push(
-                        '${EmployeePrescriptionDetailView.routePath}?id=${prescription.id}',
-                      );
-                      if (!context.mounted) return;
-                      unawaited(Future<void>.microtask(_refresh));
-                    },
-                  ),
-                );
-              }),
+                ...filteredPrescriptions.map((prescription) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: _EmployeeRecordActionTile(
+                      title: prescription.doctorName,
+                      subtitle:
+                          '${_formatDate(prescription.issuedAt)} • ${prescription.serviceType} • ${prescription.providerName.isEmpty ? "لم يتم اختيار جهة بعد" : prescription.providerName}',
+                      status: statusLabel(prescription.status),
+                      actionLabel: 'عرض التفاصيل',
+                      onPressed: () async {
+                        await context.push(
+                          '${EmployeePrescriptionDetailView.routePath}?id=${prescription.id}',
+                        );
+                        if (!context.mounted) return;
+                        unawaited(Future<void>.microtask(_refresh));
+                      },
+                    ),
+                  );
+                }),
             ],
           );
         },
@@ -227,10 +226,7 @@ class _EmployeePrescriptionsViewState extends State<EmployeePrescriptionsView> {
 }
 
 class EmployeePrescriptionDetailView extends StatelessWidget {
-  const EmployeePrescriptionDetailView({
-    super.key,
-    this.prescriptionId,
-  });
+  const EmployeePrescriptionDetailView({super.key, this.prescriptionId});
 
   static const routeName = 'employee-prescription-detail';
   static const routePath = '/employee/prescriptions/detail';
@@ -267,7 +263,9 @@ class EmployeePrescriptionDetailView extends StatelessWidget {
                 message: 'يرجى اختيار وصفة أولًا من القائمة.',
               )
             : FutureBuilder<PrescriptionModel>(
-                future: context.read<AppRepository>().getPrescription(prescriptionId!),
+                future: context.read<AppRepository>().getPrescription(
+                  prescriptionId!,
+                ),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
@@ -294,77 +292,142 @@ class EmployeePrescriptionDetailView extends StatelessWidget {
                         title: 'معلومات الطلب الطبي',
                         child: Column(
                           children: [
-                            HbInfoRow(label: 'اسم الطبيب', value: prescription.doctorName),
-                            HbInfoRow(label: 'اسم الموظف صاحب التأمين', value: prescription.employeeName),
+                            HbInfoRow(
+                              label: 'اسم الطبيب',
+                              value: prescription.doctorName,
+                            ),
+                            HbInfoRow(
+                              label: 'اسم الموظف صاحب التأمين',
+                              value: prescription.employeeName,
+                            ),
                             HbInfoRow(
                               label: 'اسم المستفيد',
-                              value: prescription.beneficiaryName ?? prescription.employeeName,
+                              value:
+                                  prescription.beneficiaryName ??
+                                  prescription.employeeName,
                             ),
-                            HbInfoRow(label: 'نوع الطلب', value: prescription.serviceType),
+                            if (prescription.serviceType != 'Medication')
+                              HbInfoRow(
+                                label: 'نوع الطلب',
+                                value: prescription.serviceType,
+                              ),
                             HbInfoRow(
                               label: 'الجهة المختارة',
-                              value: prescription.providerName.isEmpty ? 'لم يتم اختيار جهة بعد' : prescription.providerName,
+                              value: prescription.providerName.isEmpty
+                                  ? 'لم يتم اختيار جهة بعد'
+                                  : prescription.providerName,
                             ),
                             HbInfoRow(
                               label: 'الخدمة',
-                              value: prescription.serviceName.isEmpty ? 'دواء / وصفة' : prescription.serviceName,
+                              value: prescription.serviceName.isEmpty
+                                  ? 'دواء / وصفة'
+                                  : prescription.serviceName,
                             ),
-                            HbInfoRow(label: 'تاريخ الطلب', value: _formatDate(prescription.issuedAt)),
-                            HbInfoRow(label: 'الحالة', value: statusLabel(prescription.status)),
-                            HbInfoRow(label: 'نسبة التغطية', value: '${prescription.coveragePercentage.toStringAsFixed(0)}%'),
-                            HbInfoRow(label: 'السعر الأصلي', value: prescription.finalPrice.toStringAsFixed(2)),
-                            HbInfoRow(label: 'المبلغ المغطى', value: prescription.coveredAmount.toStringAsFixed(2)),
-                            HbInfoRow(label: 'حصة الموظف', value: prescription.employeeShare.toStringAsFixed(2)),
-                            HbInfoRow(label: 'التشخيص', value: prescription.diagnosis.isEmpty ? 'غير محدد' : prescription.diagnosis),
+                            HbInfoRow(
+                              label: 'تاريخ الطلب',
+                              value: _formatDate(prescription.issuedAt),
+                            ),
+                            HbInfoRow(
+                              label: 'الحالة',
+                              value: statusLabel(prescription.status),
+                            ),
+                            HbInfoRow(
+                              label: 'نسبة التغطية',
+                              value:
+                                  '${prescription.coveragePercentage.toStringAsFixed(0)}%',
+                            ),
+                            HbInfoRow(
+                              label: 'السعر الأصلي',
+                              value: prescription.finalPrice.toStringAsFixed(2),
+                            ),
+                            HbInfoRow(
+                              label: 'المبلغ المغطى',
+                              value: prescription.coveredAmount.toStringAsFixed(
+                                2,
+                              ),
+                            ),
+                            HbInfoRow(
+                              label: 'حصة الموظف',
+                              value: prescription.employeeShare.toStringAsFixed(
+                                2,
+                              ),
+                            ),
+                            HbInfoRow(
+                              label: 'التشخيص',
+                              value: prescription.diagnosis.isEmpty
+                                  ? 'غير محدد'
+                                  : prescription.diagnosis,
+                            ),
                           ],
                         ),
                       ),
                       const SizedBox(height: 16),
                       HbSectionCard(
-                        title: prescription.serviceType == 'Medication' ? 'الأدوية والتعليمات' : 'تفاصيل التنفيذ والتعليمات',
+                        title: prescription.serviceType == 'Medication'
+                            ? 'الأدوية والتعليمات'
+                            : 'تفاصيل التنفيذ والتعليمات',
                         child: Column(
                           children: prescription.items.isEmpty
                               ? [
-                                  HbInfoRow(label: 'ملاحظات الطلب', value: prescription.notes.isEmpty ? 'لا توجد ملاحظات إضافية' : prescription.notes),
+                                  HbInfoRow(
+                                    label: 'ملاحظات الطلب',
+                                    value: prescription.notes.isEmpty
+                                        ? 'لا توجد ملاحظات إضافية'
+                                        : prescription.notes,
+                                  ),
                                 ]
                               : prescription.items.map((item) {
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 12),
-                              child: HbCustomCard(
-                                padding: const EdgeInsets.all(14),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Container(
-                                      width: 42,
-                                      height: 42,
-                                      decoration: BoxDecoration(
-                                        color: AppTheme.primary.withValues(alpha: 0.12),
-                                        borderRadius: BorderRadius.circular(14),
-                                      ),
-                                      child: const Icon(Icons.medication_outlined, color: AppTheme.primary),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                  return Padding(
+                                    padding: const EdgeInsets.only(bottom: 12),
+                                    child: HbCustomCard(
+                                      padding: const EdgeInsets.all(14),
+                                      child: Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
-                                          Text(item.medicationName, style: Theme.of(context).textTheme.titleMedium),
-                                          const SizedBox(height: 6),
-                                          Text(
-                                            '${item.quantity} • ${item.duration}',
-                                            style: Theme.of(context).textTheme.bodySmall,
+                                          Container(
+                                            width: 42,
+                                            height: 42,
+                                            decoration: BoxDecoration(
+                                              color: AppTheme.primary
+                                                  .withValues(alpha: 0.12),
+                                              borderRadius:
+                                                  BorderRadius.circular(14),
+                                            ),
+                                            child: const Icon(
+                                              Icons.medication_outlined,
+                                              color: AppTheme.primary,
+                                            ),
                                           ),
-                                          const SizedBox(height: 6),
-                                          Text(item.dosageInstructions),
+                                          const SizedBox(width: 12),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  item.medicationName,
+                                                  style: Theme.of(
+                                                    context,
+                                                  ).textTheme.titleMedium,
+                                                ),
+                                                const SizedBox(height: 6),
+                                                Text(
+                                                  '${item.quantity} • ${item.duration}',
+                                                  style: Theme.of(
+                                                    context,
+                                                  ).textTheme.bodySmall,
+                                                ),
+                                                const SizedBox(height: 6),
+                                                Text(item.dosageInstructions),
+                                              ],
+                                            ),
+                                          ),
                                         ],
                                       ),
                                     ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          }).toList(),
+                                  );
+                                }).toList(),
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -404,10 +467,7 @@ class EmployeePrescriptionDetailView extends StatelessWidget {
 }
 
 class EmployeeQrView extends StatelessWidget {
-  const EmployeeQrView({
-    super.key,
-    this.prescriptionId,
-  });
+  const EmployeeQrView({super.key, this.prescriptionId});
 
   static const routeName = 'employee-qr';
   static const routePath = '/employee/prescriptions/qr';
@@ -429,7 +489,9 @@ class EmployeeQrView extends StatelessWidget {
       return;
     }
 
-    context.go('${EmployeePrescriptionDetailView.routePath}?id=$prescriptionId');
+    context.go(
+      '${EmployeePrescriptionDetailView.routePath}?id=$prescriptionId',
+    );
   }
 
   @override
@@ -458,7 +520,9 @@ class EmployeeQrView extends StatelessWidget {
           tooltip: 'رجوع',
         ),
         body: FutureBuilder<PrescriptionModel>(
-          future: context.read<AppRepository>().getPrescription(prescriptionId!),
+          future: context.read<AppRepository>().getPrescription(
+            prescriptionId!,
+          ),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
@@ -520,23 +584,49 @@ class EmployeeQrView extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 18),
-                      Text(prescription.prescriptionNumber, style: Theme.of(context).textTheme.titleLarge),
+                      Text(
+                        prescription.prescriptionNumber,
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
                       const SizedBox(height: 12),
                       const Text(
                         'يمكن للصيدلي إدخال رقم الوصفة نفسه من شاشة التحقق إذا لم يستخدم قارئ QR.',
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 12),
-                      HbInfoRow(label: 'اسم الموظف الجامعي', value: prescription.employeeName),
+                      HbInfoRow(
+                        label: 'اسم الموظف الجامعي',
+                        value: prescription.employeeName,
+                      ),
                       HbInfoRow(
                         label: 'اسم المستفيد',
-                        value: prescription.beneficiaryName ?? prescription.employeeName,
+                        value:
+                            prescription.beneficiaryName ??
+                            prescription.employeeName,
                       ),
-                      HbInfoRow(label: 'اسم الطبيب', value: prescription.doctorName),
-                      HbInfoRow(label: 'نوع الخدمة', value: prescription.serviceType),
-                      HbInfoRow(label: 'الجهة المختارة', value: prescription.providerName.isEmpty ? 'لم يتم اختيار جهة بعد' : prescription.providerName),
-                      HbInfoRow(label: 'تاريخ الطلب', value: _formatDate(prescription.issuedAt)),
-                      HbInfoRow(label: 'حالة الطلب', value: statusLabel(prescription.status)),
+                      HbInfoRow(
+                        label: 'اسم الطبيب',
+                        value: prescription.doctorName,
+                      ),
+                      if (prescription.serviceType != 'Medication')
+                        HbInfoRow(
+                          label: 'نوع الخدمة',
+                          value: prescription.serviceType,
+                        ),
+                      HbInfoRow(
+                        label: 'الجهة المختارة',
+                        value: prescription.providerName.isEmpty
+                            ? 'لم يتم اختيار جهة بعد'
+                            : prescription.providerName,
+                      ),
+                      HbInfoRow(
+                        label: 'تاريخ الطلب',
+                        value: _formatDate(prescription.issuedAt),
+                      ),
+                      HbInfoRow(
+                        label: 'حالة الطلب',
+                        value: statusLabel(prescription.status),
+                      ),
                     ],
                   ),
                 ),
@@ -581,7 +671,9 @@ class EmployeeMedicationHistoryView extends StatelessWidget {
           }
 
           final prescriptions = snapshot.data ?? const [];
-          final items = prescriptions.expand((p) => p.items.map((item) => (p, item))).toList();
+          final items = prescriptions
+              .expand((p) => p.items.map((item) => (p, item)))
+              .toList();
           if (items.isEmpty) {
             return const HbEmptyState(
               title: 'لا يوجد سجل طبي سابق',
@@ -597,7 +689,8 @@ class EmployeeMedicationHistoryView extends StatelessWidget {
               final item = items[index].$2;
               return _EmployeeRecordActionTile(
                 title: item.medicationName,
-                subtitle: '${_formatDate(prescription.issuedAt)} • ${prescription.doctorName}',
+                subtitle:
+                    '${_formatDate(prescription.issuedAt)} • ${prescription.doctorName}',
                 status: statusLabel(prescription.status),
                 actionLabel: 'عرض التفاصيل',
                 onPressed: () => context.push(
@@ -642,9 +735,15 @@ class _EmployeeRecordActionTile extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(title, style: Theme.of(context).textTheme.titleMedium),
+                      Text(
+                        title,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
                       const SizedBox(height: 6),
-                      Text(subtitle, style: Theme.of(context).textTheme.bodyMedium),
+                      Text(
+                        subtitle,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
                     ],
                   ),
                 ),
@@ -655,10 +754,7 @@ class _EmployeeRecordActionTile extends StatelessWidget {
             const SizedBox(height: 12),
             Align(
               alignment: Alignment.centerLeft,
-              child: TextButton(
-                onPressed: onPressed,
-                child: Text(actionLabel),
-              ),
+              child: TextButton(onPressed: onPressed, child: Text(actionLabel)),
             ),
           ],
         ),
@@ -720,175 +816,28 @@ class EmployeeDependentsView extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 10),
-                      HbInfoRow(label: 'صلة القرابة', value: dependent.relationship),
-                      HbInfoRow(label: 'ملاحظات', value: dependent.notes.isEmpty ? 'لا توجد ملاحظات' : dependent.notes),
-                      HbInfoRow(label: 'تاريخ الميلاد', value: _formatDate(dependent.dateOfBirth, fallback: 'غير محدد')),
+                      HbInfoRow(
+                        label: 'صلة القرابة',
+                        value: dependent.relationship,
+                      ),
+                      HbInfoRow(
+                        label: 'ملاحظات',
+                        value: dependent.notes.isEmpty
+                            ? 'لا توجد ملاحظات'
+                            : dependent.notes,
+                      ),
+                      HbInfoRow(
+                        label: 'تاريخ الميلاد',
+                        value: _formatDate(
+                          dependent.dateOfBirth,
+                          fallback: 'غير محدد',
+                        ),
+                      ),
                     ],
                   ),
                 ),
               );
             },
-          );
-        },
-      ),
-    );
-  }
-}
-
-class EmployeeDoctorSearchScreen extends StatefulWidget {
-  const EmployeeDoctorSearchScreen({super.key});
-
-  static const routeName = 'employee-doctor-search';
-  static const routePath = '/employee/doctors';
-
-  @override
-  State<EmployeeDoctorSearchScreen> createState() => _EmployeeDoctorSearchScreenState();
-}
-
-class _EmployeeDoctorSearchScreenState extends State<EmployeeDoctorSearchScreen> {
-  final _nameController = TextEditingController();
-  final _specialtyController = TextEditingController();
-  final _cityController = TextEditingController();
-  late Future<List<DoctorDirectoryModel>> _doctorsFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    _doctorsFuture = _searchDoctors();
-  }
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _specialtyController.dispose();
-    _cityController.dispose();
-    super.dispose();
-  }
-
-  Future<List<DoctorDirectoryModel>> _searchDoctors() {
-    return context.read<AppRepository>().searchDoctors(
-          name: _nameController.text,
-          specialty: _specialtyController.text,
-          city: _cityController.text,
-          activeOnly: true,
-        );
-  }
-
-  void _refresh() {
-    setState(() {
-      _doctorsFuture = _searchDoctors();
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return HbScaffold(
-      title: 'البحث عن الأطباء',
-      actions: _commonActions(context),
-      body: FutureBuilder<List<DoctorDirectoryModel>>(
-        future: _doctorsFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return HbEmptyState(
-              title: 'تعذر تحميل قائمة الأطباء',
-              message: snapshot.error.toString(),
-              icon: Icons.cloud_off_rounded,
-            );
-          }
-
-          final doctors = snapshot.data ?? const [];
-          return ListView(
-            children: [
-              HbSectionCard(
-                title: 'عوامل البحث',
-                subtitle: 'سيتم البحث ضمن الأطباء المتعاقدين مع النظام فقط.',
-                child: Column(
-                  children: [
-                    TextField(
-                      controller: _nameController,
-                      decoration: const InputDecoration(
-                        labelText: 'اسم الطبيب',
-                        prefixIcon: Icon(Icons.search_rounded),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: _specialtyController,
-                      decoration: const InputDecoration(
-                        labelText: 'التخصص',
-                        prefixIcon: Icon(Icons.medical_services_outlined),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: _cityController,
-                      decoration: const InputDecoration(
-                        labelText: 'المدينة / المنطقة',
-                        prefixIcon: Icon(Icons.location_on_outlined),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    HbCustomButton(
-                      label: 'بحث',
-                      icon: Icons.search_rounded,
-                      onPressed: _refresh,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              if (doctors.isEmpty)
-                const HbEmptyState(
-                  title: 'لا يوجد أطباء مطابقون',
-                  message: 'جرّب تعديل اسم الطبيب أو التخصص أو المدينة.',
-                  icon: Icons.person_search_rounded,
-                )
-              else
-                ...doctors.map((doctor) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: HbCustomCard(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  doctor.fullName,
-                                  style: Theme.of(context).textTheme.titleMedium,
-                                ),
-                              ),
-                              HbStatusChip(
-                                doctor.contractStatus.toLowerCase() == 'active'
-                                    ? 'متعاقد'
-                                    : 'غير متعاقد',
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 10),
-                          HbInfoRow(label: 'التخصص', value: doctor.specialty.isEmpty ? 'غير محدد' : doctor.specialty),
-                          HbInfoRow(
-                            label: 'العيادة / الجهة',
-                            value: doctor.providerName.isEmpty
-                                ? (doctor.clinicName.isEmpty ? 'غير محدد' : doctor.clinicName)
-                                : doctor.providerName,
-                          ),
-                          HbInfoRow(label: 'المدينة', value: doctor.city.isEmpty ? 'غير محدد' : doctor.city),
-                          HbInfoRow(label: 'العنوان', value: doctor.address.isEmpty ? 'غير متوفر' : doctor.address),
-                          HbInfoRow(label: 'الهاتف', value: doctor.phoneNumber.isEmpty ? 'غير متوفر' : doctor.phoneNumber),
-                          HbInfoRow(label: 'سعر الاستشارة', value: doctor.consultationPrice.toStringAsFixed(2)),
-                          const HbInfoRow(label: 'نسبة التغطية', value: 'تُعرض بعد اختيار الجهة والخدمة'),
-                          const HbInfoRow(label: 'حصة الموظف', value: 'تُحسب بعد تأكيد مقدم الخدمة'),
-                        ],
-                      ),
-                    ),
-                  );
-                }),
-            ],
           );
         },
       ),

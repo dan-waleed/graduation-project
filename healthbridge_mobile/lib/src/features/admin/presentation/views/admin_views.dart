@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -8,15 +9,14 @@ import 'package:provider/provider.dart';
 import '../../../../data/models/app_models.dart';
 import '../../../../data/models/user_model.dart';
 import '../../../../data/repositories/app_repository.dart';
-import '../../../../features/common/presentation/views/notifications_screen.dart';
 import '../../../../features/common/presentation/views/profile_screen.dart';
 import '../../../../shared/utils/app_roles.dart';
+import '../../../../shared/utils/password_strength_validator.dart';
 import '../../../../shared/utils/role_label.dart';
 import '../../../../shared/widgets/hb_custom_card.dart';
 import '../../../../shared/widgets/hb_dashboard_overview.dart';
 import '../../../../shared/widgets/hb_empty_state.dart';
 import '../../../../shared/widgets/hb_info_row.dart';
-import '../../../../shared/widgets/hb_notification_action.dart';
 import '../../../../shared/widgets/hb_primary_button_row.dart';
 import '../../../../shared/widgets/hb_scaffold.dart';
 import '../../../../shared/widgets/hb_section_card.dart';
@@ -40,14 +40,14 @@ class AdminHomeScreen extends StatelessWidget {
           final actionCardWidth = isWide
               ? (constraints.maxWidth - 24) / 3
               : constraints.maxWidth > 620
-                  ? (constraints.maxWidth - 12) / 2
-                  : constraints.maxWidth;
+              ? (constraints.maxWidth - 12) / 2
+              : constraints.maxWidth;
 
           return ListView(
             children: [
               const HbDashboardOverview(
-                recentTitle: 'آخر التنبيهات والإجراءات',
-                emptyMessage: 'ستظهر هنا أحدث التنبيهات المرتبطة بإدارة النظام.',
+                recentTitle: 'آخر السجلات والإجراءات',
+                emptyMessage: 'ستظهر هنا أحدث السجلات المرتبطة بإدارة النظام.',
               ),
               const SizedBox(height: 16),
               Text(
@@ -65,23 +65,27 @@ class AdminHomeScreen extends StatelessWidget {
                       title: 'إدارة المستخدمين',
                       subtitle: 'عرض المستخدمين والبحث عنهم وتحديث صلاحياتهم.',
                       icon: Icons.manage_accounts_rounded,
-                      onTap: () => context.push(AdminUserManagementScreen.routePath),
+                      onTap: () =>
+                          context.push(AdminUserManagementScreen.routePath),
                     ),
                   ),
                   SizedBox(
                     width: actionCardWidth,
                     child: _AdminActionCard(
                       title: 'إضافة مستخدم',
-                      subtitle: 'إنشاء حساب جديد للطبيب أو الموظف الجامعي أو الصيدلي أو موظف التأمين فقط.',
+                      subtitle:
+                          'إنشاء حساب جديد للطبيب أو الموظف الجامعي أو الصيدلي أو موظف التأمين فقط.',
                       icon: Icons.person_add_alt_1_rounded,
-                      onTap: () => context.push(AdminUserCreateScreen.routePath),
+                      onTap: () =>
+                          context.push(AdminUserCreateScreen.routePath),
                     ),
                   ),
                   SizedBox(
                     width: actionCardWidth,
                     child: _AdminActionCard(
                       title: 'إعدادات / إدارة النظام',
-                      subtitle: 'إدارة إعدادات النظام والتنبيهات والخيارات التشغيلية.',
+                      subtitle:
+                          'إدارة إعدادات النظام والتنبيهات والخيارات التشغيلية.',
                       icon: Icons.settings_suggest_rounded,
                       onTap: () => context.push(AdminSettingsScreen.routePath),
                     ),
@@ -89,10 +93,11 @@ class AdminHomeScreen extends StatelessWidget {
                   SizedBox(
                     width: actionCardWidth,
                     child: _AdminActionCard(
-                      title: 'الإشعارات',
-                      subtitle: 'مراجعة أحدث التنبيهات والتنبيهات النظامية.',
-                      icon: Icons.notifications_active_outlined,
-                      onTap: () => context.push(NotificationsScreen.routePath),
+                      title: 'سجل المتابعة',
+                      subtitle:
+                          'مراجعة سجل الإجراءات والمتابعة الإدارية داخل النظام.',
+                      icon: Icons.fact_check_outlined,
+                      onTap: () => context.push(AdminAuditLogScreen.routePath),
                     ),
                   ),
                   SizedBox(
@@ -101,23 +106,11 @@ class AdminHomeScreen extends StatelessWidget {
                       title: 'الإحصاءات العامة',
                       subtitle: 'متابعة مؤشرات النظام والتقارير المختصرة.',
                       icon: Icons.insert_chart_outlined_rounded,
-                      onTap: () => context.push(AdminStatisticsScreen.routePath),
+                      onTap: () =>
+                          context.push(AdminStatisticsScreen.routePath),
                     ),
                   ),
                 ],
-              ),
-              const SizedBox(height: 24),
-              HbSectionCard(
-                title: 'نظرة تشغيلية سريعة',
-                subtitle: 'ملخص يساعدك في متابعة حالة النظام خلال اليوم.',
-                child: Column(
-                  children: const [
-                    HbInfoRow(label: 'المستخدمون النشطون', value: '117 مستخدمًا'),
-                    HbInfoRow(label: 'الوصفات الجديدة اليوم', value: '24 وصفة'),
-                    HbInfoRow(label: 'طلبات التأمين المعلقة', value: '6 طلبات'),
-                    HbInfoRow(label: 'عمليات الصرف اليوم', value: '13 عملية'),
-                  ],
-                ),
               ),
             ],
           );
@@ -164,17 +157,14 @@ class _AdminActionCard extends StatelessWidget {
               const SizedBox(height: 14),
               Text(title, style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 8),
-              Text(
-                subtitle,
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
+              Text(subtitle, style: Theme.of(context).textTheme.bodyMedium),
               const SizedBox(height: 14),
               Text(
                 'فتح',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: const Color(0xFF0E5C4A),
-                      fontWeight: FontWeight.w700,
-                    ),
+                  color: const Color(0xFF0E5C4A),
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ],
           ),
@@ -191,7 +181,8 @@ class AdminUserManagementScreen extends StatefulWidget {
   static const routePath = '/admin/users';
 
   @override
-  State<AdminUserManagementScreen> createState() => _AdminUserManagementScreenState();
+  State<AdminUserManagementScreen> createState() =>
+      _AdminUserManagementScreenState();
 }
 
 class _AdminUserManagementScreenState extends State<AdminUserManagementScreen> {
@@ -251,14 +242,17 @@ class _AdminUserManagementScreenState extends State<AdminUserManagementScreen> {
   }
 
   Future<void> _toggleUserStatus(UserModel user) async {
+    if (user.role == AppRoles.admin) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('لا يمكن تعطيل مدير النظام الأساسي.')),
+      );
+      return;
+    }
     setState(() => _isBusy = true);
     try {
-      await context.read<AppRepository>().updateUser(
-        user.id,
-        {
-          'is_active': !user.isActive,
-        },
-      );
+      await context.read<AppRepository>().updateUser(user.id, {
+        'is_active': !user.isActive,
+      });
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -270,9 +264,9 @@ class _AdminUserManagementScreenState extends State<AdminUserManagementScreen> {
       await _loadUsers();
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error.toString())),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.toString())));
     } finally {
       if (mounted) {
         setState(() => _isBusy = false);
@@ -281,12 +275,20 @@ class _AdminUserManagementScreenState extends State<AdminUserManagementScreen> {
   }
 
   Future<void> _deleteUser(UserModel user) async {
+    if (user.role == AppRoles.admin) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('لا يمكن حذف مدير النظام الأساسي.')),
+      );
+      return;
+    }
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
           title: const Text('حذف المستخدم'),
-          content: Text('هل أنت متأكد من حذف الحساب "${user.displayName}"؟ لا يمكن التراجع عن هذا الإجراء.'),
+          content: Text(
+            'هل أنت متأكد من حذف الحساب "${user.displayName}"؟ لا يمكن التراجع عن هذا الإجراء.',
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(false),
@@ -308,15 +310,15 @@ class _AdminUserManagementScreenState extends State<AdminUserManagementScreen> {
     try {
       await context.read<AppRepository>().deleteUser(user.id);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تم حذف المستخدم')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('تم حذف المستخدم')));
       await _loadUsers();
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error.toString())),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.toString())));
     } finally {
       if (mounted) {
         setState(() => _isBusy = false);
@@ -400,7 +402,10 @@ class _AdminUserManagementScreenState extends State<AdminUserManagementScreen> {
           ),
           const SizedBox(height: 10),
           HbInfoRow(label: 'اسم المستخدم', value: user.username),
-          HbInfoRow(label: 'البريد', value: user.email.isEmpty ? 'غير متوفر' : user.email),
+          HbInfoRow(
+            label: 'البريد',
+            value: user.email.isEmpty ? 'غير متوفر' : user.email,
+          ),
           HbInfoRow(label: 'الدور', value: roleLabel(user.role)),
           const SizedBox(height: 10),
           Wrap(
@@ -412,11 +417,15 @@ class _AdminUserManagementScreenState extends State<AdminUserManagementScreen> {
                 child: const Text('عرض / تعديل'),
               ),
               OutlinedButton(
-                onPressed: _isBusy ? null : () => _toggleUserStatus(user),
+                onPressed: _isBusy || user.role == AppRoles.admin
+                    ? null
+                    : () => _toggleUserStatus(user),
                 child: Text(user.isActive ? 'تعطيل الحساب' : 'تفعيل الحساب'),
               ),
               OutlinedButton(
-                onPressed: _isBusy ? null : () => _deleteUser(user),
+                onPressed: _isBusy || user.role == AppRoles.admin
+                    ? null
+                    : () => _deleteUser(user),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: Colors.red,
                   side: const BorderSide(color: Colors.red),
@@ -454,8 +463,9 @@ class _AdminUserManagementScreenState extends State<AdminUserManagementScreen> {
               )
             else if (_filteredUsers.isEmpty)
               const HbEmptyState(
-              title: 'لا يوجد مستخدمون للعرض',
-                message: 'لم يتم العثور على مستخدمين مطابقين لعبارة البحث الحالية.',
+                title: 'لا يوجد مستخدمون للعرض',
+                message:
+                    'لم يتم العثور على مستخدمين مطابقين لعبارة البحث الحالية.',
                 icon: Icons.people_alt_outlined,
               )
             else
@@ -488,10 +498,7 @@ class AdminUserCreateScreen extends StatelessWidget {
 }
 
 class AdminUserEditScreen extends StatelessWidget {
-  const AdminUserEditScreen({
-    super.key,
-    this.userId,
-  });
+  const AdminUserEditScreen({super.key, this.userId});
 
   static const routeName = 'admin-user-edit';
   static const routePath = '/admin/users/edit';
@@ -569,10 +576,7 @@ class _AdminUserFormScreen extends StatefulWidget {
 class _AdminUserFormScreenState extends State<_AdminUserFormScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  static const _statusOptions = [
-    'فعّال',
-    'غير فعّال',
-  ];
+  static const _statusOptions = ['فعّال', 'غير فعّال'];
 
   late final TextEditingController _nameController;
   late final TextEditingController _usernameController;
@@ -590,17 +594,33 @@ class _AdminUserFormScreenState extends State<_AdminUserFormScreen> {
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.initialUser?.displayName ?? '');
-    _usernameController = TextEditingController(text: widget.initialUser?.username ?? '');
-    _emailController = TextEditingController(text: widget.initialUser?.email ?? '');
-    _phoneController = TextEditingController(text: widget.initialUser?.phoneNumber ?? '');
+    _nameController = TextEditingController(
+      text: widget.initialUser?.displayName ?? '',
+    );
+    _usernameController = TextEditingController(
+      text: widget.initialUser?.username ?? '',
+    );
+    _emailController = TextEditingController(
+      text: widget.initialUser?.email ?? '',
+    );
+    _phoneController = TextEditingController(
+      text: widget.initialUser?.phoneNumber ?? '',
+    );
     _passwordController = TextEditingController();
-    final initialRoleArabic = widget.initialUser == null ? '' : roleLabel(widget.initialUser!.role);
-    final assignableLabels = assignableRoleOptions.map((item) => item.label).toList();
+    final initialRoleArabic = widget.initialUser == null
+        ? ''
+        : roleLabel(widget.initialUser!.role);
+    final assignableLabels = assignableRoleOptions
+        .map((item) => item.label)
+        .toList();
     _selectedRole = assignableLabels.contains(initialRoleArabic)
         ? initialRoleArabic
-        : (widget.initialUser?.role == AppRoles.admin ? roleLabel(AppRoles.admin) : assignableRoleOptions.first.label);
-    _selectedStatus = widget.initialUser?.isActive == false ? _statusOptions[1] : _statusOptions[0];
+        : (widget.initialUser?.role == AppRoles.admin
+              ? roleLabel(AppRoles.admin)
+              : assignableRoleOptions.first.label);
+    _selectedStatus = widget.initialUser?.isActive == false
+        ? _statusOptions[1]
+        : _statusOptions[0];
     _loadPatientDataIfNeeded();
   }
 
@@ -648,7 +668,9 @@ class _AdminUserFormScreenState extends State<_AdminUserFormScreen> {
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تعذر تحميل بيانات المستفيدين للموظف الجامعي المحدد.')),
+        const SnackBar(
+          content: Text('تعذر تحميل بيانات المستفيدين للموظف الجامعي المحدد.'),
+        ),
       );
     } finally {
       if (mounted) {
@@ -694,15 +716,15 @@ class _AdminUserFormScreenState extends State<_AdminUserFormScreen> {
         'full_name': dependent.fullNameController.text.trim(),
         'national_id': dependent.nationalIdController.text.trim(),
         'relation': dependent.relation,
-        'date_of_birth': dependent.dateOfBirth == null ? null : _formatIsoDate(dependent.dateOfBirth!),
+        'date_of_birth': dependent.dateOfBirth == null
+            ? null
+            : _formatIsoDate(dependent.dateOfBirth!),
         'is_active': dependent.isActive,
       };
     }).toList();
   }
 
-  Future<void> _syncDependents({
-    required int patientId,
-  }) async {
+  Future<void> _syncDependents({required int patientId}) async {
     final service = context.read<AppRepository>();
 
     for (final dependentId in _deletedDependentIds) {
@@ -715,7 +737,9 @@ class _AdminUserFormScreenState extends State<_AdminUserFormScreen> {
         'full_name': dependent.fullNameController.text.trim(),
         'national_id': dependent.nationalIdController.text.trim(),
         'relation': dependent.relation,
-        'date_of_birth': dependent.dateOfBirth == null ? null : _formatIsoDate(dependent.dateOfBirth!),
+        'date_of_birth': dependent.dateOfBirth == null
+            ? null
+            : _formatIsoDate(dependent.dateOfBirth!),
         'is_active': dependent.isActive,
       };
 
@@ -742,7 +766,9 @@ class _AdminUserFormScreenState extends State<_AdminUserFormScreen> {
                   children: [
                     TextFormField(
                       controller: _nameController,
-                      decoration: const InputDecoration(labelText: 'الاسم الكامل'),
+                      decoration: const InputDecoration(
+                        labelText: 'الاسم الكامل',
+                      ),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
                           return 'يرجى إدخال الاسم الكامل';
@@ -753,7 +779,9 @@ class _AdminUserFormScreenState extends State<_AdminUserFormScreen> {
                     const SizedBox(height: 12),
                     TextFormField(
                       controller: _usernameController,
-                      decoration: const InputDecoration(labelText: 'اسم المستخدم'),
+                      decoration: const InputDecoration(
+                        labelText: 'اسم المستخدم',
+                      ),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
                           return 'يرجى إدخال اسم المستخدم';
@@ -764,7 +792,9 @@ class _AdminUserFormScreenState extends State<_AdminUserFormScreen> {
                     const SizedBox(height: 12),
                     TextFormField(
                       controller: _emailController,
-                      decoration: const InputDecoration(labelText: 'البريد الإلكتروني'),
+                      decoration: const InputDecoration(
+                        labelText: 'البريد الإلكتروني',
+                      ),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
                           return 'يرجى إدخال البريد الإلكتروني';
@@ -775,52 +805,59 @@ class _AdminUserFormScreenState extends State<_AdminUserFormScreen> {
                     const SizedBox(height: 12),
                     TextFormField(
                       controller: _phoneController,
-                      decoration: const InputDecoration(labelText: 'رقم الهاتف'),
+                      decoration: const InputDecoration(
+                        labelText: 'رقم الهاتف',
+                      ),
                     ),
                     const SizedBox(height: 12),
                     TextFormField(
                       controller: _passwordController,
                       obscureText: true,
                       decoration: InputDecoration(
-                        labelText: widget.initialUser == null ? 'كلمة المرور' : 'كلمة المرور الجديدة',
+                        labelText: widget.initialUser == null
+                            ? 'كلمة المرور'
+                            : 'كلمة المرور الجديدة',
+                        helperText:
+                            '8+ أحرف مع حرف كبير وحرف صغير ورقم ورمز خاص',
                       ),
-                      validator: (value) {
-                        if (widget.initialUser == null && (value == null || value.trim().isEmpty)) {
-                          return 'يرجى إدخال كلمة المرور';
-                        }
-                        return null;
-                      },
+                      validator: (value) => PasswordStrengthValidator.validate(
+                        value,
+                        isRequired: widget.initialUser == null,
+                      ),
                     ),
                     const SizedBox(height: 12),
                     DropdownButtonFormField<String>(
                       initialValue: _selectedRole,
                       decoration: const InputDecoration(labelText: 'الدور'),
-                      items: (_isPrimaryAdmin
-                              ? const [
-                                  AppRoleOption(
-                                    backendValue: AppRoles.admin,
-                                    label: 'مدير النظام',
-                                  ),
-                                ]
-                              : assignableRoleOptions)
-                          .map(
-                            (role) => DropdownMenuItem<String>(
-                              value: role.label,
-                              child: Text(role.label),
-                            ),
-                          )
-                          .toList(),
+                      items:
+                          (_isPrimaryAdmin
+                                  ? const [
+                                      AppRoleOption(
+                                        backendValue: AppRoles.admin,
+                                        label: 'مدير النظام',
+                                      ),
+                                    ]
+                                  : assignableRoleOptions)
+                              .map(
+                                (role) => DropdownMenuItem<String>(
+                                  value: role.label,
+                                  child: Text(role.label),
+                                ),
+                              )
+                              .toList(),
                       onChanged: _isPrimaryAdmin
                           ? null
                           : (value) {
-                        if (value == null) return;
-                        setState(() => _selectedRole = value);
-                      },
+                              if (value == null) return;
+                              setState(() => _selectedRole = value);
+                            },
                     ),
                     const SizedBox(height: 12),
                     DropdownButtonFormField<String>(
                       initialValue: _selectedStatus,
-                      decoration: const InputDecoration(labelText: 'حالة الحساب'),
+                      decoration: const InputDecoration(
+                        labelText: 'حالة الحساب',
+                      ),
                       items: _statusOptions
                           .map(
                             (status) => DropdownMenuItem<String>(
@@ -829,10 +866,12 @@ class _AdminUserFormScreenState extends State<_AdminUserFormScreen> {
                             ),
                           )
                           .toList(),
-                      onChanged: (value) {
-                        if (value == null) return;
-                        setState(() => _selectedStatus = value);
-                      },
+                      onChanged: _isPrimaryAdmin
+                          ? null
+                          : (value) {
+                              if (value == null) return;
+                              setState(() => _selectedStatus = value);
+                            },
                     ),
                     if (_isPatientRole) ...[
                       const SizedBox(height: 18),
@@ -867,7 +906,9 @@ class _AdminUserFormScreenState extends State<_AdminUserFormScreen> {
                             color: const Color(0xFFF4F8F7),
                             borderRadius: BorderRadius.circular(16),
                           ),
-                          child: const Text('لا يوجد مستفيدون حاليًا. يمكنك إضافة مستفيد جديد من الزر أعلاه.'),
+                          child: const Text(
+                            'لا يوجد مستفيدون حاليًا. يمكنك إضافة مستفيد جديد من الزر أعلاه.',
+                          ),
                         )
                       else
                         ..._dependents.asMap().entries.map((entry) {
@@ -908,7 +949,9 @@ class _AdminUserFormScreenState extends State<_AdminUserFormScreen> {
                 'email': _emailController.text.trim(),
                 'phone_number': _phoneController.text.trim(),
                 'role': _roleToBackend(_selectedRole),
-                'is_active': _selectedStatus == 'فعّال',
+                'is_active': _isPrimaryAdmin
+                    ? true
+                    : _selectedStatus == 'فعّال',
                 if (_passwordController.text.trim().isNotEmpty)
                   'password': _passwordController.text.trim(),
               };
@@ -923,21 +966,29 @@ class _AdminUserFormScreenState extends State<_AdminUserFormScreen> {
                         'username': _usernameController.text.trim(),
                         'email': _emailController.text.trim(),
                         'phone': _phoneController.text.trim(),
-                        'is_active': _selectedStatus == 'فعّال',
+                        'is_active': _isPrimaryAdmin
+                            ? true
+                            : _selectedStatus == 'فعّال',
                         if (_passwordController.text.trim().isNotEmpty)
                           'password': _passwordController.text.trim(),
                       },
                       'dependents': _buildDependentsPayload(),
                     });
                   } else {
-                    await appDataService.updateUser(widget.initialUser!.id, userPayload);
-                    final patient = _patientProfile ??
+                    await appDataService.updateUser(
+                      widget.initialUser!.id,
+                      userPayload,
+                    );
+                    final patient =
+                        _patientProfile ??
                         await appDataService.getEmployeeByUser(
                           username: _usernameController.text.trim(),
                           email: _emailController.text.trim(),
                         );
                     if (patient == null) {
-                      throw Exception('تعذر العثور على ملف الموظف الجامعي لتحديث المستفيدين.');
+                      throw Exception(
+                        'تعذر العثور على ملف الموظف الجامعي لتحديث المستفيدين.',
+                      );
                     }
                     _patientProfile = patient;
                     await _syncDependents(patientId: patient.id);
@@ -946,7 +997,10 @@ class _AdminUserFormScreenState extends State<_AdminUserFormScreen> {
                   if (widget.initialUser == null) {
                     await appDataService.createUser(userPayload);
                   } else {
-                    await appDataService.updateUser(widget.initialUser!.id, userPayload);
+                    await appDataService.updateUser(
+                      widget.initialUser!.id,
+                      userPayload,
+                    );
                   }
                 }
 
@@ -963,9 +1017,9 @@ class _AdminUserFormScreenState extends State<_AdminUserFormScreen> {
                 context.pop(true);
               } catch (error) {
                 if (!context.mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(error.toString())),
-                );
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text(error.toString())));
               } finally {
                 if (mounted) {
                   setState(() => _isSaving = false);
@@ -996,7 +1050,11 @@ String _roleToBackend(String role) {
 }
 
 (String, String) _splitName(String fullName) {
-  final parts = fullName.trim().split(RegExp(r'\s+')).where((part) => part.isNotEmpty).toList();
+  final parts = fullName
+      .trim()
+      .split(RegExp(r'\s+'))
+      .where((part) => part.isNotEmpty)
+      .toList();
   if (parts.isEmpty) {
     return ('', '');
   }
@@ -1022,11 +1080,11 @@ class _EditableDependentForm {
     required this.relation,
     required this.isActive,
     required this.dateOfBirth,
-  })  : fullNameController = TextEditingController(text: fullName),
-        nationalIdController = TextEditingController(text: nationalId),
-        dateOfBirthController = TextEditingController(
-          text: dateOfBirth == null ? '' : _formatDate(dateOfBirth),
-        );
+  }) : fullNameController = TextEditingController(text: fullName),
+       nationalIdController = TextEditingController(text: nationalId),
+       dateOfBirthController = TextEditingController(
+         text: dateOfBirth == null ? '' : _formatDate(dateOfBirth),
+       );
 
   factory _EditableDependentForm.empty() {
     return _EditableDependentForm(
@@ -1043,7 +1101,9 @@ class _EditableDependentForm {
       id: model.id,
       fullName: model.fullName,
       nationalId: model.nationalId,
-      relation: model.relation.isEmpty ? _DependentEditorCard.relationOptions.first.$1 : model.relation,
+      relation: model.relation.isEmpty
+          ? _DependentEditorCard.relationOptions.first.$1
+          : model.relation,
       isActive: model.isActive,
       dateOfBirth: model.dateOfBirth,
     );
@@ -1101,9 +1161,9 @@ class _DependentEditorCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   'المستفيد $index',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
                 ),
               ),
               IconButton(
@@ -1115,7 +1175,9 @@ class _DependentEditorCard extends StatelessWidget {
           ),
           TextFormField(
             controller: dependent.fullNameController,
-            decoration: const InputDecoration(labelText: 'الاسم الكامل للمستفيد'),
+            decoration: const InputDecoration(
+              labelText: 'الاسم الكامل للمستفيد',
+            ),
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
                 return 'يرجى إدخال اسم المستفيد';
@@ -1126,7 +1188,9 @@ class _DependentEditorCard extends StatelessWidget {
           const SizedBox(height: 12),
           TextFormField(
             controller: dependent.nationalIdController,
-            decoration: const InputDecoration(labelText: 'رقم الهوية - اختياري'),
+            decoration: const InputDecoration(
+              labelText: 'رقم الهوية - اختياري',
+            ),
           ),
           const SizedBox(height: 12),
           DropdownButtonFormField<String>(
@@ -1177,6 +1241,136 @@ class _DependentEditorCard extends StatelessWidget {
   }
 }
 
+class AdminAuditLogScreen extends StatefulWidget {
+  const AdminAuditLogScreen({super.key});
+
+  static const routeName = 'admin-audit-logs';
+  static const routePath = '/admin/logs';
+
+  @override
+  State<AdminAuditLogScreen> createState() => _AdminAuditLogScreenState();
+}
+
+class _AdminAuditLogScreenState extends State<AdminAuditLogScreen> {
+  final _searchController = TextEditingController();
+  String _query = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return HbScaffold(
+      title: 'سجل المتابعة',
+      actions: _commonActions(context),
+      body: FutureBuilder<List<AuditLogModel>>(
+        future: context.read<AppRepository>().getAuditLogs(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return HbEmptyState(
+              title: 'تعذر تحميل سجل المتابعة',
+              message: snapshot.error.toString(),
+              icon: Icons.cloud_off_rounded,
+            );
+          }
+
+          final logs = (snapshot.data ?? const <AuditLogModel>[]).where((log) {
+            final q = _query.trim().toLowerCase();
+            if (q.isEmpty) return true;
+            return log.action.toLowerCase().contains(q) ||
+                log.actorUsername.toLowerCase().contains(q) ||
+                log.targetModel.toLowerCase().contains(q) ||
+                log.details.toLowerCase().contains(q);
+          }).toList();
+
+          return ListView(
+            children: [
+              HbCustomCard(
+                child: TextField(
+                  controller: _searchController,
+                  decoration: const InputDecoration(
+                    labelText: 'البحث في السجل',
+                    hintText: 'ابحث بالفعل أو المستخدم أو التفاصيل',
+                    prefixIcon: Icon(Icons.search_rounded),
+                  ),
+                  onChanged: (value) => setState(() => _query = value),
+                ),
+              ),
+              const SizedBox(height: 16),
+              if (logs.isEmpty)
+                const HbEmptyState(
+                  title: 'لا توجد سجلات',
+                  message:
+                      'لم يتم العثور على سجلات مطابقة أو لا توجد أنشطة مسجلة بعد.',
+                  icon: Icons.fact_check_outlined,
+                )
+              else
+                ...logs.map((log) {
+                  final timestamp = log.createdAt == null
+                      ? 'غير محدد'
+                      : DateFormat(
+                          'yyyy/MM/dd - HH:mm',
+                        ).format(log.createdAt!.toLocal());
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: HbCustomCard(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  log.action,
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.titleMedium,
+                                ),
+                              ),
+                              HbStatusChip(
+                                log.targetModel.isEmpty
+                                    ? 'System'
+                                    : log.targetModel,
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          HbInfoRow(
+                            label: 'المنفذ',
+                            value: log.actorUsername.isEmpty
+                                ? 'غير معروف'
+                                : log.actorUsername,
+                          ),
+                          HbInfoRow(
+                            label: 'العنصر',
+                            value: log.targetId.isEmpty
+                                ? (log.targetModel.isEmpty
+                                      ? 'غير محدد'
+                                      : log.targetModel)
+                                : '${log.targetModel} #${log.targetId}',
+                          ),
+                          HbInfoRow(label: 'الوقت', value: timestamp),
+                          if (log.details.trim().isNotEmpty)
+                            HbInfoRow(label: 'التفاصيل', value: log.details),
+                        ],
+                      ),
+                    ),
+                  );
+                }),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
 class AdminStatisticsScreen extends StatelessWidget {
   const AdminStatisticsScreen({super.key});
 
@@ -1185,247 +1379,379 @@ class AdminStatisticsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const monthlyPrescriptions = [18.0, 24.0, 21.0, 29.0, 34.0, 38.0];
-    const roleDistribution = [
-      _ChartSegment('موظفون', 62, Color(0xFF0E5C4A)),
-      _ChartSegment('أطباء', 14, Color(0xFF1F8F75)),
-      _ChartSegment('صيادلة', 10, Color(0xFFE2A93B)),
-      _ChartSegment('تأمين', 8, Color(0xFF4C6FFF)),
-      _ChartSegment('إدارة', 6, Color(0xFF8E44AD)),
-    ];
-
     return HbScaffold(
       title: 'الإحصاءات العامة',
       actions: _commonActions(context),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final chartWidth = constraints.maxWidth > 980
-              ? (constraints.maxWidth - 12) / 2
-              : constraints.maxWidth;
+      body: FutureBuilder<List<dynamic>>(
+        future: Future.wait([
+          context.read<AppRepository>().getUsers(),
+          context.read<AppRepository>().getPrescriptions(),
+          context.read<AppRepository>().getInsuranceRequests(),
+          context.read<AppRepository>().getDispenses(),
+          context.read<AppRepository>().getAuditLogs(),
+          context.read<AppRepository>().getSystemSettings(),
+        ]),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return HbEmptyState(
+              title: 'تعذر تحميل لوحة الإحصاءات',
+              message: snapshot.error.toString(),
+              icon: Icons.cloud_off_rounded,
+            );
+          }
 
-          return ListView(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF0E5C4A), Color(0xFF177864)],
-                    begin: Alignment.topRight,
-                    end: Alignment.bottomLeft,
-                  ),
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                child: const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'لوحة الإحصاءات والتحليل',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 24,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      'عرض تحليلي لمؤشرات الاستخدام، النشاط الشهري، توزيع الأدوار، وحالة التشغيل العامة داخل منصة هيلث بريدج.',
-                      style: TextStyle(
-                        color: Color(0xFFEAF7F3),
-                        height: 1.6,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                children: const [
-                  SizedBox(
-                    width: 320,
-                    child: HbStatCard(
-                      label: 'عدد المستخدمين',
-                      value: '128',
-                      icon: Icons.groups_rounded,
-                    ),
-                  ),
-                  SizedBox(
-                    width: 320,
-                    child: HbStatCard(
-                      label: 'عدد الأطباء',
-                      value: '18',
-                      icon: Icons.medical_services_rounded,
-                    ),
-                  ),
-                  SizedBox(
-                    width: 320,
-                    child: HbStatCard(
-                      label: 'عدد الموظفين الجامعيين',
-                      value: '264',
-                      icon: Icons.personal_injury_rounded,
-                    ),
-                  ),
-                  SizedBox(
-                    width: 320,
-                    child: HbStatCard(
-                      label: 'عدد الوصفات',
-                      value: '342',
-                      icon: Icons.description_outlined,
-                    ),
-                  ),
-                  SizedBox(
-                    width: 320,
-                    child: HbStatCard(
-                      label: 'الطلبات المعلقة',
-                      value: '6',
-                      icon: Icons.pending_actions_rounded,
-                    ),
-                  ),
-                  SizedBox(
-                    width: 320,
-                    child: HbStatCard(
-                      label: 'عمليات الصرف',
-                      value: '190',
-                      icon: Icons.local_pharmacy_outlined,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Wrap(
-                spacing: 12,
-                runSpacing: 12,
+          final users = snapshot.data![0] as List<UserModel>;
+          final prescriptions = snapshot.data![1] as List<PrescriptionModel>;
+          final insuranceRequests =
+              snapshot.data![2] as List<InsuranceRequestModel>;
+          final dispenses = snapshot.data![3] as List<DispenseModel>;
+          final auditLogs = snapshot.data![4] as List<AuditLogModel>;
+          final systemSettings = snapshot.data![5] as SystemSettingsModel;
+
+          final totalUsers = users.length;
+          final activeUsersCount = users.where((u) => u.isActive).length;
+          final inactiveUsersCount = totalUsers - activeUsersCount;
+          final doctorsCount = users
+              .where((u) => u.role == AppRoles.doctor)
+              .length;
+          final employeesCount = users
+              .where((u) => u.role == AppRoles.employee)
+              .length;
+          final pharmacistsCount = users
+              .where((u) => u.role == AppRoles.pharmacist)
+              .length;
+          final insuranceCount = users
+              .where((u) => u.role == AppRoles.insuranceOfficer)
+              .length;
+          final adminsCount = users
+              .where((u) => u.role == AppRoles.admin)
+              .length;
+          final pendingRequests = insuranceRequests
+              .where((r) => r.status == 'Pending')
+              .length;
+          final approvedRequests = insuranceRequests
+              .where((r) => r.status == 'Approved')
+              .length;
+          final completedDispenses = dispenses
+              .where((item) => item.status == 'Completed')
+              .length;
+          final latestAuditLog = auditLogs.isEmpty ? null : auditLogs.first;
+          final latestPrescription = prescriptions.isEmpty
+              ? null
+              : prescriptions.first;
+          final latestSettingsUpdate = systemSettings.updatedAt;
+
+          final roleSegments = _buildRoleSegments(
+            totalUsers: totalUsers,
+            employeesCount: employeesCount,
+            doctorsCount: doctorsCount,
+            pharmacistsCount: pharmacistsCount,
+            insuranceCount: insuranceCount,
+            adminsCount: adminsCount,
+          );
+          final monthlySeries = _buildPrescriptionSeries(prescriptions);
+          final prescriptionProgress = prescriptions.isEmpty
+              ? 0.0
+              : prescriptions.where((item) => item.status != 'Draft').length /
+                    prescriptions.length;
+          final insuranceProgress = insuranceRequests.isEmpty
+              ? 0.0
+              : insuranceRequests
+                        .where((item) => item.status != 'Pending')
+                        .length /
+                    insuranceRequests.length;
+          final dispenseProgress = dispenses.isEmpty
+              ? 0.0
+              : dispenses.where((item) => item.status == 'Completed').length /
+                    dispenses.length;
+
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              final chartWidth = constraints.maxWidth > 980
+                  ? (constraints.maxWidth - 12) / 2
+                  : constraints.maxWidth;
+
+              return ListView(
                 children: [
-                  SizedBox(
-                    width: chartWidth,
-                    child: HbSectionCard(
-                      title: 'اتجاه الوصفات خلال الأشهر الستة الأخيرة',
-                      subtitle: 'يوضح هذا المخطط نمو عدد الوصفات الطبية الإلكترونية بشكل تدريجي ومستقر.',
-                      child: Column(
-                        children: [
-                          SizedBox(
-                            height: 240,
-                            child: CustomPaint(
-                              painter: _BarChartPainter(
-                                values: monthlyPrescriptions,
-                                labels: const ['نوف', 'ديس', 'ينا', 'فبر', 'مار', 'أبر'],
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF0E5C4A), Color(0xFF177864)],
+                        begin: Alignment.topRight,
+                        end: Alignment.bottomLeft,
+                      ),
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'لوحة الإحصاءات والتحليل',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 24,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          '${systemSettings.systemName.isEmpty ? 'HealthBridge' : systemSettings.systemName} • ${systemSettings.organizationName.isEmpty ? 'النظام متصل بقاعدة البيانات الحالية' : systemSettings.organizationName}',
+                          style: const TextStyle(
+                            color: Color(0xFFEAF7F3),
+                            height: 1.6,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 12,
+                    children: [
+                      _statisticsCard(
+                        'عدد المستخدمين',
+                        '$totalUsers',
+                        Icons.groups_rounded,
+                      ),
+                      _statisticsCard(
+                        'الحسابات الفعالة',
+                        '$activeUsersCount',
+                        Icons.verified_user_rounded,
+                      ),
+                      _statisticsCard(
+                        'الحسابات غير الفعالة',
+                        '$inactiveUsersCount',
+                        Icons.person_off_rounded,
+                      ),
+                      _statisticsCard(
+                        'عدد الأطباء',
+                        '$doctorsCount',
+                        Icons.medical_services_rounded,
+                      ),
+                      _statisticsCard(
+                        'عدد الموظفين الجامعيين',
+                        '$employeesCount',
+                        Icons.personal_injury_rounded,
+                      ),
+                      _statisticsCard(
+                        'عدد الوصفات',
+                        '${prescriptions.length}',
+                        Icons.description_outlined,
+                      ),
+                      _statisticsCard(
+                        'الطلبات المعلقة',
+                        '$pendingRequests',
+                        Icons.pending_actions_rounded,
+                      ),
+                      _statisticsCard(
+                        'عمليات الصرف',
+                        '${dispenses.length}',
+                        Icons.local_pharmacy_outlined,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 12,
+                    children: [
+                      SizedBox(
+                        width: chartWidth,
+                        child: HbSectionCard(
+                          title: 'اتجاه الوصفات خلال الأشهر الستة الأخيرة',
+                          subtitle:
+                              'عدد الوصفات الطبية المسجلة شهريًا وفق قاعدة البيانات الحالية.',
+                          child: Column(
+                            children: [
+                              SizedBox(
+                                height: 240,
+                                child: CustomPaint(
+                                  painter: _BarChartPainter(
+                                    values: monthlySeries.$1,
+                                    labels: monthlySeries.$2,
+                                  ),
+                                  child: const SizedBox.expand(),
+                                ),
                               ),
-                              child: const SizedBox.expand(),
-                            ),
+                              const SizedBox(height: 12),
+                              _InsightCallout(
+                                title: 'تحليل',
+                                message:
+                                    'تم احتساب هذا المخطط من ${prescriptions.length} وصفة محفوظة حاليًا في النظام.',
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 12),
-                          const _InsightCallout(
-                            title: 'تحليل',
-                            message:
-                                'هناك ارتفاع واضح في أبريل، ما يشير إلى زيادة الاعتماد على الوصفات الإلكترونية مع تحسن سير العمل في العيادات الجامعية.',
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
-                  ),
-                  SizedBox(
-                    width: chartWidth,
-                    child: HbSectionCard(
-                      title: 'توزيع المستخدمين حسب الدور',
-                      subtitle: 'يبين المخطط النسبي الفئات الأكثر استخدامًا داخل النظام.',
-                      child: Column(
-                        children: [
-                          SizedBox(
-                            height: 240,
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  flex: 3,
-                                  child: CustomPaint(
-                                    painter: _DonutChartPainter(roleDistribution),
-                                    child: const SizedBox.expand(),
-                                  ),
+                      SizedBox(
+                        width: chartWidth,
+                        child: HbSectionCard(
+                          title: 'توزيع المستخدمين حسب الدور',
+                          subtitle:
+                              'النسب الحالية مستخرجة من حسابات المستخدمين الفعلية.',
+                          child: Column(
+                            children: [
+                              SizedBox(
+                                height: 240,
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      flex: 3,
+                                      child: CustomPaint(
+                                        painter: _DonutChartPainter(
+                                          roleSegments,
+                                          totalUsers,
+                                        ),
+                                        child: const SizedBox.expand(),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      flex: 4,
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: roleSegments
+                                            .map(
+                                              (segment) =>
+                                                  _LegendTile(segment: segment),
+                                            )
+                                            .toList(),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  flex: 4,
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: roleDistribution
-                                        .map((segment) => _LegendTile(segment: segment))
-                                        .toList(),
-                                  ),
-                                ),
-                              ],
-                            ),
+                              ),
+                              const SizedBox(height: 12),
+                              _InsightCallout(
+                                title: 'تحليل',
+                                message: totalUsers == 0
+                                    ? 'لا توجد حسابات مستخدمين بعد لعرض توزيع الأدوار.'
+                                    : 'التوزيع الحالي مبني على $totalUsers حسابًا فعليًا، وأكثر الأدوار ظهورًا هو الدور ذو النسبة الأعلى في الرسم.',
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 12),
-                          const _InsightCallout(
-                            title: 'تحليل',
-                            message:
-                                'يشكل الموظفون الجامعيون النسبة الأكبر من الحسابات النشطة، بينما تبقى فئات الأطباء والصيادلة والتأمين والجهات الطبية ضمن نطاق تشغيلي متوازن.',
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
-                  ),
-                  SizedBox(
-                    width: chartWidth,
-                    child: HbSectionCard(
-                      title: 'مؤشرات التشغيل اليومية',
-                      subtitle: 'مقارنة سريعة بين الأداء الحالي والمستهدف في أهم العمليات.',
-                      child: Column(
-                        children: const [
-                          _ProgressMetric(
-                            label: 'إرسال الوصفات',
-                            valueText: '92%',
-                            progress: 0.92,
-                            color: Color(0xFF0E5C4A),
+                      SizedBox(
+                        width: chartWidth,
+                        child: HbSectionCard(
+                          title: 'مؤشرات التشغيل الحالية',
+                          subtitle:
+                              'نسب مبنية على حالة السجلات الحالية داخل النظام.',
+                          child: Column(
+                            children: [
+                              _ProgressMetric(
+                                label: 'إرسال الوصفات',
+                                valueText:
+                                    '${(prescriptionProgress * 100).round()}%',
+                                progress: prescriptionProgress,
+                                color: const Color(0xFF0E5C4A),
+                              ),
+                              const SizedBox(height: 14),
+                              _ProgressMetric(
+                                label: 'معالجة طلبات التأمين',
+                                valueText:
+                                    '${(insuranceProgress * 100).round()}%',
+                                progress: insuranceProgress,
+                                color: const Color(0xFF4C6FFF),
+                              ),
+                              const SizedBox(height: 14),
+                              _ProgressMetric(
+                                label: 'اكتمال الصرف',
+                                valueText:
+                                    '${(dispenseProgress * 100).round()}%',
+                                progress: dispenseProgress,
+                                color: const Color(0xFFE2A93B),
+                              ),
+                              const SizedBox(height: 12),
+                              _InsightCallout(
+                                title: 'تحليل',
+                                message:
+                                    'من أصل ${prescriptions.length} وصفة و${insuranceRequests.length} طلب تأمين و${dispenses.length} عملية صرف، يتم تحديث هذه النسب مباشرة من حالة السجلات في قاعدة البيانات.',
+                              ),
+                            ],
                           ),
-                          SizedBox(height: 14),
-                          _ProgressMetric(
-                            label: 'معالجة طلبات التأمين',
-                            valueText: '81%',
-                            progress: 0.81,
-                            color: Color(0xFF4C6FFF),
-                          ),
-                          SizedBox(height: 14),
-                          _ProgressMetric(
-                            label: 'اكتمال الصرف',
-                            valueText: '88%',
-                            progress: 0.88,
-                            color: Color(0xFFE2A93B),
-                          ),
-                          SizedBox(height: 12),
-                          _InsightCallout(
-                            title: 'تحليل',
-                            message:
-                                'أفضل أداء حالي هو في إرسال الوصفات، بينما يحتاج مسار التأمين إلى تقليل زمن الاستجابة لتحسين التجربة العامة.',
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
-                  ),
-                  SizedBox(
-                    width: chartWidth,
-                    child: HbSectionCard(
-                      title: 'ملخص إداري وتوصيات',
-                      subtitle: 'استنتاجات تشغيلية مختصرة تساعد في اتخاذ القرار.',
-                      child: Column(
-                        children: const [
-                          HbInfoRow(label: 'متوسط زمن المراجعة', value: '1.8 يوم'),
-                          HbInfoRow(label: 'أكثر وحدة نشاطًا', value: 'العيادة العامة'),
-                          HbInfoRow(label: 'أكثر وصفة شيوعًا', value: 'علاجات الجهاز التنفسي'),
-                          HbInfoRow(label: 'حالة النظام', value: 'مستقر مع حمل متوسط'),
-                          SizedBox(height: 12),
-                          _InsightCallout(
-                            title: 'توصية',
-                            message:
-                                'يوصى بزيادة متابعة الطلبات المعلقة في التأمين وتوسيع التدريب على الصرف الإلكتروني لتحسين سرعة الإنجاز.',
+                      SizedBox(
+                        width: chartWidth,
+                        child: HbSectionCard(
+                          title: 'ملخص إداري',
+                          subtitle:
+                              'مؤشرات مباشرة من البيانات الحالية تساعد في المتابعة واتخاذ القرار.',
+                          child: Column(
+                            children: [
+                              HbInfoRow(
+                                label: 'اسم النظام',
+                                value: systemSettings.systemName.isEmpty
+                                    ? 'غير محدد'
+                                    : systemSettings.systemName,
+                              ),
+                              HbInfoRow(
+                                label: 'الجهة',
+                                value: systemSettings.organizationName.isEmpty
+                                    ? 'غير محددة'
+                                    : systemSettings.organizationName,
+                              ),
+                              HbInfoRow(
+                                label: 'عدد سجلات المتابعة',
+                                value: '${auditLogs.length}',
+                              ),
+                              HbInfoRow(
+                                label: 'طلبات التأمين المعتمدة',
+                                value: '$approvedRequests',
+                              ),
+                              HbInfoRow(
+                                label: 'عمليات الصرف المكتملة',
+                                value: '$completedDispenses',
+                              ),
+                              HbInfoRow(
+                                label: 'آخر إجراء مسجل',
+                                value: latestAuditLog == null
+                                    ? 'لا توجد سجلات'
+                                    : '${latestAuditLog.action} - ${latestAuditLog.actorUsername}',
+                              ),
+                              HbInfoRow(
+                                label: 'آخر وصفة مسجلة',
+                                value: latestPrescription == null
+                                    ? 'لا توجد وصفات'
+                                    : latestPrescription.prescriptionNumber,
+                              ),
+                              HbInfoRow(
+                                label: 'الإشعارات النظامية',
+                                value: systemSettings.notificationsEnabled
+                                    ? 'مفعلة'
+                                    : 'متوقفة',
+                              ),
+                              HbInfoRow(
+                                label: 'مسار التأمين',
+                                value: systemSettings.insuranceWorkflowEnabled
+                                    ? 'مفعل'
+                                    : 'متجاوز',
+                              ),
+                              HbInfoRow(
+                                label: 'آخر تحديث للإعدادات',
+                                value: latestSettingsUpdate == null
+                                    ? 'لا يوجد'
+                                    : DateFormat(
+                                        'yyyy/MM/dd - HH:mm',
+                                      ).format(latestSettingsUpdate.toLocal()),
+                              ),
+                            ],
                           ),
-                        ],
+                        ),
                       ),
-                    ),
+                    ],
                   ),
                 ],
-              ),
-            ],
+              );
+            },
           );
         },
       ),
@@ -1444,139 +1770,262 @@ class AdminSettingsScreen extends StatefulWidget {
 }
 
 class _AdminSettingsScreenState extends State<AdminSettingsScreen> {
+  final _systemNameController = TextEditingController();
+  final _organizationNameController = TextEditingController();
+  final _shortDescriptionController = TextEditingController();
+  final _adminNotesController = TextEditingController();
   bool notificationsEnabled = true;
   bool insuranceWorkflowEnabled = true;
   bool pharmacistNotesRequired = false;
   String selectedLanguage = 'العربية';
   String selectedSessionTimeout = '30 دقيقة';
+  bool _isLoading = true;
+  bool _isSaving = false;
+  Object? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_loadSettings());
+  }
+
+  @override
+  void dispose() {
+    _systemNameController.dispose();
+    _organizationNameController.dispose();
+    _shortDescriptionController.dispose();
+    _adminNotesController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadSettings() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+    try {
+      final settings = await context.read<AppRepository>().getSystemSettings();
+      if (!mounted) return;
+      _systemNameController.text = settings.systemName;
+      _organizationNameController.text = settings.organizationName;
+      _shortDescriptionController.text = settings.shortDescription;
+      _adminNotesController.text = settings.adminNotes;
+      setState(() {
+        notificationsEnabled = settings.notificationsEnabled;
+        insuranceWorkflowEnabled = settings.insuranceWorkflowEnabled;
+        pharmacistNotesRequired = settings.pharmacistNotesRequired;
+        selectedLanguage = settings.interfaceLanguage;
+        selectedSessionTimeout = '${settings.sessionTimeoutMinutes} دقيقة';
+        _isLoading = false;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _error = error;
+        _isLoading = false;
+      });
+    }
+  }
+
+  int _selectedTimeoutMinutes() {
+    return int.tryParse(selectedSessionTimeout.split(' ').first) ?? 30;
+  }
+
+  Future<void> _saveSettings() async {
+    setState(() => _isSaving = true);
+    try {
+      final updated = SystemSettingsModel(
+        systemName: _systemNameController.text.trim(),
+        organizationName: _organizationNameController.text.trim(),
+        shortDescription: _shortDescriptionController.text.trim(),
+        notificationsEnabled: notificationsEnabled,
+        insuranceWorkflowEnabled: insuranceWorkflowEnabled,
+        pharmacistNotesRequired: pharmacistNotesRequired,
+        interfaceLanguage: selectedLanguage,
+        sessionTimeoutMinutes: _selectedTimeoutMinutes(),
+        adminNotes: _adminNotesController.text.trim(),
+      );
+      await context.read<AppRepository>().updateSystemSettings(updated);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('تم حفظ إعدادات النظام وتفعيلها بنجاح')),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.toString())));
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return HbScaffold(
       title: 'إعدادات النظام',
       actions: _commonActions(context),
-      body: ListView(
-        children: [
-          HbSectionCard(
-            title: 'الهوية العامة للنظام',
-            subtitle: 'إعدادات أساسية تظهر في النظام والواجهات الإدارية.',
-            child: Column(
-              children: const [
-                TextField(
-                  decoration: InputDecoration(
-                    labelText: 'اسم النظام',
-                    hintText: 'هيلث بريدج',
-                  ),
-                ),
-                SizedBox(height: 12),
-                TextField(
-                  decoration: InputDecoration(
-                    labelText: 'اسم الجهة',
-                    hintText: 'جامعة بوليتكنك فلسطين',
-                  ),
-                ),
-                SizedBox(height: 12),
-                TextField(
-                  maxLines: 2,
-                  decoration: InputDecoration(
-                    labelText: 'وصف مختصر',
-                    hintText: 'نظام إلكتروني لإدارة الوصفات الطبية والتأمين والصرف',
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          HbSectionCard(
-            title: 'الإعدادات التشغيلية',
-            subtitle: 'التحكم بسلوك النظام والإشعارات وسير العمل.',
-            child: Column(
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _error != null
+          ? HbEmptyState(
+              title: 'تعذر تحميل إعدادات النظام',
+              message: _error.toString(),
+              icon: Icons.cloud_off_rounded,
+            )
+          : ListView(
               children: [
-                SwitchListTile.adaptive(
-                  value: notificationsEnabled,
-                  contentPadding: EdgeInsets.zero,
-                  title: const Text('تفعيل الإشعارات النظامية'),
-                  subtitle: const Text('إرسال إشعارات للمستخدمين عند تغير حالة الوصفة أو التأمين'),
-                  onChanged: (value) => setState(() => notificationsEnabled = value),
+                HbSectionCard(
+                  title: 'الهوية العامة للنظام',
+                  subtitle: 'إعدادات أساسية تظهر في النظام والواجهات الإدارية.',
+                  child: Column(
+                    children: [
+                      TextField(
+                        controller: _systemNameController,
+                        decoration: InputDecoration(
+                          labelText: 'اسم النظام',
+                          hintText: 'هيلث بريدج',
+                        ),
+                      ),
+                      SizedBox(height: 12),
+                      TextField(
+                        controller: _organizationNameController,
+                        decoration: InputDecoration(
+                          labelText: 'اسم الجهة',
+                          hintText: 'جامعة بوليتكنك فلسطين',
+                        ),
+                      ),
+                      SizedBox(height: 12),
+                      TextField(
+                        controller: _shortDescriptionController,
+                        maxLines: 2,
+                        decoration: InputDecoration(
+                          labelText: 'وصف مختصر',
+                          hintText:
+                              'نظام إلكتروني لإدارة الوصفات الطبية والتأمين والصرف',
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                SwitchListTile.adaptive(
-                  value: insuranceWorkflowEnabled,
-                  contentPadding: EdgeInsets.zero,
-                  title: const Text('تفعيل سير موافقات التأمين'),
-                  subtitle: const Text('تمرير الوصفات إلى موظف التأمين قبل الصرف عند الحاجة'),
-                  onChanged: (value) => setState(() => insuranceWorkflowEnabled = value),
+                const SizedBox(height: 16),
+                HbSectionCard(
+                  title: 'الإعدادات التشغيلية',
+                  subtitle: 'التحكم بسلوك النظام والإشعارات وسير العمل.',
+                  child: Column(
+                    children: [
+                      SwitchListTile.adaptive(
+                        value: notificationsEnabled,
+                        contentPadding: EdgeInsets.zero,
+                        title: const Text('تفعيل الإشعارات النظامية'),
+                        subtitle: const Text(
+                          'إرسال إشعارات للمستخدمين عند تغير حالة الوصفة أو التأمين',
+                        ),
+                        onChanged: (value) =>
+                            setState(() => notificationsEnabled = value),
+                      ),
+                      SwitchListTile.adaptive(
+                        value: insuranceWorkflowEnabled,
+                        contentPadding: EdgeInsets.zero,
+                        title: const Text('تفعيل سير موافقات التأمين'),
+                        subtitle: const Text(
+                          'تمرير الوصفات إلى موظف التأمين قبل الصرف عند الحاجة',
+                        ),
+                        onChanged: (value) =>
+                            setState(() => insuranceWorkflowEnabled = value),
+                      ),
+                      SwitchListTile.adaptive(
+                        value: pharmacistNotesRequired,
+                        contentPadding: EdgeInsets.zero,
+                        title: const Text('إلزام الصيدلي بإضافة ملاحظة'),
+                        subtitle: const Text(
+                          'مفيد لتوثيق عمليات الصرف في البيئة الجامعية',
+                        ),
+                        onChanged: (value) =>
+                            setState(() => pharmacistNotesRequired = value),
+                      ),
+                      const SizedBox(height: 12),
+                      DropdownButtonFormField<String>(
+                        initialValue: selectedLanguage,
+                        decoration: const InputDecoration(
+                          labelText: 'لغة الواجهة',
+                        ),
+                        items: const [
+                          DropdownMenuItem(
+                            value: 'العربية',
+                            child: Text('العربية'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'English',
+                            child: Text('English'),
+                          ),
+                        ],
+                        onChanged: (value) {
+                          if (value == null) return;
+                          setState(() => selectedLanguage = value);
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      DropdownButtonFormField<String>(
+                        initialValue: selectedSessionTimeout,
+                        decoration: const InputDecoration(
+                          labelText: 'مدة الجلسة',
+                        ),
+                        items: const [
+                          DropdownMenuItem(
+                            value: '15 دقيقة',
+                            child: Text('15 دقيقة'),
+                          ),
+                          DropdownMenuItem(
+                            value: '30 دقيقة',
+                            child: Text('30 دقيقة'),
+                          ),
+                          DropdownMenuItem(
+                            value: '60 دقيقة',
+                            child: Text('60 دقيقة'),
+                          ),
+                        ],
+                        onChanged: (value) {
+                          if (value == null) return;
+                          setState(() => selectedSessionTimeout = value);
+                        },
+                      ),
+                    ],
+                  ),
                 ),
-                SwitchListTile.adaptive(
-                  value: pharmacistNotesRequired,
-                  contentPadding: EdgeInsets.zero,
-                  title: const Text('إلزام الصيدلي بإضافة ملاحظة'),
-                  subtitle: const Text('مفيد لتوثيق عمليات الصرف في البيئة الجامعية'),
-                  onChanged: (value) => setState(() => pharmacistNotesRequired = value),
+                const SizedBox(height: 16),
+                HbSectionCard(
+                  title: 'ملاحظات إدارية',
+                  subtitle:
+                      'ملاحظات حول النشر أو العرض التقديمي أو سياسات العمل.',
+                  child: TextField(
+                    controller: _adminNotesController,
+                    maxLines: 5,
+                    decoration: InputDecoration(
+                      labelText: 'ملاحظات',
+                      hintText:
+                          'يمكن كتابة سياسات داخلية أو ملاحظات تخص العرض أو بيئة التشغيل...',
+                    ),
+                  ),
                 ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  initialValue: selectedLanguage,
-                  decoration: const InputDecoration(labelText: 'لغة الواجهة'),
-                  items: const [
-                    DropdownMenuItem(value: 'العربية', child: Text('العربية')),
-                    DropdownMenuItem(value: 'English', child: Text('English')),
-                  ],
-                  onChanged: (value) {
-                    if (value == null) return;
-                    setState(() => selectedLanguage = value);
-                  },
-                ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  initialValue: selectedSessionTimeout,
-                  decoration: const InputDecoration(labelText: 'مدة الجلسة'),
-                  items: const [
-                    DropdownMenuItem(value: '15 دقيقة', child: Text('15 دقيقة')),
-                    DropdownMenuItem(value: '30 دقيقة', child: Text('30 دقيقة')),
-                    DropdownMenuItem(value: '60 دقيقة', child: Text('60 دقيقة')),
-                  ],
-                  onChanged: (value) {
-                    if (value == null) return;
-                    setState(() => selectedSessionTimeout = value);
-                  },
+                const SizedBox(height: 16),
+                HbPrimaryButtonRow(
+                  primaryLabel: _isSaving ? 'جاري الحفظ...' : 'حفظ الإعدادات',
+                  onPrimaryPressed: _isSaving ? null : _saveSettings,
+                  secondaryLabel: 'معاينة الملف الشخصي',
+                  onSecondaryPressed: () =>
+                      context.push(ProfileScreen.routePath),
                 ),
               ],
             ),
-          ),
-          const SizedBox(height: 16),
-          HbSectionCard(
-            title: 'ملاحظات إدارية',
-            subtitle: 'ملاحظات حول النشر أو العرض التقديمي أو سياسات العمل.',
-            child: const TextField(
-              maxLines: 5,
-              decoration: InputDecoration(
-                labelText: 'ملاحظات',
-                hintText: 'يمكن كتابة سياسات داخلية أو ملاحظات تخص العرض أو بيئة التشغيل...',
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          HbPrimaryButtonRow(
-            primaryLabel: 'حفظ الإعدادات',
-            onPrimaryPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('تم حفظ إعدادات النظام بنجاح')),
-              );
-            },
-            secondaryLabel: 'معاينة الملف الشخصي',
-            onSecondaryPressed: () => context.push(ProfileScreen.routePath),
-          ),
-        ],
-      ),
     );
   }
 }
 
 class _InsightCallout extends StatelessWidget {
-  const _InsightCallout({
-    required this.title,
-    required this.message,
-  });
+  const _InsightCallout({required this.title, required this.message});
 
   final String title;
   final String message;
@@ -1622,7 +2071,12 @@ class _ProgressMetric extends StatelessWidget {
       children: [
         Row(
           children: [
-            Expanded(child: Text(label, style: Theme.of(context).textTheme.titleMedium)),
+            Expanded(
+              child: Text(
+                label,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+            ),
             Text(valueText, style: Theme.of(context).textTheme.titleMedium),
           ],
         ),
@@ -1642,9 +2096,7 @@ class _ProgressMetric extends StatelessWidget {
 }
 
 class _LegendTile extends StatelessWidget {
-  const _LegendTile({
-    required this.segment,
-  });
+  const _LegendTile({required this.segment});
 
   final _ChartSegment segment;
 
@@ -1680,10 +2132,7 @@ class _ChartSegment {
 }
 
 class _BarChartPainter extends CustomPainter {
-  _BarChartPainter({
-    required this.values,
-    required this.labels,
-  });
+  _BarChartPainter({required this.values, required this.labels});
 
   final List<double> values;
   final List<String> labels;
@@ -1712,11 +2161,7 @@ class _BarChartPainter extends CustomPainter {
 
     for (var i = 0; i < 4; i++) {
       final y = topPadding + (chartHeight / 3) * i;
-      canvas.drawLine(
-        Offset(leftPadding, y),
-        Offset(size.width, y),
-        gridPaint,
-      );
+      canvas.drawLine(Offset(leftPadding, y), Offset(size.width, y), gridPaint);
     }
 
     canvas.drawLine(
@@ -1788,9 +2233,10 @@ class _BarChartPainter extends CustomPainter {
 }
 
 class _DonutChartPainter extends CustomPainter {
-  _DonutChartPainter(this.segments);
+  _DonutChartPainter(this.segments, this.totalUsers);
 
   final List<_ChartSegment> segments;
+  final int totalUsers;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -1812,8 +2258,8 @@ class _DonutChartPainter extends CustomPainter {
     }
 
     final centerPainter = TextPainter(
-      text: const TextSpan(
-        text: '128\nمستخدم',
+      text: TextSpan(
+        text: '$totalUsers\nمستخدم',
         style: TextStyle(
           color: Color(0xFF102A43),
           fontSize: 16,
@@ -1840,9 +2286,63 @@ class _DonutChartPainter extends CustomPainter {
   }
 }
 
+SizedBox _statisticsCard(String label, String value, IconData icon) {
+  return SizedBox(
+    width: 320,
+    child: HbStatCard(label: label, value: value, icon: icon),
+  );
+}
+
+List<_ChartSegment> _buildRoleSegments({
+  required int totalUsers,
+  required int employeesCount,
+  required int doctorsCount,
+  required int pharmacistsCount,
+  required int insuranceCount,
+  required int adminsCount,
+}) {
+  double percent(int count) => totalUsers == 0 ? 0 : (count / totalUsers) * 100;
+
+  return [
+    _ChartSegment('موظفون', percent(employeesCount), const Color(0xFF0E5C4A)),
+    _ChartSegment('أطباء', percent(doctorsCount), const Color(0xFF1F8F75)),
+    _ChartSegment('صيادلة', percent(pharmacistsCount), const Color(0xFFE2A93B)),
+    _ChartSegment('تأمين', percent(insuranceCount), const Color(0xFF4C6FFF)),
+    _ChartSegment('إدارة', percent(adminsCount), const Color(0xFF8E44AD)),
+  ].where((segment) => segment.value > 0).toList();
+}
+
+(List<double>, List<String>) _buildPrescriptionSeries(
+  List<PrescriptionModel> prescriptions,
+) {
+  final now = DateTime.now();
+  final months = List.generate(6, (index) {
+    final date = DateTime(now.year, now.month - (5 - index), 1);
+    final count = prescriptions.where((item) {
+      final issued = item.issuedAt?.toLocal();
+      if (issued == null) return false;
+      return issued.year == date.year && issued.month == date.month;
+    }).length;
+    return (date, count.toDouble());
+  });
+
+  final labels = months
+      .map((entry) => DateFormat('MMM', 'ar').format(entry.$1))
+      .toList();
+  final values = months.map((entry) => entry.$2).toList();
+  final safeValues = values.every((value) => value == 0)
+      ? values.map((_) => 1.0).toList()
+      : values;
+  return (safeValues, labels);
+}
+
 List<Widget> _commonActions(BuildContext context) {
   return [
-    const HbNotificationAction(),
+    IconButton(
+      onPressed: () => context.push(AdminAuditLogScreen.routePath),
+      icon: const Icon(Icons.fact_check_outlined),
+      tooltip: 'سجل التتبع',
+    ),
     IconButton(
       onPressed: () => context.push(ProfileScreen.routePath),
       icon: const Icon(Icons.person_outline_rounded),

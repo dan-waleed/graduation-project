@@ -1,10 +1,13 @@
 from django.utils import timezone
+from rest_framework.generics import GenericAPIView
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from core.models import AuditLog, Notification, UserRole
+from core.models import AuditLog, Notification, SystemSettings, UserRole
 from core.services import is_admin_user
-from core.api.serializers import AuditLogSerializer, NotificationSerializer
+from core.api.serializers import AuditLogSerializer, NotificationSerializer, SystemSettingsSerializer
+from core.utils import create_audit_log
 
 from .common import BaseOwnedModelViewSet
 
@@ -49,6 +52,11 @@ class NotificationViewSet(BaseOwnedModelViewSet):
         serializer = self.get_serializer(notification, data={"is_read": True}, partial=True)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
+        self.log_action(
+            "Notification marked as read",
+            notification,
+            details=f"notification_id={notification.pk}",
+        )
         return Response(serializer.data)
 
     @action(detail=True, methods=["patch", "post"], url_path="read")
@@ -85,3 +93,34 @@ class AuditLogViewSet(BaseOwnedModelViewSet):
 
     def get_queryset(self):
         return self.queryset if is_admin_user(self.request.user) else self.queryset.none()
+
+
+class SystemSettingsView(GenericAPIView):
+    serializer_class = SystemSettingsSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        if not is_admin_user(request.user):
+            self.permission_denied(request, message="ليس لديك صلاحية للوصول إلى إعدادات النظام.")
+        return Response(self.get_serializer(SystemSettings.get_solo()).data)
+
+    def patch(self, request, *args, **kwargs):
+        if not is_admin_user(request.user):
+            self.permission_denied(request, message="ليس لديك صلاحية لتعديل إعدادات النظام.")
+        settings = SystemSettings.get_solo()
+        before_state = SystemSettingsSerializer(settings).data
+        serializer = self.get_serializer(settings, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        after_state = serializer.data
+        changed_fields = [
+            key for key, before_value in before_state.items() if before_value != after_state.get(key)
+        ]
+        create_audit_log(
+            actor=request.user,
+            action="System settings updated",
+            target_model="SystemSettings",
+            target_id=settings.pk,
+            details=", ".join(changed_fields) if changed_fields else "no field changes detected",
+        )
+        return Response(serializer.data)

@@ -1,4 +1,4 @@
-from .models import AuditLog, Notification, NotificationType
+from .models import AuditLog, Notification, NotificationType, SystemSettings
 
 
 def create_audit_log(*, actor, action, target_model="", target_id="", details=""):
@@ -24,6 +24,8 @@ def create_notification(
 ):
     """Create a user notification if a target user exists."""
 
+    if not SystemSettings.get_solo().notifications_enabled:
+        return
     if user is None:
         return
     Notification.objects.create(

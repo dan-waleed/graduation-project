@@ -5,7 +5,7 @@ from django.http import HttpResponse
 from django.utils import timezone
 from rest_framework.decorators import action
 
-from core.models import Dispense, InsuranceRequest, InsuranceRequestStatus, Prescription, UserRole
+from core.models import Dispense, InsuranceRequest, InsuranceRequestStatus, Prescription, SystemSettings, UserRole
 from core.services import (
     apply_role_scope,
     sync_prescription_status_from_dispense,
@@ -19,6 +19,12 @@ from .common import BaseOwnedModelViewSet
 
 def _ensure_auto_approved_insurance_request(viewset, prescription):
     if prescription.status not in {"Sent", "PendingInsuranceApproval", "Approved"}:
+        return
+    settings = SystemSettings.get_solo()
+    if not settings.insurance_workflow_enabled:
+        if prescription.status != "Approved":
+            prescription.status = "Approved"
+            prescription.save(update_fields=["status", "updated_at"])
         return
     if hasattr(prescription, "insurance_request"):
         return

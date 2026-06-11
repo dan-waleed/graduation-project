@@ -38,7 +38,8 @@ class _HbDashboardOverviewState extends State<HbDashboardOverview> {
     return FutureBuilder<DashboardSummaryModel>(
       future: _summaryFuture,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
+        if (snapshot.connectionState == ConnectionState.waiting &&
+            !snapshot.hasData) {
           return const _DashboardLoading();
         }
 
@@ -148,12 +149,6 @@ class _HbDashboardOverviewState extends State<HbDashboardOverview> {
         return Icons.medical_services_outlined;
       case 'pharmacy':
         return Icons.local_pharmacy_outlined;
-      case 'lab':
-        return Icons.science_outlined;
-      case 'imaging':
-        return Icons.perm_media_outlined;
-      case 'medical_center':
-        return Icons.local_hospital_outlined;
       case 'payments':
         return Icons.payments_outlined;
       case 'rejected':
@@ -170,9 +165,7 @@ class _HbDashboardOverviewState extends State<HbDashboardOverview> {
 }
 
 class _ActivityTile extends StatelessWidget {
-  const _ActivityTile({
-    required this.activity,
-  });
+  const _ActivityTile({required this.activity});
 
   final DashboardActivityModel activity;
 
@@ -180,7 +173,9 @@ class _ActivityTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final formattedDate = activity.createdAt == null
         ? 'الآن'
-        : DateFormat('yyyy/MM/dd - HH:mm').format(activity.createdAt!.toLocal());
+        : DateFormat(
+            'yyyy/MM/dd - HH:mm',
+          ).format(activity.createdAt!.toLocal());
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -211,23 +206,27 @@ class _ActivityTile extends StatelessWidget {
               ),
               borderRadius: BorderRadius.circular(16),
             ),
-            child: const Icon(
-              Icons.history_rounded,
-              color: AppTheme.primary,
-            ),
+            child: const Icon(Icons.history_rounded, color: AppTheme.primary),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(activity.title, style: Theme.of(context).textTheme.titleSmall),
+                Text(
+                  activity.title,
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
                 const SizedBox(height: 4),
-                Text(activity.subtitle, style: Theme.of(context).textTheme.bodySmall),
+                Text(
+                  activity.subtitle,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    if (activity.status.isNotEmpty) HbStatusChip(activity.status),
+                    if (activity.status.isNotEmpty)
+                      HbStatusChip(activity.status),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
@@ -257,9 +256,7 @@ class _DashboardLoading extends StatelessWidget {
       subtitle: 'نقوم بجلب أحدث البيانات من النظام.',
       child: const Padding(
         padding: EdgeInsets.symmetric(vertical: 16),
-        child: Center(
-          child: CircularProgressIndicator(),
-        ),
+        child: Center(child: CircularProgressIndicator()),
       ),
     );
   }

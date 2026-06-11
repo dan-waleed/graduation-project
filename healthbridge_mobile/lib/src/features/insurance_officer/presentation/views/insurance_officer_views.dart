@@ -38,8 +38,8 @@ class InsuranceOfficerHomeScreen extends StatelessWidget {
           final actionWidth = constraints.maxWidth > 960
               ? (constraints.maxWidth - 24) / 3
               : constraints.maxWidth > 620
-                  ? (constraints.maxWidth - 12) / 2
-                  : constraints.maxWidth;
+              ? (constraints.maxWidth - 12) / 2
+              : constraints.maxWidth;
 
           return ListView(
             children: [
@@ -63,7 +63,8 @@ class InsuranceOfficerHomeScreen extends StatelessWidget {
                       title: 'طلبات التغطية',
                       subtitle: 'جميع طلبات التغطية الواردة للمراجعة والمتابعة',
                       icon: Icons.fact_check_outlined,
-                      onTap: () => context.push(InsuranceRequestsScreen.routePath),
+                      onTap: () =>
+                          context.push(InsuranceRequestsScreen.routePath),
                     ),
                   ),
                   SizedBox(
@@ -72,16 +73,30 @@ class InsuranceOfficerHomeScreen extends StatelessWidget {
                       title: 'الطلبات الحديثة',
                       subtitle: 'عرض أحدث الطلبات التي وصلت من الأطباء',
                       icon: Icons.history_toggle_off_rounded,
-                      onTap: () => context.push(InsuranceRequestsScreen.routePath),
+                      onTap: () =>
+                          context.push(InsuranceRequestsScreen.routePath),
                     ),
                   ),
                   SizedBox(
                     width: actionWidth,
                     child: HbQuickActionCard(
                       title: 'الطلبات المعتمدة',
-                      subtitle: 'الطلبات التي تم اعتمادها تلقائيًا ويمكن مراجعتها',
+                      subtitle:
+                          'الطلبات التي تم اعتمادها تلقائيًا ويمكن مراجعتها',
                       icon: Icons.task_alt_rounded,
-                      onTap: () => context.push(InsuranceRequestsScreen.routePath),
+                      onTap: () =>
+                          context.push(InsuranceRequestsScreen.routePath),
+                    ),
+                  ),
+                  SizedBox(
+                    width: actionWidth,
+                    child: HbQuickActionCard(
+                      title: 'كتالوج التغطية',
+                      subtitle: 'إدارة عناصر التغطية والأسعار ونسب التحمل',
+                      icon: Icons.inventory_2_outlined,
+                      onTap: () => context.push(
+                        InsuranceCoverageCatalogScreen.routePath,
+                      ),
                     ),
                   ),
                   SizedBox(
@@ -110,7 +125,8 @@ class InsuranceRequestsScreen extends StatefulWidget {
   static const routePath = '/insurance/requests';
 
   @override
-  State<InsuranceRequestsScreen> createState() => _InsuranceRequestsScreenState();
+  State<InsuranceRequestsScreen> createState() =>
+      _InsuranceRequestsScreenState();
 }
 
 class _InsuranceRequestsScreenState extends State<InsuranceRequestsScreen> {
@@ -147,14 +163,14 @@ class _InsuranceRequestsScreenState extends State<InsuranceRequestsScreen> {
     if (notes == null || !mounted) return;
 
     await context.read<AppRepository>().updateInsuranceRequest(
-          id: request.id,
-          status: status,
-          notes: notes,
-        );
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('تم $actionLabel الطلب بنجاح')),
+      id: request.id,
+      status: status,
+      notes: notes,
     );
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('تم $actionLabel الطلب بنجاح')));
     setState(() {
       _requestsFuture = _loadRequests();
     });
@@ -168,7 +184,8 @@ class _InsuranceRequestsScreenState extends State<InsuranceRequestsScreen> {
       body: FutureBuilder<List<InsuranceRequestModel>>(
         future: _requestsFuture,
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
+          if (snapshot.connectionState == ConnectionState.waiting &&
+              !snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
@@ -182,7 +199,9 @@ class _InsuranceRequestsScreenState extends State<InsuranceRequestsScreen> {
           final requests = snapshot.data ?? const [];
           final filteredRequests = _selectedFilter == 'الكل'
               ? requests
-              : requests.where((item) => item.status == _selectedFilter).toList();
+              : requests
+                    .where((item) => item.status == _selectedFilter)
+                    .toList();
           return ListView(
             children: [
               HbFilterBar(
@@ -212,26 +231,35 @@ class _InsuranceRequestsScreenState extends State<InsuranceRequestsScreen> {
                               children: [
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         request.employeeName,
-                                        style: Theme.of(context).textTheme.titleMedium,
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.titleMedium,
                                       ),
                                       const SizedBox(height: 6),
                                       Text(
                                         '${request.doctorName} • ${request.serviceName.isEmpty ? "خدمة غير محددة" : request.serviceName}',
-                                        style: Theme.of(context).textTheme.bodyMedium,
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.bodyMedium,
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
                                         '${request.providerName.isEmpty ? "بدون جهة محددة" : request.providerName} • ${_formatDate(request.submittedAt)}',
-                                        style: Theme.of(context).textTheme.bodySmall,
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.bodySmall,
                                       ),
                                       const SizedBox(height: 6),
                                       Text(
                                         'التغطية ${request.coveragePercentage.toStringAsFixed(0)}% • المغطى ${request.coveredAmount.toStringAsFixed(2)} • حصة الموظف ${request.employeeShare.toStringAsFixed(2)}',
-                                        style: Theme.of(context).textTheme.bodySmall,
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.bodySmall,
                                       ),
                                     ],
                                   ),
@@ -262,13 +290,21 @@ class _InsuranceRequestsScreenState extends State<InsuranceRequestsScreen> {
                                   FilledButton.tonal(
                                     onPressed: request.status == 'Approved'
                                         ? null
-                                        : () => _updateRequestStatus(request, 'Approved', 'قبول'),
+                                        : () => _updateRequestStatus(
+                                            request,
+                                            'Approved',
+                                            'قبول',
+                                          ),
                                     child: const Text('قبول'),
                                   ),
                                   OutlinedButton(
                                     onPressed: request.status == 'Rejected'
                                         ? null
-                                        : () => _updateRequestStatus(request, 'Rejected', 'رفض'),
+                                        : () => _updateRequestStatus(
+                                            request,
+                                            'Rejected',
+                                            'رفض',
+                                          ),
                                     child: const Text('رفض'),
                                   ),
                                 ],
@@ -289,10 +325,7 @@ class _InsuranceRequestsScreenState extends State<InsuranceRequestsScreen> {
 }
 
 class InsuranceReviewScreen extends StatefulWidget {
-  const InsuranceReviewScreen({
-    super.key,
-    this.requestId,
-  });
+  const InsuranceReviewScreen({super.key, this.requestId});
 
   static const routeName = 'insurance-review';
   static const routePath = '/insurance/requests/review';
@@ -332,14 +365,14 @@ class _InsuranceReviewScreenState extends State<InsuranceReviewScreen> {
     if (notes == null || !mounted) return;
 
     await context.read<AppRepository>().updateInsuranceRequest(
-          id: request.id,
-          status: status,
-          notes: notes,
-        );
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('تم $actionLabel الطلب بنجاح')),
+      id: request.id,
+      status: status,
+      notes: notes,
     );
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('تم $actionLabel الطلب بنجاح')));
     setState(() {
       _reviewFuture = _loadReviewData();
     });
@@ -358,7 +391,8 @@ class _InsuranceReviewScreenState extends State<InsuranceReviewScreen> {
           : FutureBuilder<List<dynamic>>(
               future: _reviewFuture,
               builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
+                if (snapshot.connectionState == ConnectionState.waiting &&
+                    !snapshot.hasData) {
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (snapshot.hasError) {
@@ -369,10 +403,16 @@ class _InsuranceReviewScreenState extends State<InsuranceReviewScreen> {
                   );
                 }
 
-                final requests = snapshot.data![0] as List<InsuranceRequestModel>;
-                final prescriptions = snapshot.data![1] as List<PrescriptionModel>;
-                final matchingRequests = requests.where((item) => item.id == widget.requestId).toList();
-                final request = matchingRequests.isEmpty ? null : matchingRequests.first;
+                final requests =
+                    snapshot.data![0] as List<InsuranceRequestModel>;
+                final prescriptions =
+                    snapshot.data![1] as List<PrescriptionModel>;
+                final matchingRequests = requests
+                    .where((item) => item.id == widget.requestId)
+                    .toList();
+                final request = matchingRequests.isEmpty
+                    ? null
+                    : matchingRequests.first;
                 if (request == null) {
                   return const HbEmptyState(
                     title: 'الطلب غير متوفر',
@@ -382,8 +422,9 @@ class _InsuranceReviewScreenState extends State<InsuranceReviewScreen> {
                 final matchingPrescriptions = prescriptions
                     .where((item) => item.id == request.prescriptionId)
                     .toList();
-                final prescription =
-                    matchingPrescriptions.isEmpty ? null : matchingPrescriptions.first;
+                final prescription = matchingPrescriptions.isEmpty
+                    ? null
+                    : matchingPrescriptions.first;
                 if (prescription == null) {
                   return const HbEmptyState(
                     title: 'الوصفة غير متوفرة',
@@ -397,35 +438,93 @@ class _InsuranceReviewScreenState extends State<InsuranceReviewScreen> {
                       title: 'بيانات الطلب',
                       child: Column(
                         children: [
-                          HbInfoRow(label: 'رقم طلب التغطية', value: request.requestNumber),
-                          HbInfoRow(label: 'اسم الموظف الجامعي', value: request.employeeName),
+                          HbInfoRow(
+                            label: 'رقم طلب التغطية',
+                            value: request.requestNumber,
+                          ),
+                          HbInfoRow(
+                            label: 'اسم الموظف الجامعي',
+                            value: request.employeeName,
+                          ),
                           HbInfoRow(
                             label: 'اسم المستفيد',
-                            value: request.beneficiaryName ?? request.employeeName,
+                            value:
+                                request.beneficiaryName ?? request.employeeName,
                           ),
-                          HbInfoRow(label: 'الجهة المقدمة', value: request.providerName.isEmpty ? 'غير محدد' : request.providerName),
-                          HbInfoRow(label: 'الخدمة', value: request.serviceName.isEmpty ? 'غير محدد' : request.serviceName),
-                          HbInfoRow(label: 'اسم الطبيب', value: request.doctorName),
-                          HbInfoRow(label: 'نوع الطلب', value: prescription.serviceType),
-                          HbInfoRow(label: 'نسبة التغطية', value: '${prescription.coveragePercentage.toStringAsFixed(0)}%'),
-                          HbInfoRow(label: 'السعر الأصلي', value: prescription.finalPrice.toStringAsFixed(2)),
-                          HbInfoRow(label: 'المبلغ المغطى', value: prescription.coveredAmount.toStringAsFixed(2)),
-                          HbInfoRow(label: 'حصة الموظف', value: prescription.employeeShare.toStringAsFixed(2)),
-                          HbInfoRow(label: 'التشخيص', value: prescription.diagnosis.isEmpty ? 'غير محدد' : prescription.diagnosis),
-                          HbInfoRow(label: 'الملاحظات', value: prescription.notes.isEmpty ? 'لا توجد ملاحظات' : prescription.notes),
-                          HbInfoRow(label: 'حالة الطلب الحالية', value: statusLabel(request.status)),
+                          HbInfoRow(
+                            label: 'الجهة المقدمة',
+                            value: request.providerName.isEmpty
+                                ? 'غير محدد'
+                                : request.providerName,
+                          ),
+                          HbInfoRow(
+                            label: 'الخدمة',
+                            value: request.serviceName.isEmpty
+                                ? 'غير محدد'
+                                : request.serviceName,
+                          ),
+                          HbInfoRow(
+                            label: 'اسم الطبيب',
+                            value: request.doctorName,
+                          ),
+                          if (prescription.serviceType != 'Medication')
+                            HbInfoRow(
+                              label: 'نوع الطلب',
+                              value: prescription.serviceType,
+                            ),
+                          HbInfoRow(
+                            label: 'نسبة التغطية',
+                            value:
+                                '${prescription.coveragePercentage.toStringAsFixed(0)}%',
+                          ),
+                          HbInfoRow(
+                            label: 'السعر الأصلي',
+                            value: prescription.finalPrice.toStringAsFixed(2),
+                          ),
+                          HbInfoRow(
+                            label: 'المبلغ المغطى',
+                            value: prescription.coveredAmount.toStringAsFixed(
+                              2,
+                            ),
+                          ),
+                          HbInfoRow(
+                            label: 'حصة الموظف',
+                            value: prescription.employeeShare.toStringAsFixed(
+                              2,
+                            ),
+                          ),
+                          HbInfoRow(
+                            label: 'التشخيص',
+                            value: prescription.diagnosis.isEmpty
+                                ? 'غير محدد'
+                                : prescription.diagnosis,
+                          ),
+                          HbInfoRow(
+                            label: 'الملاحظات',
+                            value: prescription.notes.isEmpty
+                                ? 'لا توجد ملاحظات'
+                                : prescription.notes,
+                          ),
+                          HbInfoRow(
+                            label: 'حالة الطلب الحالية',
+                            value: statusLabel(request.status),
+                          ),
                         ],
                       ),
                     ),
                     const SizedBox(height: 16),
                     HbSectionCard(
-                      title: prescription.serviceType == 'Medication' ? 'الأدوية' : 'تفاصيل الخدمة',
+                      title: prescription.serviceType == 'Medication'
+                          ? 'الأدوية'
+                          : 'تفاصيل الخدمة',
                       child: prescription.items.isEmpty
                           ? Column(
                               children: [
                                 HbInfoRow(
                                   label: 'ملاحظات التنفيذ',
-                                  value: prescription.providerNotes.isEmpty ? 'لا توجد ملاحظات من الجهة الطبية' : prescription.providerNotes,
+                                  value: prescription.providerNotes.isEmpty
+                                      ? 'لا توجد ملاحظات من الجهة الطبية'
+                                      : prescription.providerNotes,
                                 ),
                               ],
                             )
@@ -434,7 +533,9 @@ class _InsuranceReviewScreenState extends State<InsuranceReviewScreen> {
                                 return ListTile(
                                   contentPadding: EdgeInsets.zero,
                                   title: Text(item.medicationName),
-                                  subtitle: Text('${item.quantity} • ${item.dosageInstructions}'),
+                                  subtitle: Text(
+                                    '${item.quantity} • ${item.dosageInstructions}',
+                                  ),
                                 );
                               }).toList(),
                             ),
@@ -442,24 +543,38 @@ class _InsuranceReviewScreenState extends State<InsuranceReviewScreen> {
                     const SizedBox(height: 16),
                     HbSectionCard(
                       title: 'حالة الطلب',
-                      subtitle: 'يمكنك الاطلاع على الطلب وتأكيد قبوله أو رفضه مع إضافة ملاحظات عند الحاجة.',
+                      subtitle:
+                          'يمكنك الاطلاع على الطلب وتأكيد قبوله أو رفضه مع إضافة ملاحظات عند الحاجة.',
                       child: Column(
                         children: [
-                          HbInfoRow(label: 'الحالة الحالية', value: statusLabel(request.status)),
+                          HbInfoRow(
+                            label: 'الحالة الحالية',
+                            value: statusLabel(request.status),
+                          ),
                           HbInfoRow(
                             label: 'ملاحظات المراجعة',
-                            value: request.responseNotes.isEmpty ? 'لا توجد ملاحظات إضافية.' : request.responseNotes,
+                            value: request.responseNotes.isEmpty
+                                ? 'لا توجد ملاحظات إضافية.'
+                                : request.responseNotes,
                           ),
                           const SizedBox(height: 12),
                           HbPrimaryButtonRow(
                             primaryLabel: 'قبول الطلب',
                             onPrimaryPressed: request.status == 'Approved'
                                 ? null
-                                : () => _updateRequestStatus(request, 'Approved', 'قبول'),
+                                : () => _updateRequestStatus(
+                                    request,
+                                    'Approved',
+                                    'قبول',
+                                  ),
                             secondaryLabel: 'رفض الطلب',
                             onSecondaryPressed: request.status == 'Rejected'
                                 ? null
-                                : () => _updateRequestStatus(request, 'Rejected', 'رفض'),
+                                : () => _updateRequestStatus(
+                                    request,
+                                    'Rejected',
+                                    'رفض',
+                                  ),
                           ),
                         ],
                       ),
@@ -497,7 +612,8 @@ Future<String?> _showInsuranceDecisionDialog(
             child: const Text('إلغاء'),
           ),
           FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(notesController.text.trim()),
+            onPressed: () =>
+                Navigator.of(dialogContext).pop(notesController.text.trim()),
             child: Text(actionLabel),
           ),
         ],
@@ -515,10 +631,12 @@ class InsuranceCoverageCatalogScreen extends StatefulWidget {
   static const routePath = '/insurance/coverage-catalog';
 
   @override
-  State<InsuranceCoverageCatalogScreen> createState() => _InsuranceCoverageCatalogScreenState();
+  State<InsuranceCoverageCatalogScreen> createState() =>
+      _InsuranceCoverageCatalogScreenState();
 }
 
-class _InsuranceCoverageCatalogScreenState extends State<InsuranceCoverageCatalogScreen> {
+class _InsuranceCoverageCatalogScreenState
+    extends State<InsuranceCoverageCatalogScreen> {
   static const _filterOptions = [
     HbFilterOption(value: 'الكل', label: 'الكل'),
     HbFilterOption(value: 'Medication', label: 'أدوية'),
@@ -559,7 +677,11 @@ class _InsuranceCoverageCatalogScreenState extends State<InsuranceCoverageCatalo
 
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(item == null ? 'تمت إضافة عنصر التغطية' : 'تم تحديث عنصر التغطية')),
+      SnackBar(
+        content: Text(
+          item == null ? 'تمت إضافة عنصر التغطية' : 'تم تحديث عنصر التغطية',
+        ),
+      ),
     );
     _refresh();
   }
@@ -577,7 +699,8 @@ class _InsuranceCoverageCatalogScreenState extends State<InsuranceCoverageCatalo
       body: FutureBuilder<List<CoverageCatalogItemModel>>(
         future: _coverageFuture,
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
+          if (snapshot.connectionState == ConnectionState.waiting &&
+              !snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
@@ -591,7 +714,9 @@ class _InsuranceCoverageCatalogScreenState extends State<InsuranceCoverageCatalo
           final items = snapshot.data ?? const <CoverageCatalogItemModel>[];
           final filteredItems = _selectedFilter == 'الكل'
               ? items
-              : items.where((item) => item.category == _selectedFilter).toList();
+              : items
+                    .where((item) => item.category == _selectedFilter)
+                    .toList();
 
           return ListView(
             children: [
@@ -602,10 +727,15 @@ class _InsuranceCoverageCatalogScreenState extends State<InsuranceCoverageCatalo
                   spacing: 12,
                   runSpacing: 12,
                   children: [
-                    _CoverageStatCard(label: 'إجمالي العناصر', value: '${items.length}', icon: Icons.dataset_outlined),
+                    _CoverageStatCard(
+                      label: 'إجمالي العناصر',
+                      value: '${items.length}',
+                      icon: Icons.dataset_outlined,
+                    ),
                     _CoverageStatCard(
                       label: 'أدوية مغطاة',
-                      value: '${items.where((item) => item.category == "Medication").length}',
+                      value:
+                          '${items.where((item) => item.category == "Medication").length}',
                       icon: Icons.medication_outlined,
                     ),
                   ],
@@ -639,40 +769,69 @@ class _InsuranceCoverageCatalogScreenState extends State<InsuranceCoverageCatalo
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(item.title, style: Theme.of(context).textTheme.titleMedium),
+                                    Text(
+                                      item.title,
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.titleMedium,
+                                    ),
                                     const SizedBox(height: 6),
                                     Text(
                                       '${_coverageCategoryLabel(item.category)} • ${item.providerName}',
-                                      style: Theme.of(context).textTheme.bodySmall,
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.bodySmall,
                                     ),
                                   ],
                                 ),
                               ),
                               const SizedBox(width: 12),
-                              HbStatusChip(item.isActive ? 'فعّال' : 'غير فعّال'),
+                              HbStatusChip(
+                                item.isActive ? 'فعّال' : 'غير فعّال',
+                              ),
                             ],
                           ),
                           const SizedBox(height: 12),
                           HbInfoRow(label: 'الكود', value: item.code),
-                          HbInfoRow(label: 'نوع الجهة', value: _providerTypeLabel(item.providerType)),
-                          HbInfoRow(label: 'السعر المعتمد', value: item.unitPrice.toStringAsFixed(2)),
-                          HbInfoRow(label: 'نسبة التغطية', value: '${item.coveragePercentage.toStringAsFixed(0)}%'),
+                          HbInfoRow(
+                            label: 'نوع الجهة',
+                            value: _providerTypeLabel(item.providerType),
+                          ),
+                          HbInfoRow(
+                            label: 'السعر المعتمد',
+                            value: item.unitPrice.toStringAsFixed(2),
+                          ),
+                          HbInfoRow(
+                            label: 'نسبة التغطية',
+                            value:
+                                '${item.coveragePercentage.toStringAsFixed(0)}%',
+                          ),
                           HbInfoRow(
                             label: 'حصة الموظف',
-                            value: '${item.employeeSharePercentage.toStringAsFixed(0)}% (${item.employeeShareFor(item.unitPrice).toStringAsFixed(2)})',
+                            value:
+                                '${item.employeeSharePercentage.toStringAsFixed(0)}% (${item.employeeShareFor(item.unitPrice).toStringAsFixed(2)})',
                           ),
-                          HbInfoRow(label: 'الحد الأعلى للكمية', value: '${item.maxQuantity}'),
+                          HbInfoRow(
+                            label: 'الحد الأعلى للكمية',
+                            value: '${item.maxQuantity}',
+                          ),
                           HbInfoRow(
                             label: 'الموافقة المسبقة',
-                            value: item.requiresInsuranceApproval ? 'مطلوبة' : 'غير مطلوبة',
+                            value: item.requiresInsuranceApproval
+                                ? 'مطلوبة'
+                                : 'غير مطلوبة',
                           ),
                           HbInfoRow(
                             label: 'الوصف',
-                            value: item.description.isEmpty ? 'لا يوجد وصف إضافي' : item.description,
+                            value: item.description.isEmpty
+                                ? 'لا يوجد وصف إضافي'
+                                : item.description,
                           ),
                           HbInfoRow(
                             label: 'ملاحظات',
-                            value: item.notes.isEmpty ? 'لا توجد ملاحظات' : item.notes,
+                            value: item.notes.isEmpty
+                                ? 'لا توجد ملاحظات'
+                                : item.notes,
                           ),
                           const SizedBox(height: 8),
                           Align(
@@ -724,17 +883,17 @@ class _CoverageStatCard extends StatelessWidget {
 }
 
 class _CoverageCatalogEditorDialog extends StatefulWidget {
-  const _CoverageCatalogEditorDialog({
-    this.initialItem,
-  });
+  const _CoverageCatalogEditorDialog({this.initialItem});
 
   final CoverageCatalogItemModel? initialItem;
 
   @override
-  State<_CoverageCatalogEditorDialog> createState() => _CoverageCatalogEditorDialogState();
+  State<_CoverageCatalogEditorDialog> createState() =>
+      _CoverageCatalogEditorDialogState();
 }
 
-class _CoverageCatalogEditorDialogState extends State<_CoverageCatalogEditorDialog> {
+class _CoverageCatalogEditorDialogState
+    extends State<_CoverageCatalogEditorDialog> {
   late final TextEditingController _codeController;
   late final TextEditingController _titleController;
   late final TextEditingController _providerNameController;
@@ -755,15 +914,21 @@ class _CoverageCatalogEditorDialogState extends State<_CoverageCatalogEditorDial
     final item = widget.initialItem;
     _codeController = TextEditingController(text: item?.code ?? '');
     _titleController = TextEditingController(text: item?.title ?? '');
-    _providerNameController = TextEditingController(text: item?.providerName ?? '');
+    _providerNameController = TextEditingController(
+      text: item?.providerName ?? '',
+    );
     _unitPriceController = TextEditingController(
       text: item == null ? '' : item.unitPrice.toStringAsFixed(2),
     );
     _coverageController = TextEditingController(
       text: item == null ? '' : item.coveragePercentage.toStringAsFixed(0),
     );
-    _maxQuantityController = TextEditingController(text: item == null ? '1' : '${item.maxQuantity}');
-    _descriptionController = TextEditingController(text: item?.description ?? '');
+    _maxQuantityController = TextEditingController(
+      text: item == null ? '1' : '${item.maxQuantity}',
+    );
+    _descriptionController = TextEditingController(
+      text: item?.description ?? '',
+    );
     _notesController = TextEditingController(text: item?.notes ?? '');
     _category = item?.category ?? 'Medication';
     _providerType = item?.providerType ?? 'Pharmacy';
@@ -815,7 +980,9 @@ class _CoverageCatalogEditorDialogState extends State<_CoverageCatalogEditorDial
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(widget.initialItem == null ? 'إضافة عنصر تغطية' : 'تعديل عنصر تغطية'),
+      title: Text(
+        widget.initialItem == null ? 'إضافة عنصر تغطية' : 'تعديل عنصر تغطية',
+      ),
       content: SizedBox(
         width: 560,
         child: SingleChildScrollView(
@@ -829,7 +996,9 @@ class _CoverageCatalogEditorDialogState extends State<_CoverageCatalogEditorDial
               const SizedBox(height: 12),
               TextField(
                 controller: _titleController,
-                decoration: const InputDecoration(labelText: 'اسم الدواء / الخدمة'),
+                decoration: const InputDecoration(
+                  labelText: 'اسم الدواء / الخدمة',
+                ),
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
@@ -861,7 +1030,9 @@ class _CoverageCatalogEditorDialogState extends State<_CoverageCatalogEditorDial
               const SizedBox(height: 12),
               TextField(
                 controller: _providerNameController,
-                decoration: const InputDecoration(labelText: 'اسم الجهة المقدمة'),
+                decoration: const InputDecoration(
+                  labelText: 'اسم الجهة المقدمة',
+                ),
               ),
               const SizedBox(height: 12),
               TextField(
@@ -879,7 +1050,9 @@ class _CoverageCatalogEditorDialogState extends State<_CoverageCatalogEditorDial
               TextField(
                 controller: _maxQuantityController,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'الحد الأعلى للكمية'),
+                decoration: const InputDecoration(
+                  labelText: 'الحد الأعلى للكمية',
+                ),
               ),
               const SizedBox(height: 12),
               TextField(
@@ -898,7 +1071,8 @@ class _CoverageCatalogEditorDialogState extends State<_CoverageCatalogEditorDial
                 contentPadding: EdgeInsets.zero,
                 value: _requiresInsuranceApproval,
                 title: const Text('يتطلب موافقة مسبقة'),
-                onChanged: (value) => setState(() => _requiresInsuranceApproval = value),
+                onChanged: (value) =>
+                    setState(() => _requiresInsuranceApproval = value),
               ),
               SwitchListTile.adaptive(
                 contentPadding: EdgeInsets.zero,
@@ -915,10 +1089,7 @@ class _CoverageCatalogEditorDialogState extends State<_CoverageCatalogEditorDial
           onPressed: () => Navigator.of(context).pop(),
           child: const Text('إلغاء'),
         ),
-        FilledButton(
-          onPressed: _save,
-          child: const Text('حفظ'),
-        ),
+        FilledButton(onPressed: _save, child: const Text('حفظ')),
       ],
     );
   }
@@ -928,12 +1099,6 @@ String _coverageCategoryLabel(String category) {
   switch (category) {
     case 'Medication':
       return 'دواء';
-    case 'Laboratory':
-      return 'فحص مختبر';
-    case 'Imaging':
-      return 'تصوير طبي';
-    case 'MedicalCenter':
-      return 'خدمة مركز طبي';
     default:
       return category;
   }
@@ -943,12 +1108,6 @@ String _providerTypeLabel(String providerType) {
   switch (providerType) {
     case 'Pharmacy':
       return 'صيدلية';
-    case 'Laboratory':
-      return 'مختبر';
-    case 'ImagingCenter':
-      return 'تصوير طبي';
-    case 'MedicalCenter':
-      return 'مركز طبي';
     default:
       return providerType;
   }
@@ -958,12 +1117,6 @@ String _providerTypeForCategory(String category) {
   switch (category) {
     case 'Medication':
       return 'Pharmacy';
-    case 'Laboratory':
-      return 'Laboratory';
-    case 'Imaging':
-      return 'ImagingCenter';
-    case 'MedicalCenter':
-      return 'MedicalCenter';
     default:
       return 'Pharmacy';
   }
@@ -973,12 +1126,6 @@ String _defaultProviderName(String providerType) {
   switch (providerType) {
     case 'Pharmacy':
       return 'شبكة الصيدليات المتعاقدة';
-    case 'Laboratory':
-      return 'مختبر الجامعة';
-    case 'ImagingCenter':
-      return 'مركز التصوير الطبي';
-    case 'MedicalCenter':
-      return 'المركز الطبي الجامعي';
     default:
       return 'جهة معتمدة';
   }

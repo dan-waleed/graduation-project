@@ -3,15 +3,12 @@
 from .auth import DashboardSummarySerializer, LoginRequestSerializer, LoginResponseSerializer, LogoutResponseSerializer
 from .catalog import MedicalServiceSerializer, MedicationSerializer
 from .providers import (
-    LaboratorySerializer,
-    MedicalCenterSerializer,
-    MedicalImagingCenterSerializer,
     PharmacySerializer,
     PharmacistSerializer,
     ProviderSerializer,
     ProviderServicePriceSerializer,
 )
-from .system import AuditLogSerializer, NotificationSerializer
+from .system import AuditLogSerializer, NotificationSerializer, SystemSettingsSerializer
 from .users import (
     DependentSerializer,
     DoctorSerializer,

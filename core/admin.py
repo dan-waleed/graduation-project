@@ -10,10 +10,7 @@ from .models import (
     Employee,
     InsuranceOfficer,
     InsuranceRequest,
-    Laboratory,
     Medication,
-    MedicalCenter,
-    MedicalImagingCenter,
     MedicalService,
     Notification,
     Pharmacist,
@@ -63,24 +60,6 @@ class PharmacyAdmin(admin.ModelAdmin):
 class PharmacistAdmin(admin.ModelAdmin):
     list_display = ("license_number", "user", "pharmacy", "created_at")
     search_fields = ("license_number", "user__username", "pharmacy__name")
-
-
-@admin.register(Laboratory)
-class LaboratoryAdmin(admin.ModelAdmin):
-    list_display = ("license_number", "user", "provider", "created_at")
-    search_fields = ("license_number", "user__username", "provider__provider_name")
-
-
-@admin.register(MedicalImagingCenter)
-class MedicalImagingCenterAdmin(admin.ModelAdmin):
-    list_display = ("license_number", "user", "provider", "created_at")
-    search_fields = ("license_number", "user__username", "provider__provider_name")
-
-
-@admin.register(MedicalCenter)
-class MedicalCenterAdmin(admin.ModelAdmin):
-    list_display = ("license_number", "user", "provider", "created_at")
-    search_fields = ("license_number", "user__username", "provider__provider_name")
 
 
 @admin.register(InsuranceOfficer)

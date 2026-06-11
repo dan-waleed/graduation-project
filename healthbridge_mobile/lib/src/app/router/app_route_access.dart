@@ -53,7 +53,6 @@ class AppRouteAccess {
           EmployeeQrView.routePath,
           EmployeeMedicationHistoryView.routePath,
           EmployeeDependentsView.routePath,
-          EmployeeDoctorSearchScreen.routePath,
         };
       case AppRoles.insuranceOfficer:
         return {
@@ -61,6 +60,7 @@ class AppRouteAccess {
           InsuranceOfficerHomeScreen.routePath,
           InsuranceRequestsScreen.routePath,
           InsuranceReviewScreen.routePath,
+          InsuranceCoverageCatalogScreen.routePath,
         };
       case AppRoles.pharmacist:
         return {
@@ -81,6 +81,7 @@ class AppRouteAccess {
           AdminUserCreateScreen.routePath,
           AdminUserEditScreen.routePath,
           AdminStatisticsScreen.routePath,
+          AdminAuditLogScreen.routePath,
           AdminSettingsScreen.routePath,
         };
     }

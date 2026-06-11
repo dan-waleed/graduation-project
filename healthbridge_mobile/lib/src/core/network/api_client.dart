@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:flutter/foundation.dart';
 
 import '../config/app_config.dart';
 import '../errors/app_exception.dart';
@@ -45,10 +46,7 @@ class ApiClient {
 
   Future<Map<String, dynamic>> get(String endpoint) async {
     final response = await _sendWithFallback(
-      (baseUrl) => http.get(
-        _buildUri(baseUrl, endpoint),
-        headers: _headers,
-      ),
+      (baseUrl) => http.get(_buildUri(baseUrl, endpoint), headers: _headers),
     );
 
     return _decodeMap(response);
@@ -56,10 +54,7 @@ class ApiClient {
 
   Future<List<dynamic>> getList(String endpoint) async {
     final response = await _sendWithFallback(
-      (baseUrl) => http.get(
-        _buildUri(baseUrl, endpoint),
-        headers: _headers,
-      ),
+      (baseUrl) => http.get(_buildUri(baseUrl, endpoint), headers: _headers),
     );
 
     return _decodeList(response);
@@ -67,10 +62,7 @@ class ApiClient {
 
   Future<String> getText(String endpoint) async {
     final response = await _sendWithFallback(
-      (baseUrl) => http.get(
-        _buildUri(baseUrl, endpoint),
-        headers: _headers,
-      ),
+      (baseUrl) => http.get(_buildUri(baseUrl, endpoint), headers: _headers),
     );
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
@@ -97,10 +89,7 @@ class ApiClient {
 
   Future<void> delete(String endpoint) async {
     final response = await _sendWithFallback(
-      (baseUrl) => http.delete(
-        _buildUri(baseUrl, endpoint),
-        headers: _headers,
-      ),
+      (baseUrl) => http.delete(_buildUri(baseUrl, endpoint), headers: _headers),
     );
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
@@ -115,7 +104,9 @@ class ApiClient {
   ) async {
     AppException? lastError;
 
-    for (final candidate in AppConfig.candidateBaseUrls.map(_normalizeBaseUrl)) {
+    for (final candidate in AppConfig.candidateBaseUrls.map(
+      _normalizeBaseUrl,
+    )) {
       try {
         return await action(candidate).timeout(_requestTimeout);
       } on TimeoutException {
@@ -123,14 +114,11 @@ class ApiClient {
           'انتهت مهلة الاتصال بالخادم. يرجى المحاولة مرة أخرى.',
         );
       } on http.ClientException {
-        lastError = AppException(
-          'تعذر الوصول إلى الخادم. يرجى المحاولة مرة أخرى.',
-        );
+        lastError = AppException(_buildConnectionHelpMessage());
       }
     }
 
-    throw lastError ??
-        const AppException('تعذر الاتصال بخادم النظام.');
+    throw lastError ?? const AppException('تعذر الاتصال بخادم النظام.');
   }
 
   Map<String, dynamic> _decodeMap(http.Response response) {
@@ -193,8 +181,9 @@ class ApiClient {
   }
 
   Uri _buildUri(String baseUrl, String endpoint) {
-    final normalizedEndpoint =
-        endpoint.startsWith('/') ? endpoint.substring(1) : endpoint;
+    final normalizedEndpoint = endpoint.startsWith('/')
+        ? endpoint.substring(1)
+        : endpoint;
     return Uri.parse('${_normalizeBaseUrl(baseUrl)}/$normalizedEndpoint');
   }
 
@@ -202,10 +191,34 @@ class ApiClient {
     final trimmed = baseUrl.trim();
     final withScheme =
         trimmed.startsWith('http://') || trimmed.startsWith('https://')
-            ? trimmed
-            : 'http://$trimmed';
+        ? trimmed
+        : 'http://$trimmed';
     return withScheme.endsWith('/')
         ? withScheme.substring(0, withScheme.length - 1)
         : withScheme;
+  }
+
+  String _buildConnectionHelpMessage() {
+    final candidates = AppConfig.candidateBaseUrls
+        .map(_normalizeBaseUrl)
+        .toList();
+    final attemptedHosts = candidates.join(' ، ');
+
+    if (kIsWeb) {
+      return 'تعذر الوصول إلى الخادم عبر: $attemptedHosts. تأكد من تشغيل الخادم والسماح للمتصفح بالوصول إلى عنوان الـ API الصحيح.';
+    }
+
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.iOS:
+        return 'تعذر الوصول إلى الخادم عبر: $attemptedHosts. على iPhone الحقيقي لا يعمل localhost. شغّل التطبيق مع --dart-define=DEV_LAN_API_BASE_URL=http://<your-lan-ip>:8000/api أو حدّد API_BASE_URL مباشرة.';
+      case TargetPlatform.android:
+        return 'تعذر الوصول إلى الخادم عبر: $attemptedHosts. إذا كنت تستخدم هاتف Android حقيقي فمرّر DEV_LAN_API_BASE_URL بعنوان الشبكة المحلية، أما المحاكي فيستخدم 10.0.2.2.';
+      case TargetPlatform.macOS:
+      case TargetPlatform.windows:
+      case TargetPlatform.linux:
+        return 'تعذر الوصول إلى الخادم عبر: $attemptedHosts. تأكد من تشغيل الـ backend على هذا الجهاز أو مرّر API_BASE_URL / DEV_LAN_API_BASE_URL بعنوان صحيح.';
+      case TargetPlatform.fuchsia:
+        return 'تعذر الوصول إلى الخادم عبر: $attemptedHosts. تأكد من إعداد عنوان API الصحيح.';
+    }
   }
 }

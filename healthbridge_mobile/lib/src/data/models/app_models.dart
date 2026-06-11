@@ -39,8 +39,103 @@ class NotificationModel {
       createdAt: json['created_at'] == null
           ? null
           : DateTime.tryParse(json['created_at'] as String),
-      readAt: json['read_at'] == null ? null : DateTime.tryParse(json['read_at'] as String),
+      readAt: json['read_at'] == null
+          ? null
+          : DateTime.tryParse(json['read_at'] as String),
     );
+  }
+}
+
+class AuditLogModel {
+  const AuditLogModel({
+    required this.id,
+    required this.actorUsername,
+    required this.action,
+    required this.targetModel,
+    required this.targetId,
+    required this.details,
+    this.createdAt,
+  });
+
+  final int id;
+  final String actorUsername;
+  final String action;
+  final String targetModel;
+  final String targetId;
+  final String details;
+  final DateTime? createdAt;
+
+  factory AuditLogModel.fromJson(Map<String, dynamic> json) {
+    return AuditLogModel(
+      id: json['id'] as int,
+      actorUsername: json['actor_username'] as String? ?? '',
+      action: json['action'] as String? ?? '',
+      targetModel: json['target_model'] as String? ?? '',
+      targetId: json['target_id'] as String? ?? '',
+      details: json['details'] as String? ?? '',
+      createdAt: json['created_at'] == null
+          ? null
+          : DateTime.tryParse(json['created_at'] as String),
+    );
+  }
+}
+
+class SystemSettingsModel {
+  const SystemSettingsModel({
+    required this.systemName,
+    required this.organizationName,
+    required this.shortDescription,
+    required this.notificationsEnabled,
+    required this.insuranceWorkflowEnabled,
+    required this.pharmacistNotesRequired,
+    required this.interfaceLanguage,
+    required this.sessionTimeoutMinutes,
+    required this.adminNotes,
+    this.updatedAt,
+  });
+
+  final String systemName;
+  final String organizationName;
+  final String shortDescription;
+  final bool notificationsEnabled;
+  final bool insuranceWorkflowEnabled;
+  final bool pharmacistNotesRequired;
+  final String interfaceLanguage;
+  final int sessionTimeoutMinutes;
+  final String adminNotes;
+  final DateTime? updatedAt;
+
+  factory SystemSettingsModel.fromJson(Map<String, dynamic> json) {
+    return SystemSettingsModel(
+      systemName: json['system_name'] as String? ?? '',
+      organizationName: json['organization_name'] as String? ?? '',
+      shortDescription: json['short_description'] as String? ?? '',
+      notificationsEnabled: json['notifications_enabled'] as bool? ?? true,
+      insuranceWorkflowEnabled:
+          json['insurance_workflow_enabled'] as bool? ?? true,
+      pharmacistNotesRequired:
+          json['pharmacist_notes_required'] as bool? ?? false,
+      interfaceLanguage: json['interface_language'] as String? ?? 'العربية',
+      sessionTimeoutMinutes: json['session_timeout_minutes'] as int? ?? 30,
+      adminNotes: json['admin_notes'] as String? ?? '',
+      updatedAt: json['updated_at'] == null
+          ? null
+          : DateTime.tryParse(json['updated_at'] as String),
+    );
+  }
+
+  Map<String, dynamic> toPatchPayload() {
+    return {
+      'system_name': systemName,
+      'organization_name': organizationName,
+      'short_description': shortDescription,
+      'notifications_enabled': notificationsEnabled,
+      'insurance_workflow_enabled': insuranceWorkflowEnabled,
+      'pharmacist_notes_required': pharmacistNotesRequired,
+      'interface_language': interfaceLanguage,
+      'session_timeout_minutes': sessionTimeoutMinutes,
+      'admin_notes': adminNotes,
+    };
   }
 }
 
@@ -80,7 +175,8 @@ class EmployeeModel {
   factory EmployeeModel.fromJson(Map<String, dynamic> json) {
     return EmployeeModel(
       id: json['id'] as int,
-      fullName: json['full_name'] as String? ?? json['username'] as String? ?? '',
+      fullName:
+          json['full_name'] as String? ?? json['username'] as String? ?? '',
       username: json['username'] as String? ?? '',
       email: json['email'] as String? ?? '',
       phoneNumber: json['phone_number'] as String? ?? '',
@@ -129,7 +225,8 @@ class DependentModel {
     return DependentModel(
       id: json['id'] as int,
       fullName: json['full_name'] as String? ?? '',
-      relation: json['relation'] as String? ?? json['relationship'] as String? ?? '',
+      relation:
+          json['relation'] as String? ?? json['relationship'] as String? ?? '',
       relationship: json['relationship'] as String? ?? '',
       notes: json['notes'] as String? ?? '',
       isActive: json['is_active'] as bool? ?? true,
@@ -226,7 +323,8 @@ class CoverageCatalogItemModel {
       unitPrice: _parseDouble(json['unit_price']),
       coveragePercentage: _parseDouble(json['coverage_percentage']),
       maxQuantity: json['max_quantity'] as int? ?? 1,
-      requiresInsuranceApproval: json['requires_insurance_approval'] as bool? ?? false,
+      requiresInsuranceApproval:
+          json['requires_insurance_approval'] as bool? ?? false,
       isActive: json['is_active'] as bool? ?? true,
       description: json['description'] as String? ?? '',
       notes: json['notes'] as String? ?? '',
@@ -336,8 +434,12 @@ class PrescriptionModel {
       id: json['id'] as int,
       prescriptionNumber: json['prescription_number'] as String? ?? '',
       employeeId: json['employee'] as int? ?? json['patient'] as int? ?? 0,
-      employeeName: json['employee_name'] as String? ?? json['patient_name'] as String? ?? '',
-      employeeRecordNumber: json['employee_record_number'] as String? ??
+      employeeName:
+          json['employee_name'] as String? ??
+          json['patient_name'] as String? ??
+          '',
+      employeeRecordNumber:
+          json['employee_record_number'] as String? ??
           json['patient_record_number'] as String? ??
           '',
       doctorId: json['doctor'] as int? ?? 0,
@@ -350,7 +452,9 @@ class PrescriptionModel {
           .map(PrescriptionItemModel.fromJson)
           .toList(),
       beneficiaryId: json['beneficiary'] as int? ?? json['dependent'] as int?,
-      beneficiaryName: json['beneficiary_name'] as String? ?? json['dependent_name'] as String?,
+      beneficiaryName:
+          json['beneficiary_name'] as String? ??
+          json['dependent_name'] as String?,
       serviceType: json['service_type'] as String? ?? 'Medication',
       providerName: json['provider_name'] as String? ?? '',
       serviceName: json['service_name'] as String? ?? '',
@@ -358,7 +462,8 @@ class PrescriptionModel {
       coveredAmount: _parseDouble(json['covered_amount']),
       employeeShare: _parseDouble(json['employee_share']),
       finalPrice: _parseDouble(json['final_price']),
-      requiresInsuranceApproval: json['requires_insurance_approval'] as bool? ?? false,
+      requiresInsuranceApproval:
+          json['requires_insurance_approval'] as bool? ?? false,
       providerNotes: json['provider_notes'] as String? ?? '',
       reportAttachmentUrl: json['report_attachment_url'] as String? ?? '',
       issuedAt: json['issued_at'] == null
@@ -423,7 +528,10 @@ class InsuranceRequestModel {
       id: json['id'] as int,
       prescriptionId: json['prescription'] as int? ?? 0,
       prescriptionNumber: json['prescription_number'] as String? ?? '',
-      employeeName: json['employee_name'] as String? ?? json['patient_name'] as String? ?? '',
+      employeeName:
+          json['employee_name'] as String? ??
+          json['patient_name'] as String? ??
+          '',
       doctorName: json['doctor_name'] as String? ?? '',
       status: json['status'] as String? ?? '',
       requestNumber: json['request_number'] as String? ?? '',
@@ -436,7 +544,9 @@ class InsuranceRequestModel {
       coveredAmount: _parseDouble(json['covered_amount']),
       employeeShare: _parseDouble(json['employee_share']),
       prescriptionStatus: json['prescription_status'] as String? ?? '',
-      beneficiaryName: json['beneficiary_name'] as String? ?? json['dependent_name'] as String?,
+      beneficiaryName:
+          json['beneficiary_name'] as String? ??
+          json['dependent_name'] as String?,
       submittedAt: json['submitted_at'] == null
           ? null
           : DateTime.tryParse(json['submitted_at'] as String),
@@ -474,7 +584,10 @@ class DispenseModel {
       id: json['id'] as int,
       prescriptionId: json['prescription'] as int? ?? 0,
       prescriptionNumber: json['prescription_number'] as String? ?? '',
-      employeeName: json['employee_name'] as String? ?? json['patient_name'] as String? ?? '',
+      employeeName:
+          json['employee_name'] as String? ??
+          json['patient_name'] as String? ??
+          '',
       pharmacistName: json['pharmacist_name'] as String? ?? '',
       dispenseNumber: json['dispense_number'] as String? ?? '',
       status: json['status'] as String? ?? '',
@@ -512,18 +625,22 @@ class DoctorDirectoryModel {
   final String contractStatus;
 
   factory DoctorDirectoryModel.fromJson(Map<String, dynamic> json) {
-    final userDetails = json['user_details'] as Map<String, dynamic>? ?? const {};
+    final userDetails =
+        json['user_details'] as Map<String, dynamic>? ?? const {};
     final firstName = userDetails['first_name'] as String? ?? '';
     final lastName = userDetails['last_name'] as String? ?? '';
     final displayName = '$firstName $lastName'.trim();
     return DoctorDirectoryModel(
       id: json['id'] as int,
-      fullName: displayName.isEmpty ? (userDetails['username'] as String? ?? '') : displayName,
+      fullName: displayName.isEmpty
+          ? (userDetails['username'] as String? ?? '')
+          : displayName,
       specialty: json['specialization'] as String? ?? '',
       clinicName: json['clinic_name'] as String? ?? '',
       providerName: json['provider_name'] as String? ?? '',
       city: (json['provider_city'] ?? json['city'] ?? '') as String,
-      address: (json['clinic_address'] ?? json['provider_address'] ?? '') as String,
+      address:
+          (json['clinic_address'] ?? json['provider_address'] ?? '') as String,
       phoneNumber: (userDetails['phone_number'] ?? '') as String,
       consultationPrice: _parseDouble(json['consultation_price']),
       contractStatus: json['contract_status'] as String? ?? '',

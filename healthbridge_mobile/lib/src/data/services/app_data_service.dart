@@ -11,22 +11,33 @@ class AppDataService {
   AppDataService({
     required ApiClient apiClient,
     bool enableLocalDemoMode = AppConfig.enableLocalDemoMode,
-  })  : _apiClient = apiClient,
-        _enableLocalDemoMode = enableLocalDemoMode;
+  }) : _apiClient = apiClient,
+       _enableLocalDemoMode = enableLocalDemoMode;
 
   ApiClient _apiClient;
   final bool _enableLocalDemoMode;
-  final List<NotificationModel> _debugNotifications = List<NotificationModel>.from(_buildDebugNotifications());
-  final List<EmployeeModel> _debugEmployees = List<EmployeeModel>.from(_buildDebugEmployees());
-  final List<MedicationModel> _debugMedications = List<MedicationModel>.from(_buildDebugMedications());
+  final List<NotificationModel> _debugNotifications =
+      List<NotificationModel>.from(_buildDebugNotifications());
+  final List<EmployeeModel> _debugEmployees = List<EmployeeModel>.from(
+    _buildDebugEmployees(),
+  );
+  final List<MedicationModel> _debugMedications = List<MedicationModel>.from(
+    _buildDebugMedications(),
+  );
   final List<CoverageCatalogItemModel> _debugCoverageCatalog =
       List<CoverageCatalogItemModel>.from(_buildDebugCoverageCatalog());
-  final List<PrescriptionModel> _debugPrescriptions = List<PrescriptionModel>.from(_buildDebugPrescriptions());
-  final List<DependentModel> _debugDependents = List<DependentModel>.from(_buildDebugDependents());
-  final List<DoctorDirectoryModel> _debugDoctors = List<DoctorDirectoryModel>.from(_buildDebugDoctors());
+  final List<PrescriptionModel> _debugPrescriptions =
+      List<PrescriptionModel>.from(_buildDebugPrescriptions());
+  final List<DependentModel> _debugDependents = List<DependentModel>.from(
+    _buildDebugDependents(),
+  );
+  final List<DoctorDirectoryModel> _debugDoctors =
+      List<DoctorDirectoryModel>.from(_buildDebugDoctors());
   final List<InsuranceRequestModel> _debugInsuranceRequests =
       List<InsuranceRequestModel>.from(_buildDebugInsuranceRequests());
-  final List<DispenseModel> _debugDispenses = List<DispenseModel>.from(_buildDebugDispenses());
+  final List<DispenseModel> _debugDispenses = List<DispenseModel>.from(
+    _buildDebugDispenses(),
+  );
   final List<UserModel> _debugUsers = List<UserModel>.from(_buildDebugUsers());
 
   void rebind(ApiClient apiClient) {
@@ -36,7 +47,21 @@ class AppDataService {
   bool get _shouldUseDemoMode => _enableLocalDemoMode && _apiClient.isDemoToken;
   bool get _allowLocalDemoFallback => _enableLocalDemoMode && kDebugMode;
 
-  Map<String, dynamic> _normalizedDemoUserPayload(Map<String, dynamic> payload) {
+  double _roundToScale(double value, {int scale = 2}) {
+    final factor = switch (scale) {
+      0 => 1,
+      1 => 10,
+      2 => 100,
+      3 => 1000,
+      4 => 10000,
+      _ => 100,
+    };
+    return (value * factor).round() / factor;
+  }
+
+  Map<String, dynamic> _normalizedDemoUserPayload(
+    Map<String, dynamic> payload,
+  ) {
     final nestedUser = payload['user'];
     if (nestedUser is Map<String, dynamic>) {
       return nestedUser;
@@ -44,7 +69,9 @@ class AppDataService {
     return payload;
   }
 
-  List<Map<String, dynamic>> _normalizedDemoDependentsPayload(Map<String, dynamic> payload) {
+  List<Map<String, dynamic>> _normalizedDemoDependentsPayload(
+    Map<String, dynamic> payload,
+  ) {
     final rawDependents = payload['dependents'];
     if (rawDependents is List) {
       return rawDependents.whereType<Map<String, dynamic>>().toList();
@@ -52,8 +79,13 @@ class AppDataService {
     return const <Map<String, dynamic>>[];
   }
 
-  void _replaceEmployeeDependents(int employeeId, List<DependentModel> dependents) {
-    final employeeIndex = _debugEmployees.indexWhere((item) => item.id == employeeId);
+  void _replaceEmployeeDependents(
+    int employeeId,
+    List<DependentModel> dependents,
+  ) {
+    final employeeIndex = _debugEmployees.indexWhere(
+      (item) => item.id == employeeId,
+    );
     if (employeeIndex == -1) return;
 
     final current = _debugEmployees[employeeIndex];
@@ -76,7 +108,9 @@ class AppDataService {
   }
 
   void _attachDependentToEmployee(int employeeId, DependentModel dependent) {
-    final employeeIndex = _debugEmployees.indexWhere((item) => item.id == employeeId);
+    final employeeIndex = _debugEmployees.indexWhere(
+      (item) => item.id == employeeId,
+    );
     if (employeeIndex == -1) return;
 
     final current = _debugEmployees[employeeIndex];
@@ -86,11 +120,15 @@ class AppDataService {
 
   void _replaceDependentInEmployees(DependentModel updatedDependent) {
     for (final employee in _debugEmployees) {
-      final hasDependent = employee.dependents.any((item) => item.id == updatedDependent.id);
+      final hasDependent = employee.dependents.any(
+        (item) => item.id == updatedDependent.id,
+      );
       if (!hasDependent) continue;
 
       final updatedDependents = employee.dependents
-          .map((item) => item.id == updatedDependent.id ? updatedDependent : item)
+          .map(
+            (item) => item.id == updatedDependent.id ? updatedDependent : item,
+          )
           .toList();
       _replaceEmployeeDependents(employee.id, updatedDependents);
       break;
@@ -99,10 +137,14 @@ class AppDataService {
 
   void _removeDependentFromEmployees(int dependentId) {
     for (final employee in _debugEmployees) {
-      final hasDependent = employee.dependents.any((item) => item.id == dependentId);
+      final hasDependent = employee.dependents.any(
+        (item) => item.id == dependentId,
+      );
       if (!hasDependent) continue;
 
-      final updatedDependents = employee.dependents.where((item) => item.id != dependentId).toList();
+      final updatedDependents = employee.dependents
+          .where((item) => item.id != dependentId)
+          .toList();
       _replaceEmployeeDependents(employee.id, updatedDependents);
       break;
     }
@@ -122,7 +164,7 @@ class AppDataService {
       return _mergeWithDebugNotifications(notifications);
     } catch (_) {
       if (_allowLocalDemoFallback) {
-        return List<NotificationModel>.from(_debugNotifications);
+        return const <NotificationModel>[];
       }
       rethrow;
     }
@@ -139,10 +181,12 @@ class AppDataService {
           .whereType<Map<String, dynamic>>()
           .map(NotificationModel.fromJson)
           .toList();
-      return _mergeWithDebugNotifications(notifications.where((item) => !item.isRead).toList());
+      return _mergeWithDebugNotifications(
+        notifications.where((item) => !item.isRead).toList(),
+      );
     } catch (_) {
       if (_allowLocalDemoFallback) {
-        return _debugNotifications.where((item) => !item.isRead).toList();
+        return const <NotificationModel>[];
       }
       rethrow;
     }
@@ -155,11 +199,10 @@ class AppDataService {
 
     try {
       final response = await _apiClient.get('notifications/unread-count/');
-      final backendCount = response['count'] as int? ?? 0;
-      return backendCount + _debugNotifications.where((item) => !item.isRead).length;
+      return response['count'] as int? ?? 0;
     } catch (_) {
       if (_allowLocalDemoFallback) {
-        return _debugNotifications.where((item) => !item.isRead).length;
+        return 0;
       }
       rethrow;
     }
@@ -184,7 +227,10 @@ class AppDataService {
       return updated;
     }
 
-    final response = await _apiClient.post('notifications/$id/mark-read/', body: const {});
+    final response = await _apiClient.post(
+      'notifications/$id/mark-read/',
+      body: const {},
+    );
     return NotificationModel.fromJson(response);
   }
 
@@ -211,9 +257,71 @@ class AppDataService {
     }
   }
 
-  List<NotificationModel> _mergeWithDebugNotifications(List<NotificationModel> notifications) {
-    if (!_allowLocalDemoFallback) return notifications;
-    return [..._debugNotifications, ...notifications];
+  Future<List<AuditLogModel>> getAuditLogs() async {
+    if (_shouldUseDemoMode) {
+      return const [];
+    }
+
+    final logs = <AuditLogModel>[];
+    var page = 1;
+
+    while (true) {
+      final response = await _apiClient.get(
+        'audit-logs/?page=$page&page_size=100',
+      );
+      final pageResults = (response['results'] as List<dynamic>? ?? const [])
+          .whereType<Map<String, dynamic>>()
+          .map(AuditLogModel.fromJson)
+          .toList();
+      logs.addAll(pageResults);
+
+      final nextPage = response['next'] as String?;
+      if (nextPage == null || nextPage.isEmpty || pageResults.isEmpty) {
+        break;
+      }
+      page += 1;
+    }
+
+    return logs;
+  }
+
+  Future<SystemSettingsModel> getSystemSettings() async {
+    if (_shouldUseDemoMode) {
+      return const SystemSettingsModel(
+        systemName: 'هيلث بريدج',
+        organizationName: 'جامعة بوليتكنك فلسطين',
+        shortDescription: 'نظام إلكتروني لإدارة الوصفات الطبية والتأمين والصرف',
+        notificationsEnabled: true,
+        insuranceWorkflowEnabled: true,
+        pharmacistNotesRequired: false,
+        interfaceLanguage: 'العربية',
+        sessionTimeoutMinutes: 30,
+        adminNotes: '',
+      );
+    }
+
+    final response = await _apiClient.get('system-settings/');
+    return SystemSettingsModel.fromJson(response);
+  }
+
+  Future<SystemSettingsModel> updateSystemSettings(
+    SystemSettingsModel settings,
+  ) async {
+    if (_shouldUseDemoMode) {
+      return settings;
+    }
+
+    final response = await _apiClient.patch(
+      'system-settings/',
+      body: settings.toPatchPayload(),
+    );
+    return SystemSettingsModel.fromJson(response);
+  }
+
+  List<NotificationModel> _mergeWithDebugNotifications(
+    List<NotificationModel> notifications,
+  ) {
+    return notifications;
   }
 
   static List<NotificationModel> _buildDebugNotifications() {
@@ -226,7 +334,8 @@ class AppDataService {
       NotificationModel(
         id: -1,
         title: 'طلب تأمين جديد للاختبار',
-        message: 'هذه رسالة تجريبية للتأكد من أن شاشة الإشعارات تعمل بشكل صحيح.',
+        message:
+            'هذه رسالة تجريبية للتأكد من أن شاشة الإشعارات تعمل بشكل صحيح.',
         notificationType: 'Test',
         isRead: false,
         relatedEntityType: '',
@@ -236,7 +345,8 @@ class AppDataService {
       NotificationModel(
         id: -2,
         title: 'تحديث حالة وصفة',
-        message: 'تم اعتماد الوصفة رقم TEST-102 ويمكنك فتح الإشعار لتجربة التنقل.',
+        message:
+            'تم اعتماد الوصفة رقم TEST-102 ويمكنك فتح الإشعار لتجربة التنقل.',
         notificationType: 'Prescription',
         isRead: false,
         relatedEntityType: '',
@@ -246,7 +356,8 @@ class AppDataService {
       NotificationModel(
         id: -3,
         title: 'تنبيه صرف دواء',
-        message: 'هذا إشعار وهمي لاختبار القراءة والتحديث بدون الاعتماد على الخادم.',
+        message:
+            'هذا إشعار وهمي لاختبار القراءة والتحديث بدون الاعتماد على الخادم.',
         notificationType: 'Dispense',
         isRead: true,
         relatedEntityType: '',
@@ -257,7 +368,8 @@ class AppDataService {
       NotificationModel(
         id: -4,
         title: 'مراجعة إشعارات الواجهة',
-        message: 'يمكنك استخدام هذا العنصر لاختبار التبديل بين كل الإشعارات وغير المقروءة.',
+        message:
+            'يمكنك استخدام هذا العنصر لاختبار التبديل بين كل الإشعارات وغير المقروءة.',
         notificationType: 'UI Test',
         isRead: false,
         relatedEntityType: '',
@@ -274,7 +386,10 @@ class AppDataService {
 
     try {
       final response = await _apiClient.getList('employees/');
-      final employees = response.whereType<Map<String, dynamic>>().map(EmployeeModel.fromJson).toList();
+      final employees = response
+          .whereType<Map<String, dynamic>>()
+          .map(EmployeeModel.fromJson)
+          .toList();
       return _mergeWithDebugEmployees(employees);
     } catch (_) {
       if (_allowLocalDemoFallback) {
@@ -287,7 +402,9 @@ class AppDataService {
   Future<List<EmployeeModel>> getPatients() => getEmployees();
 
   Future<EmployeeModel> getEmployee(int id) async {
-    final debugMatch = _debugEmployees.where((employee) => employee.id == id).toList();
+    final debugMatch = _debugEmployees
+        .where((employee) => employee.id == id)
+        .toList();
     if (_shouldUseDemoMode && debugMatch.isNotEmpty) {
       return debugMatch.first;
     }
@@ -304,7 +421,8 @@ class AppDataService {
   }) async {
     final employees = await getEmployees();
     for (final employee in employees) {
-      if (employee.username == username || (email.isNotEmpty && employee.email == email)) {
+      if (employee.username == username ||
+          (email.isNotEmpty && employee.email == email)) {
         return employee;
       }
     }
@@ -322,10 +440,16 @@ class AppDataService {
       final dependentPayloads = _normalizedDemoDependentsPayload(payload);
       final createdDependents = dependentPayloads.map((dependentPayload) {
         return DependentModel(
-          id: DateTime.now().microsecondsSinceEpoch + dependentPayloads.indexOf(dependentPayload),
+          id:
+              DateTime.now().microsecondsSinceEpoch +
+              dependentPayloads.indexOf(dependentPayload),
           fullName: dependentPayload['full_name'] as String? ?? 'مستفيد تجريبي',
-          relation: dependentPayload['relation'] as String? ?? dependentPayload['relationship'] as String? ?? '',
-          relationship: dependentPayload['relationship'] as String? ??
+          relation:
+              dependentPayload['relation'] as String? ??
+              dependentPayload['relationship'] as String? ??
+              '',
+          relationship:
+              dependentPayload['relationship'] as String? ??
               dependentPayload['relation'] as String? ??
               '',
           notes: dependentPayload['notes'] as String? ?? '',
@@ -338,17 +462,26 @@ class AppDataService {
       }).toList();
       final employee = EmployeeModel(
         id: DateTime.now().millisecondsSinceEpoch,
-        fullName: userPayload['full_name'] as String? ??
+        fullName:
+            userPayload['full_name'] as String? ??
             userPayload['username'] as String? ??
             payload['full_name'] as String? ??
             'مستخدم تجريبي',
-        username: userPayload['username'] as String? ?? payload['username'] as String? ?? 'demo_employee',
-        email: userPayload['email'] as String? ?? payload['email'] as String? ?? '',
-        phoneNumber: userPayload['phone_number'] as String? ??
+        username:
+            userPayload['username'] as String? ??
+            payload['username'] as String? ??
+            'demo_employee',
+        email:
+            userPayload['email'] as String? ??
+            payload['email'] as String? ??
+            '',
+        phoneNumber:
+            userPayload['phone_number'] as String? ??
             userPayload['phone'] as String? ??
             payload['phone_number'] as String? ??
             '',
-        medicalRecordNumber: payload['medical_record_number'] as String? ?? 'MRN-DEMO',
+        medicalRecordNumber:
+            payload['medical_record_number'] as String? ?? 'MRN-DEMO',
         insuranceProvider: payload['insurance_provider'] as String? ?? 'تجريبي',
         address: payload['address'] as String? ?? '',
         dependents: createdDependents,
@@ -369,9 +502,13 @@ class AppDataService {
     return EmployeeModel.fromJson(response);
   }
 
-  Future<EmployeeModel> createPatient(Map<String, dynamic> payload) => createEmployee(payload);
+  Future<EmployeeModel> createPatient(Map<String, dynamic> payload) =>
+      createEmployee(payload);
 
-  Future<EmployeeModel> updateEmployee(int id, Map<String, dynamic> payload) async {
+  Future<EmployeeModel> updateEmployee(
+    int id,
+    Map<String, dynamic> payload,
+  ) async {
     final debugIndex = _debugEmployees.indexWhere((item) => item.id == id);
     if (_shouldUseDemoMode && debugIndex != -1) {
       final current = _debugEmployees[debugIndex];
@@ -381,14 +518,20 @@ class AppDataService {
         username: payload['username'] as String? ?? current.username,
         email: payload['email'] as String? ?? current.email,
         phoneNumber: payload['phone_number'] as String? ?? current.phoneNumber,
-        medicalRecordNumber: payload['medical_record_number'] as String? ?? current.medicalRecordNumber,
-        insuranceProvider: payload['insurance_provider'] as String? ?? current.insuranceProvider,
+        medicalRecordNumber:
+            payload['medical_record_number'] as String? ??
+            current.medicalRecordNumber,
+        insuranceProvider:
+            payload['insurance_provider'] as String? ??
+            current.insuranceProvider,
         address: payload['address'] as String? ?? current.address,
         dependents: current.dependents,
         dateOfBirth: current.dateOfBirth,
         nationalId: payload['national_id'] as String? ?? current.nationalId,
-        universityId: payload['university_id'] as String? ?? current.universityId,
-        insuranceNumber: payload['insurance_number'] as String? ?? current.insuranceNumber,
+        universityId:
+            payload['university_id'] as String? ?? current.universityId,
+        insuranceNumber:
+            payload['insurance_number'] as String? ?? current.insuranceNumber,
         gender: payload['gender'] as String? ?? current.gender,
       );
       _debugEmployees[debugIndex] = updated;
@@ -399,33 +542,47 @@ class AppDataService {
     return EmployeeModel.fromJson(response);
   }
 
-  Future<EmployeeModel> updatePatient(int id, Map<String, dynamic> payload) => updateEmployee(id, payload);
+  Future<EmployeeModel> updatePatient(int id, Map<String, dynamic> payload) =>
+      updateEmployee(id, payload);
 
-  Future<List<DependentModel>> getDependents({int? employeeId, int? patientId}) async {
+  Future<List<DependentModel>> getDependents({
+    int? employeeId,
+    int? patientId,
+  }) async {
     final selectedEmployeeId = employeeId ?? patientId;
     if (_shouldUseDemoMode) {
       if (selectedEmployeeId == null) {
         return List<DependentModel>.from(_debugDependents);
       }
-      final employee = _debugEmployees.where((item) => item.id == selectedEmployeeId).toList();
+      final employee = _debugEmployees
+          .where((item) => item.id == selectedEmployeeId)
+          .toList();
       if (employee.isNotEmpty) {
         return List<DependentModel>.from(employee.first.dependents);
       }
       return const <DependentModel>[];
     }
 
-    final endpoint =
-        selectedEmployeeId == null ? 'dependents/' : 'dependents/?employee=$selectedEmployeeId';
+    final endpoint = selectedEmployeeId == null
+        ? 'dependents/'
+        : 'dependents/?employee=$selectedEmployeeId';
     try {
       final response = await _apiClient.getList(endpoint);
-      return response.whereType<Map<String, dynamic>>().map(DependentModel.fromJson).toList();
+      return response
+          .whereType<Map<String, dynamic>>()
+          .map(DependentModel.fromJson)
+          .toList();
     } catch (_) {
       if (_allowLocalDemoFallback) {
         if (selectedEmployeeId == null) {
           return List<DependentModel>.from(_debugDependents);
         }
-        final employee = _debugEmployees.where((item) => item.id == selectedEmployeeId).toList();
-        return employee.isEmpty ? const <DependentModel>[] : List<DependentModel>.from(employee.first.dependents);
+        final employee = _debugEmployees
+            .where((item) => item.id == selectedEmployeeId)
+            .toList();
+        return employee.isEmpty
+            ? const <DependentModel>[]
+            : List<DependentModel>.from(employee.first.dependents);
       }
       rethrow;
     }
@@ -436,8 +593,14 @@ class AppDataService {
       final dependent = DependentModel(
         id: DateTime.now().millisecondsSinceEpoch,
         fullName: payload['full_name'] as String? ?? 'مستفيد تجريبي',
-        relation: payload['relation'] as String? ?? payload['relationship'] as String? ?? '',
-        relationship: payload['relationship'] as String? ?? payload['relation'] as String? ?? '',
+        relation:
+            payload['relation'] as String? ??
+            payload['relationship'] as String? ??
+            '',
+        relationship:
+            payload['relationship'] as String? ??
+            payload['relation'] as String? ??
+            '',
         notes: payload['notes'] as String? ?? '',
         isActive: payload['is_active'] as bool? ?? true,
         nationalId: payload['national_id'] as String? ?? '',
@@ -446,7 +609,8 @@ class AppDataService {
             : DateTime.tryParse(payload['date_of_birth'] as String),
       );
       _debugDependents.add(dependent);
-      final employeeId = payload['employee'] as int? ?? payload['patient'] as int?;
+      final employeeId =
+          payload['employee'] as int? ?? payload['patient'] as int?;
       if (employeeId != null) {
         _attachDependentToEmployee(employeeId, dependent);
       }
@@ -457,7 +621,10 @@ class AppDataService {
     return DependentModel.fromJson(response);
   }
 
-  Future<DependentModel> updateDependent(int id, Map<String, dynamic> payload) async {
+  Future<DependentModel> updateDependent(
+    int id,
+    Map<String, dynamic> payload,
+  ) async {
     final debugIndex = _debugDependents.indexWhere((item) => item.id == id);
     if (_shouldUseDemoMode && debugIndex != -1) {
       final current = _debugDependents[debugIndex];
@@ -465,7 +632,8 @@ class AppDataService {
         id: current.id,
         fullName: payload['full_name'] as String? ?? current.fullName,
         relation: payload['relation'] as String? ?? current.relation,
-        relationship: payload['relationship'] as String? ?? current.relationship,
+        relationship:
+            payload['relationship'] as String? ?? current.relationship,
         notes: payload['notes'] as String? ?? current.notes,
         isActive: payload['is_active'] as bool? ?? current.isActive,
         nationalId: payload['national_id'] as String? ?? current.nationalId,
@@ -521,10 +689,12 @@ class AppDataService {
     final normalizedCoverage = _normalizedDebugCoverageCatalog();
 
     return normalizedCoverage.where((item) {
-      final matchesCategory = normalizedCategory == null ||
+      final matchesCategory =
+          normalizedCategory == null ||
           normalizedCategory.isEmpty ||
           item.category.toLowerCase() == normalizedCategory;
-      final matchesProviderType = normalizedProviderType == null ||
+      final matchesProviderType =
+          normalizedProviderType == null ||
           normalizedProviderType.isEmpty ||
           item.providerType.toLowerCase() == normalizedProviderType;
       final matchesActive = !activeOnly || item.isActive;
@@ -532,7 +702,9 @@ class AppDataService {
     }).toList();
   }
 
-  CoverageCatalogItemModel? findCoverageForMedication(MedicationModel medication) {
+  CoverageCatalogItemModel? findCoverageForMedication(
+    MedicationModel medication,
+  ) {
     final medicationName = medication.name.trim().toLowerCase();
     final genericName = medication.genericName.trim().toLowerCase();
 
@@ -570,19 +742,20 @@ class AppDataService {
   List<CoverageCatalogItemModel> _normalizedDebugCoverageCatalog() {
     final normalized = _debugCoverageCatalog.map((item) {
       if (item.category == 'Medication' && item.providerType == 'Pharmacy') {
-        return _copyCoverageItem(
-          item,
-          coveragePercentage: 70,
-        );
+        return _copyCoverageItem(item, coveragePercentage: 70);
       }
       return item;
     }).toList();
 
-    final existingMedicationNames =
-        normalized.where((item) => item.category == 'Medication').map((item) => item.title.trim().toLowerCase()).toSet();
+    final existingMedicationNames = normalized
+        .where((item) => item.category == 'Medication')
+        .map((item) => item.title.trim().toLowerCase())
+        .toSet();
 
     for (final medication in _debugMedications) {
-      if (existingMedicationNames.contains(medication.name.trim().toLowerCase())) {
+      if (existingMedicationNames.contains(
+        medication.name.trim().toLowerCase(),
+      )) {
         continue;
       }
       normalized.add(
@@ -657,7 +830,9 @@ class AppDataService {
   Future<CoverageCatalogItemModel> updateCoverageCatalogItem({
     required CoverageCatalogItemModel item,
   }) async {
-    final index = _debugCoverageCatalog.indexWhere((current) => current.id == item.id);
+    final index = _debugCoverageCatalog.indexWhere(
+      (current) => current.id == item.id,
+    );
     if (index != -1) {
       _debugCoverageCatalog[index] = item;
     } else {
@@ -671,7 +846,9 @@ class AppDataService {
     return [..._debugEmployees, ...employees];
   }
 
-  List<MedicationModel> _mergeWithDebugMedications(List<MedicationModel> medications) {
+  List<MedicationModel> _mergeWithDebugMedications(
+    List<MedicationModel> medications,
+  ) {
     if (!_allowLocalDemoFallback) return medications;
     return [..._debugMedications, ...medications];
   }
@@ -741,38 +918,6 @@ class AppDataService {
         gender: 'أنثى',
       ),
       EmployeeModel(
-        id: 9104,
-        fullName: 'يوسف عمرو',
-        username: 'medical_demo',
-        email: 'medical@healthbridge.test',
-        phoneNumber: '0599000008',
-        medicalRecordNumber: 'MRN-1004',
-        insuranceProvider: 'المركز الطبي الجامعي',
-        address: 'الخليل - بئر المحجر',
-        dependents: const [],
-        dateOfBirth: DateTime(1986, 6, 14),
-        nationalId: '401111114',
-        universityId: 'PROV-001',
-        insuranceNumber: 'INS-1004',
-        gender: 'ذكر',
-      ),
-      EmployeeModel(
-        id: 9105,
-        fullName: 'دانا أبو عياش',
-        username: 'imaging_demo',
-        email: 'imaging@healthbridge.test',
-        phoneNumber: '0599000007',
-        medicalRecordNumber: 'MRN-1005',
-        insuranceProvider: 'مركز التصوير الطبي',
-        address: 'الخليل - دوار الصحة',
-        dependents: const [],
-        dateOfBirth: DateTime(1990, 11, 3),
-        nationalId: '401111115',
-        universityId: 'PROV-002',
-        insuranceNumber: 'INS-1005',
-        gender: 'أنثى',
-      ),
-      EmployeeModel(
         id: 9106,
         fullName: 'رامي نصار',
         username: 'pharmacist_demo',
@@ -797,36 +942,246 @@ class AppDataService {
     }
 
     return const <MedicationModel>[
-      MedicationModel(id: 8001, name: 'Panadol', genericName: 'Paracetamol', strength: '500 mg', dosageForm: 'Tablet', manufacturer: 'GSK'),
-      MedicationModel(id: 8002, name: 'Augmentin', genericName: 'Amoxicillin/Clavulanate', strength: '1 g', dosageForm: 'Tablet', manufacturer: 'GSK'),
-      MedicationModel(id: 8003, name: 'Brufen', genericName: 'Ibuprofen', strength: '400 mg', dosageForm: 'Tablet', manufacturer: 'Abbott'),
-      MedicationModel(id: 8004, name: 'Voltaren', genericName: 'Diclofenac Potassium', strength: '50 mg', dosageForm: 'Tablet', manufacturer: 'Novartis'),
-      MedicationModel(id: 8005, name: 'Cataflam', genericName: 'Diclofenac Potassium', strength: '50 mg', dosageForm: 'Tablet', manufacturer: 'Novartis'),
-      MedicationModel(id: 8006, name: 'Flagyl', genericName: 'Metronidazole', strength: '500 mg', dosageForm: 'Tablet', manufacturer: 'Sanofi'),
-      MedicationModel(id: 8007, name: 'Zithromax', genericName: 'Azithromycin', strength: '500 mg', dosageForm: 'Tablet', manufacturer: 'Pfizer'),
-      MedicationModel(id: 8008, name: 'Ciproxin', genericName: 'Ciprofloxacin', strength: '500 mg', dosageForm: 'Tablet', manufacturer: 'Bayer'),
-      MedicationModel(id: 8009, name: 'Nexium', genericName: 'Esomeprazole', strength: '40 mg', dosageForm: 'Capsule', manufacturer: 'AstraZeneca'),
-      MedicationModel(id: 8010, name: 'Losec', genericName: 'Omeprazole', strength: '20 mg', dosageForm: 'Capsule', manufacturer: 'AstraZeneca'),
-      MedicationModel(id: 8011, name: 'Glucophage', genericName: 'Metformin', strength: '850 mg', dosageForm: 'Tablet', manufacturer: 'Merck'),
-      MedicationModel(id: 8012, name: 'Amaryl', genericName: 'Glimepiride', strength: '2 mg', dosageForm: 'Tablet', manufacturer: 'Sanofi'),
-      MedicationModel(id: 8013, name: 'Norvasc', genericName: 'Amlodipine', strength: '5 mg', dosageForm: 'Tablet', manufacturer: 'Pfizer'),
-      MedicationModel(id: 8014, name: 'Cozaar', genericName: 'Losartan', strength: '50 mg', dosageForm: 'Tablet', manufacturer: 'MSD'),
-      MedicationModel(id: 8015, name: 'Micardis', genericName: 'Telmisartan', strength: '40 mg', dosageForm: 'Tablet', manufacturer: 'Boehringer Ingelheim'),
-      MedicationModel(id: 8016, name: 'Atacand', genericName: 'Candesartan', strength: '16 mg', dosageForm: 'Tablet', manufacturer: 'AstraZeneca'),
-      MedicationModel(id: 8017, name: 'Lipitor', genericName: 'Atorvastatin', strength: '20 mg', dosageForm: 'Tablet', manufacturer: 'Pfizer'),
-      MedicationModel(id: 8018, name: 'Crestor', genericName: 'Rosuvastatin', strength: '10 mg', dosageForm: 'Tablet', manufacturer: 'AstraZeneca'),
-      MedicationModel(id: 8019, name: 'Plavix', genericName: 'Clopidogrel', strength: '75 mg', dosageForm: 'Tablet', manufacturer: 'Sanofi'),
-      MedicationModel(id: 8020, name: 'Aspirin Protect', genericName: 'Acetylsalicylic Acid', strength: '100 mg', dosageForm: 'Tablet', manufacturer: 'Bayer'),
-      MedicationModel(id: 8021, name: 'Ventolin', genericName: 'Salbutamol', strength: '100 mcg', dosageForm: 'Inhaler', manufacturer: 'GSK'),
-      MedicationModel(id: 8022, name: 'Symbicort', genericName: 'Budesonide/Formoterol', strength: '160/4.5 mcg', dosageForm: 'Inhaler', manufacturer: 'AstraZeneca'),
-      MedicationModel(id: 8023, name: 'Seretide', genericName: 'Salmeterol/Fluticasone', strength: '25/125 mcg', dosageForm: 'Inhaler', manufacturer: 'GSK'),
-      MedicationModel(id: 8024, name: 'Telfast', genericName: 'Fexofenadine', strength: '180 mg', dosageForm: 'Tablet', manufacturer: 'Sanofi'),
-      MedicationModel(id: 8025, name: 'Clarinase', genericName: 'Loratadine/Pseudoephedrine', strength: '5/120 mg', dosageForm: 'Tablet', manufacturer: 'Schering-Plough'),
-      MedicationModel(id: 8026, name: 'Zyrtec', genericName: 'Cetirizine', strength: '10 mg', dosageForm: 'Tablet', manufacturer: 'UCB'),
-      MedicationModel(id: 8027, name: 'Curam', genericName: 'Amoxicillin/Clavulanate', strength: '625 mg', dosageForm: 'Tablet', manufacturer: 'Sandoz'),
-      MedicationModel(id: 8028, name: 'Rocephin', genericName: 'Ceftriaxone', strength: '1 g', dosageForm: 'Injection', manufacturer: 'Roche'),
-      MedicationModel(id: 8029, name: 'Tavanic', genericName: 'Levofloxacin', strength: '500 mg', dosageForm: 'Tablet', manufacturer: 'Sanofi'),
-      MedicationModel(id: 8030, name: 'Diflucan', genericName: 'Fluconazole', strength: '150 mg', dosageForm: 'Capsule', manufacturer: 'Pfizer'),
+      MedicationModel(
+        id: 8001,
+        name: 'Panadol',
+        genericName: 'Paracetamol',
+        strength: '500 mg',
+        dosageForm: 'Tablet',
+        manufacturer: 'GSK',
+      ),
+      MedicationModel(
+        id: 8002,
+        name: 'Augmentin',
+        genericName: 'Amoxicillin/Clavulanate',
+        strength: '1 g',
+        dosageForm: 'Tablet',
+        manufacturer: 'GSK',
+      ),
+      MedicationModel(
+        id: 8003,
+        name: 'Brufen',
+        genericName: 'Ibuprofen',
+        strength: '400 mg',
+        dosageForm: 'Tablet',
+        manufacturer: 'Abbott',
+      ),
+      MedicationModel(
+        id: 8004,
+        name: 'Voltaren',
+        genericName: 'Diclofenac Potassium',
+        strength: '50 mg',
+        dosageForm: 'Tablet',
+        manufacturer: 'Novartis',
+      ),
+      MedicationModel(
+        id: 8005,
+        name: 'Cataflam',
+        genericName: 'Diclofenac Potassium',
+        strength: '50 mg',
+        dosageForm: 'Tablet',
+        manufacturer: 'Novartis',
+      ),
+      MedicationModel(
+        id: 8006,
+        name: 'Flagyl',
+        genericName: 'Metronidazole',
+        strength: '500 mg',
+        dosageForm: 'Tablet',
+        manufacturer: 'Sanofi',
+      ),
+      MedicationModel(
+        id: 8007,
+        name: 'Zithromax',
+        genericName: 'Azithromycin',
+        strength: '500 mg',
+        dosageForm: 'Tablet',
+        manufacturer: 'Pfizer',
+      ),
+      MedicationModel(
+        id: 8008,
+        name: 'Ciproxin',
+        genericName: 'Ciprofloxacin',
+        strength: '500 mg',
+        dosageForm: 'Tablet',
+        manufacturer: 'Bayer',
+      ),
+      MedicationModel(
+        id: 8009,
+        name: 'Nexium',
+        genericName: 'Esomeprazole',
+        strength: '40 mg',
+        dosageForm: 'Capsule',
+        manufacturer: 'AstraZeneca',
+      ),
+      MedicationModel(
+        id: 8010,
+        name: 'Losec',
+        genericName: 'Omeprazole',
+        strength: '20 mg',
+        dosageForm: 'Capsule',
+        manufacturer: 'AstraZeneca',
+      ),
+      MedicationModel(
+        id: 8011,
+        name: 'Glucophage',
+        genericName: 'Metformin',
+        strength: '850 mg',
+        dosageForm: 'Tablet',
+        manufacturer: 'Merck',
+      ),
+      MedicationModel(
+        id: 8012,
+        name: 'Amaryl',
+        genericName: 'Glimepiride',
+        strength: '2 mg',
+        dosageForm: 'Tablet',
+        manufacturer: 'Sanofi',
+      ),
+      MedicationModel(
+        id: 8013,
+        name: 'Norvasc',
+        genericName: 'Amlodipine',
+        strength: '5 mg',
+        dosageForm: 'Tablet',
+        manufacturer: 'Pfizer',
+      ),
+      MedicationModel(
+        id: 8014,
+        name: 'Cozaar',
+        genericName: 'Losartan',
+        strength: '50 mg',
+        dosageForm: 'Tablet',
+        manufacturer: 'MSD',
+      ),
+      MedicationModel(
+        id: 8015,
+        name: 'Micardis',
+        genericName: 'Telmisartan',
+        strength: '40 mg',
+        dosageForm: 'Tablet',
+        manufacturer: 'Boehringer Ingelheim',
+      ),
+      MedicationModel(
+        id: 8016,
+        name: 'Atacand',
+        genericName: 'Candesartan',
+        strength: '16 mg',
+        dosageForm: 'Tablet',
+        manufacturer: 'AstraZeneca',
+      ),
+      MedicationModel(
+        id: 8017,
+        name: 'Lipitor',
+        genericName: 'Atorvastatin',
+        strength: '20 mg',
+        dosageForm: 'Tablet',
+        manufacturer: 'Pfizer',
+      ),
+      MedicationModel(
+        id: 8018,
+        name: 'Crestor',
+        genericName: 'Rosuvastatin',
+        strength: '10 mg',
+        dosageForm: 'Tablet',
+        manufacturer: 'AstraZeneca',
+      ),
+      MedicationModel(
+        id: 8019,
+        name: 'Plavix',
+        genericName: 'Clopidogrel',
+        strength: '75 mg',
+        dosageForm: 'Tablet',
+        manufacturer: 'Sanofi',
+      ),
+      MedicationModel(
+        id: 8020,
+        name: 'Aspirin Protect',
+        genericName: 'Acetylsalicylic Acid',
+        strength: '100 mg',
+        dosageForm: 'Tablet',
+        manufacturer: 'Bayer',
+      ),
+      MedicationModel(
+        id: 8021,
+        name: 'Ventolin',
+        genericName: 'Salbutamol',
+        strength: '100 mcg',
+        dosageForm: 'Inhaler',
+        manufacturer: 'GSK',
+      ),
+      MedicationModel(
+        id: 8022,
+        name: 'Symbicort',
+        genericName: 'Budesonide/Formoterol',
+        strength: '160/4.5 mcg',
+        dosageForm: 'Inhaler',
+        manufacturer: 'AstraZeneca',
+      ),
+      MedicationModel(
+        id: 8023,
+        name: 'Seretide',
+        genericName: 'Salmeterol/Fluticasone',
+        strength: '25/125 mcg',
+        dosageForm: 'Inhaler',
+        manufacturer: 'GSK',
+      ),
+      MedicationModel(
+        id: 8024,
+        name: 'Telfast',
+        genericName: 'Fexofenadine',
+        strength: '180 mg',
+        dosageForm: 'Tablet',
+        manufacturer: 'Sanofi',
+      ),
+      MedicationModel(
+        id: 8025,
+        name: 'Clarinase',
+        genericName: 'Loratadine/Pseudoephedrine',
+        strength: '5/120 mg',
+        dosageForm: 'Tablet',
+        manufacturer: 'Schering-Plough',
+      ),
+      MedicationModel(
+        id: 8026,
+        name: 'Zyrtec',
+        genericName: 'Cetirizine',
+        strength: '10 mg',
+        dosageForm: 'Tablet',
+        manufacturer: 'UCB',
+      ),
+      MedicationModel(
+        id: 8027,
+        name: 'Curam',
+        genericName: 'Amoxicillin/Clavulanate',
+        strength: '625 mg',
+        dosageForm: 'Tablet',
+        manufacturer: 'Sandoz',
+      ),
+      MedicationModel(
+        id: 8028,
+        name: 'Rocephin',
+        genericName: 'Ceftriaxone',
+        strength: '1 g',
+        dosageForm: 'Injection',
+        manufacturer: 'Roche',
+      ),
+      MedicationModel(
+        id: 8029,
+        name: 'Tavanic',
+        genericName: 'Levofloxacin',
+        strength: '500 mg',
+        dosageForm: 'Tablet',
+        manufacturer: 'Sanofi',
+      ),
+      MedicationModel(
+        id: 8030,
+        name: 'Diflucan',
+        genericName: 'Fluconazole',
+        strength: '150 mg',
+        dosageForm: 'Capsule',
+        manufacturer: 'Pfizer',
+      ),
     ];
   }
 
@@ -968,246 +1323,6 @@ class AppDataService {
         description: 'خفض الكوليسترول',
         notes: 'تغطية شهرية للمصابين بفرط الدهون.',
       ),
-      const CoverageCatalogItemModel(
-        id: 6009,
-        code: 'LAB-001',
-        title: 'CBC',
-        category: 'Laboratory',
-        providerType: 'Laboratory',
-        providerName: 'مختبر الجامعة',
-        unitPrice: 25,
-        coveragePercentage: 90,
-        maxQuantity: 1,
-        requiresInsuranceApproval: false,
-        isActive: true,
-        description: 'صورة دم كاملة',
-        notes: 'نتيجة خلال نفس اليوم.',
-      ),
-      const CoverageCatalogItemModel(
-        id: 6010,
-        code: 'LAB-002',
-        title: 'Ferritin',
-        category: 'Laboratory',
-        providerType: 'Laboratory',
-        providerName: 'مختبر الجامعة',
-        unitPrice: 35,
-        coveragePercentage: 85,
-        maxQuantity: 1,
-        requiresInsuranceApproval: false,
-        isActive: true,
-        description: 'مخزون الحديد',
-        notes: 'يستخدم لمتابعة حالات فقر الدم.',
-      ),
-      const CoverageCatalogItemModel(
-        id: 6011,
-        code: 'LAB-003',
-        title: 'Liver Function Test',
-        category: 'Laboratory',
-        providerType: 'Laboratory',
-        providerName: 'مختبر الجامعة',
-        unitPrice: 48,
-        coveragePercentage: 80,
-        maxQuantity: 1,
-        requiresInsuranceApproval: false,
-        isActive: true,
-        description: 'وظائف الكبد',
-        notes: 'يشمل ALT وAST وALP.',
-      ),
-      const CoverageCatalogItemModel(
-        id: 6012,
-        code: 'LAB-004',
-        title: 'Kidney Function Test',
-        category: 'Laboratory',
-        providerType: 'Laboratory',
-        providerName: 'مختبر الجامعة',
-        unitPrice: 44,
-        coveragePercentage: 80,
-        maxQuantity: 1,
-        requiresInsuranceApproval: false,
-        isActive: true,
-        description: 'وظائف الكلى',
-        notes: 'يشمل Urea وCreatinine.',
-      ),
-      const CoverageCatalogItemModel(
-        id: 6013,
-        code: 'LAB-005',
-        title: 'Urine Culture',
-        category: 'Laboratory',
-        providerType: 'Laboratory',
-        providerName: 'مختبر الجامعة',
-        unitPrice: 80,
-        coveragePercentage: 80,
-        maxQuantity: 1,
-        requiresInsuranceApproval: true,
-        isActive: true,
-        description: 'زرع بول',
-        notes: 'يتطلب موافقة إذا كان متكررًا.',
-      ),
-      const CoverageCatalogItemModel(
-        id: 6014,
-        code: 'LAB-006',
-        title: 'HbA1c',
-        category: 'Laboratory',
-        providerType: 'Laboratory',
-        providerName: 'مختبر الجامعة',
-        unitPrice: 42,
-        coveragePercentage: 90,
-        maxQuantity: 1,
-        requiresInsuranceApproval: false,
-        isActive: true,
-        description: 'السكر التراكمي',
-        notes: 'لمتابعة مرضى السكري.',
-      ),
-      const CoverageCatalogItemModel(
-        id: 6015,
-        code: 'IMG-001',
-        title: 'Chest X-Ray',
-        category: 'Imaging',
-        providerType: 'ImagingCenter',
-        providerName: 'مركز التصوير الطبي',
-        unitPrice: 120,
-        coveragePercentage: 85,
-        maxQuantity: 1,
-        requiresInsuranceApproval: false,
-        isActive: true,
-        description: 'أشعة صدر',
-        notes: 'النتيجة خلال 24 ساعة.',
-      ),
-      const CoverageCatalogItemModel(
-        id: 6016,
-        code: 'IMG-002',
-        title: 'MRI Knee',
-        category: 'Imaging',
-        providerType: 'ImagingCenter',
-        providerName: 'مركز التصوير الطبي',
-        unitPrice: 300,
-        coveragePercentage: 70,
-        maxQuantity: 1,
-        requiresInsuranceApproval: true,
-        isActive: true,
-        description: 'رنين مغناطيسي للركبة',
-        notes: 'يتطلب تقريرًا طبيًا مختصرًا.',
-      ),
-      const CoverageCatalogItemModel(
-        id: 6017,
-        code: 'IMG-003',
-        title: 'Abdominal Ultrasound',
-        category: 'Imaging',
-        providerType: 'ImagingCenter',
-        providerName: 'مركز التصوير الطبي',
-        unitPrice: 180,
-        coveragePercentage: 80,
-        maxQuantity: 1,
-        requiresInsuranceApproval: false,
-        isActive: true,
-        description: 'ألتراساوند للبطن',
-        notes: 'موعد خلال يومي عمل.',
-      ),
-      const CoverageCatalogItemModel(
-        id: 6018,
-        code: 'IMG-004',
-        title: 'CT Brain',
-        category: 'Imaging',
-        providerType: 'ImagingCenter',
-        providerName: 'مركز التصوير الطبي',
-        unitPrice: 420,
-        coveragePercentage: 65,
-        maxQuantity: 1,
-        requiresInsuranceApproval: true,
-        isActive: true,
-        description: 'طبقي محوري للدماغ',
-        notes: 'يتطلب موافقة مسبقة للحالات غير الطارئة.',
-      ),
-      const CoverageCatalogItemModel(
-        id: 6019,
-        code: 'IMG-005',
-        title: 'Mammography',
-        category: 'Imaging',
-        providerType: 'ImagingCenter',
-        providerName: 'مركز التصوير الطبي',
-        unitPrice: 250,
-        coveragePercentage: 75,
-        maxQuantity: 1,
-        requiresInsuranceApproval: false,
-        isActive: true,
-        description: 'تصوير الثدي الشعاعي',
-        notes: 'ضمن برنامج الفحص المبكر.',
-      ),
-      const CoverageCatalogItemModel(
-        id: 6020,
-        code: 'MEDC-001',
-        title: 'Physical Therapy Session',
-        category: 'MedicalCenter',
-        providerType: 'MedicalCenter',
-        providerName: 'المركز الطبي الجامعي',
-        unitPrice: 50,
-        coveragePercentage: 75,
-        maxQuantity: 6,
-        requiresInsuranceApproval: false,
-        isActive: true,
-        description: 'جلسة علاج طبيعي',
-        notes: 'حتى 6 جلسات للوصفة الواحدة.',
-      ),
-      const CoverageCatalogItemModel(
-        id: 6021,
-        code: 'MEDC-002',
-        title: 'Minor Procedure',
-        category: 'MedicalCenter',
-        providerType: 'MedicalCenter',
-        providerName: 'المركز الطبي الجامعي',
-        unitPrice: 150,
-        coveragePercentage: 60,
-        maxQuantity: 1,
-        requiresInsuranceApproval: true,
-        isActive: true,
-        description: 'إجراء بسيط داخل المركز',
-        notes: 'يتطلب وصفًا سريريًا واضحًا.',
-      ),
-      const CoverageCatalogItemModel(
-        id: 6022,
-        code: 'MEDC-003',
-        title: 'Dressing and Wound Care',
-        category: 'MedicalCenter',
-        providerType: 'MedicalCenter',
-        providerName: 'المركز الطبي الجامعي',
-        unitPrice: 65,
-        coveragePercentage: 85,
-        maxQuantity: 4,
-        requiresInsuranceApproval: false,
-        isActive: true,
-        description: 'ضماد وعناية بالجروح',
-        notes: 'يغطي حتى 4 زيارات.',
-      ),
-      const CoverageCatalogItemModel(
-        id: 6023,
-        code: 'MEDC-004',
-        title: 'Cardiology Consultation',
-        category: 'MedicalCenter',
-        providerType: 'MedicalCenter',
-        providerName: 'المركز الطبي الجامعي',
-        unitPrice: 160,
-        coveragePercentage: 70,
-        maxQuantity: 1,
-        requiresInsuranceApproval: true,
-        isActive: true,
-        description: 'استشارة قلبية تخصصية',
-        notes: 'تلزم إحالة من الطبيب العام.',
-      ),
-      const CoverageCatalogItemModel(
-        id: 6024,
-        code: 'MEDC-005',
-        title: 'ENT Consultation',
-        category: 'MedicalCenter',
-        providerType: 'MedicalCenter',
-        providerName: 'المركز الطبي الجامعي',
-        unitPrice: 110,
-        coveragePercentage: 80,
-        maxQuantity: 1,
-        requiresInsuranceApproval: false,
-        isActive: true,
-        description: 'استشارة أنف وأذن وحنجرة',
-        notes: 'ضمن العيادات المتخصصة المعتمدة.',
-      ),
     ];
   }
 
@@ -1248,36 +1363,12 @@ class AppDataService {
         id: 9301,
         fullName: 'د. أحمد خليل',
         specialty: 'طب باطني',
-        clinicName: 'عيادة الجامعة',
-        providerName: 'الخدمات الطبية الجامعية',
+        clinicName: 'العيادة التخصصية',
+        providerName: 'العيادة التخصصية',
         city: 'الخليل',
         address: 'عين سارة',
         phoneNumber: '022222222',
         consultationPrice: 120,
-        contractStatus: 'Active',
-      ),
-      DoctorDirectoryModel(
-        id: 9302,
-        fullName: 'د. سمر قواسمي',
-        specialty: 'أشعة وتشخيص',
-        clinicName: 'مركز التصوير الطبي',
-        providerName: 'مركز التصوير الطبي',
-        city: 'الخليل',
-        address: 'دوار الصحة',
-        phoneNumber: '022222223',
-        consultationPrice: 150,
-        contractStatus: 'Active',
-      ),
-      DoctorDirectoryModel(
-        id: 9303,
-        fullName: 'د. رامي نصار',
-        specialty: 'علاج طبيعي',
-        clinicName: 'المركز الطبي الجامعي',
-        providerName: 'المركز الطبي الجامعي',
-        city: 'الخليل',
-        address: 'شارع الجامعة',
-        phoneNumber: '022222224',
-        consultationPrice: 100,
         contractStatus: 'Active',
       ),
     ];
@@ -1293,40 +1384,40 @@ class AppDataService {
       InsuranceRequestModel(
         id: 9401,
         prescriptionId: 7002,
-        prescriptionNumber: 'LAB-2026-002',
+        prescriptionNumber: 'RX-2026-002',
         employeeName: 'باسل الجعبري',
         doctorName: 'د. أحمد خليل',
         status: 'Pending',
         requestNumber: 'INS-2026-001',
         responseNotes: '',
-        providerName: 'مختبر الجامعة',
-        serviceName: 'زرع بول',
-        serviceType: 'Laboratory',
-        totalPrice: 80,
+        providerName: 'شبكة الصيدليات المتعاقدة',
+        serviceName: 'Augmentin',
+        serviceType: 'Medication',
+        totalPrice: 34,
         coveragePercentage: 80,
-        coveredAmount: 64,
-        employeeShare: 16,
+        coveredAmount: 27.2,
+        employeeShare: 6.8,
         prescriptionStatus: 'PendingInsuranceApproval',
         beneficiaryName: 'باسل الجعبري',
         submittedAt: now.subtract(const Duration(hours: 4)),
       ),
       InsuranceRequestModel(
         id: 9402,
-        prescriptionId: 7004,
-        prescriptionNumber: 'IMG-2026-004',
+        prescriptionId: 7003,
+        prescriptionNumber: 'RX-2026-003',
         employeeName: 'منى صالح',
         doctorName: 'د. أحمد خليل',
         status: 'Approved',
         requestNumber: 'INS-2026-002',
         responseNotes: 'تمت الموافقة على الطلب.',
-        providerName: 'مركز التصوير الطبي',
-        serviceName: 'MRI Knee',
-        serviceType: 'Imaging',
-        totalPrice: 300,
-        coveragePercentage: 70,
-        coveredAmount: 210,
-        employeeShare: 90,
-        prescriptionStatus: 'Performed',
+        providerName: 'صيدليات الأمراض المزمنة',
+        serviceName: 'Symbicort',
+        serviceType: 'Medication',
+        totalPrice: 96,
+        coveragePercentage: 75,
+        coveredAmount: 72,
+        employeeShare: 24,
+        prescriptionStatus: 'Approved',
         beneficiaryName: 'منى صالح',
         submittedAt: now.subtract(const Duration(days: 1)),
       ),
@@ -1428,28 +1519,46 @@ class AppDataService {
       final normalizedProvider = providerName.trim().toLowerCase();
       return _debugDoctors.where((doctor) {
         final matchesName =
-            normalizedName.isEmpty || doctor.fullName.toLowerCase().contains(normalizedName);
-        final matchesSpecialty = normalizedSpecialty.isEmpty ||
+            normalizedName.isEmpty ||
+            doctor.fullName.toLowerCase().contains(normalizedName);
+        final matchesSpecialty =
+            normalizedSpecialty.isEmpty ||
             doctor.specialty.toLowerCase().contains(normalizedSpecialty);
         final matchesCity =
-            normalizedCity.isEmpty || doctor.city.toLowerCase().contains(normalizedCity);
-        final matchesProvider = normalizedProvider.isEmpty ||
+            normalizedCity.isEmpty ||
+            doctor.city.toLowerCase().contains(normalizedCity);
+        final matchesProvider =
+            normalizedProvider.isEmpty ||
             doctor.providerName.toLowerCase().contains(normalizedProvider);
-        final matchesActive = !activeOnly || doctor.contractStatus.toLowerCase() == 'active';
-        return matchesName && matchesSpecialty && matchesCity && matchesProvider && matchesActive;
+        final matchesActive =
+            !activeOnly || doctor.contractStatus.toLowerCase() == 'active';
+        return matchesName &&
+            matchesSpecialty &&
+            matchesCity &&
+            matchesProvider &&
+            matchesActive;
       }).toList();
     }
 
     final params = <String>[
-      if (name.trim().isNotEmpty) 'search=${Uri.encodeQueryComponent(name.trim())}',
-      if (specialty.trim().isNotEmpty) 'specialization=${Uri.encodeQueryComponent(specialty.trim())}',
-      if (city.trim().isNotEmpty) 'city=${Uri.encodeQueryComponent(city.trim())}',
-      if (providerName.trim().isNotEmpty) 'provider_name=${Uri.encodeQueryComponent(providerName.trim())}',
+      if (name.trim().isNotEmpty)
+        'search=${Uri.encodeQueryComponent(name.trim())}',
+      if (specialty.trim().isNotEmpty)
+        'specialization=${Uri.encodeQueryComponent(specialty.trim())}',
+      if (city.trim().isNotEmpty)
+        'city=${Uri.encodeQueryComponent(city.trim())}',
+      if (providerName.trim().isNotEmpty)
+        'provider_name=${Uri.encodeQueryComponent(providerName.trim())}',
       if (activeOnly) 'contract_status=active',
     ];
-    final endpoint = params.isEmpty ? 'doctors/' : 'doctors/?${params.join('&')}';
+    final endpoint = params.isEmpty
+        ? 'doctors/'
+        : 'doctors/?${params.join('&')}';
     final response = await _apiClient.getList(endpoint);
-    return response.whereType<Map<String, dynamic>>().map(DoctorDirectoryModel.fromJson).toList();
+    return response
+        .whereType<Map<String, dynamic>>()
+        .map(DoctorDirectoryModel.fromJson)
+        .toList();
   }
 
   Future<int> getDoctorProfileIdForUser(int userId) async {
@@ -1473,10 +1582,15 @@ class AppDataService {
       return _filterDebugPrescriptions(status: status);
     }
 
-    final endpoint = status == null ? 'prescriptions/' : 'prescriptions/?status=$status';
+    final endpoint = status == null
+        ? 'prescriptions/'
+        : 'prescriptions/?status=$status';
     try {
       final response = await _apiClient.getList(endpoint);
-      return response.whereType<Map<String, dynamic>>().map(PrescriptionModel.fromJson).toList();
+      return response
+          .whereType<Map<String, dynamic>>()
+          .map(PrescriptionModel.fromJson)
+          .toList();
     } catch (_) {
       if (_allowLocalDemoFallback) {
         return _filterDebugPrescriptions(status: status);
@@ -1490,7 +1604,9 @@ class AppDataService {
       final normalizedQuery = query.trim().toLowerCase();
       return _debugPrescriptions.where((item) {
         if (normalizedQuery.isEmpty) return true;
-        return item.prescriptionNumber.toLowerCase().contains(normalizedQuery) ||
+        return item.prescriptionNumber.toLowerCase().contains(
+              normalizedQuery,
+            ) ||
             item.employeeName.toLowerCase().contains(normalizedQuery) ||
             item.doctorName.toLowerCase().contains(normalizedQuery) ||
             item.serviceName.toLowerCase().contains(normalizedQuery);
@@ -1502,11 +1618,16 @@ class AppDataService {
         ? 'prescriptions/'
         : 'prescriptions/?search=${Uri.encodeQueryComponent(normalizedQuery)}';
     final response = await _apiClient.getList(endpoint);
-    return response.whereType<Map<String, dynamic>>().map(PrescriptionModel.fromJson).toList();
+    return response
+        .whereType<Map<String, dynamic>>()
+        .map(PrescriptionModel.fromJson)
+        .toList();
   }
 
   Future<PrescriptionModel> getPrescription(int id) async {
-    final debugMatch = _debugPrescriptions.where((item) => item.id == id).toList();
+    final debugMatch = _debugPrescriptions
+        .where((item) => item.id == id)
+        .toList();
     if (_shouldUseDemoMode && debugMatch.isNotEmpty) {
       return debugMatch.first;
     }
@@ -1538,12 +1659,19 @@ class AppDataService {
       throw ArgumentError('employeeId is required');
     }
 
+    final normalizedCoveragePercentage = _roundToScale(coveragePercentage);
+    final normalizedCoveredAmount = _roundToScale(coveredAmount);
+    final normalizedEmployeeShare = _roundToScale(employeeShare);
+    final normalizedFinalPrice = _roundToScale(finalPrice);
+
     if (_shouldUseDemoMode) {
       final employee = _debugEmployees.firstWhere(
         (item) => item.id == selectedEmployeeId,
         orElse: () => _debugEmployees.first,
       );
-      final dependent = _debugDependents.where((item) => item.id == dependentId).toList();
+      final dependent = _debugDependents
+          .where((item) => item.id == dependentId)
+          .toList();
       final prescription = PrescriptionModel(
         id: DateTime.now().millisecondsSinceEpoch,
         prescriptionNumber: 'RX-${DateTime.now().millisecondsSinceEpoch}',
@@ -1557,11 +1685,15 @@ class AppDataService {
         notes: notes,
         items: items.map((item) {
           final medicationId = item['medication'] as int? ?? 0;
-          final medication = _debugMedications.where((entry) => entry.id == medicationId).toList();
+          final medication = _debugMedications
+              .where((entry) => entry.id == medicationId)
+              .toList();
           return PrescriptionItemModel(
             id: DateTime.now().millisecondsSinceEpoch,
             medicationId: medicationId,
-            medicationName: medication.isEmpty ? 'خدمة طبية' : medication.first.name,
+            medicationName: medication.isEmpty
+                ? 'خدمة طبية'
+                : medication.first.name,
             dosageInstructions: item['dosage_instructions'] as String? ?? '',
             quantity: item['quantity'] as String? ?? '',
             duration: item['duration'] as String? ?? '',
@@ -1571,10 +1703,10 @@ class AppDataService {
         serviceType: serviceType,
         providerName: providerName,
         serviceName: serviceName,
-        coveragePercentage: coveragePercentage,
-        coveredAmount: coveredAmount,
-        employeeShare: employeeShare,
-        finalPrice: finalPrice,
+        coveragePercentage: normalizedCoveragePercentage,
+        coveredAmount: normalizedCoveredAmount,
+        employeeShare: normalizedEmployeeShare,
+        finalPrice: normalizedFinalPrice,
         requiresInsuranceApproval: requiresInsuranceApproval,
         providerNotes: '',
         reportAttachmentUrl: '',
@@ -1601,10 +1733,10 @@ class AppDataService {
         'service_type': serviceType,
         'status': status,
         'requires_insurance_approval': requiresInsuranceApproval,
-        'coverage_percentage': coveragePercentage,
-        'covered_amount': coveredAmount,
-        'employee_share': employeeShare,
-        'final_price': finalPrice,
+        'coverage_percentage': normalizedCoveragePercentage,
+        'covered_amount': normalizedCoveredAmount,
+        'employee_share': normalizedEmployeeShare,
+        'final_price': normalizedFinalPrice,
         'diagnosis': diagnosis,
         'notes': notes,
         'issued_at': DateTime.now().toIso8601String(),
@@ -1620,6 +1752,9 @@ class AppDataService {
     String? providerNotes,
     double? finalPrice,
   }) async {
+    final normalizedFinalPrice = finalPrice == null
+        ? null
+        : _roundToScale(finalPrice);
     final debugIndex = _debugPrescriptions.indexWhere((item) => item.id == id);
     if (_shouldUseDemoMode && debugIndex != -1) {
       final current = _debugPrescriptions[debugIndex];
@@ -1641,7 +1776,7 @@ class AppDataService {
         coveragePercentage: current.coveragePercentage,
         coveredAmount: current.coveredAmount,
         employeeShare: current.employeeShare,
-        finalPrice: finalPrice ?? current.finalPrice,
+        finalPrice: normalizedFinalPrice ?? current.finalPrice,
         requiresInsuranceApproval: current.requiresInsuranceApproval,
         providerNotes: providerNotes ?? current.providerNotes,
         reportAttachmentUrl: current.reportAttachmentUrl,
@@ -1649,7 +1784,9 @@ class AppDataService {
         beneficiaryName: current.beneficiaryName,
         issuedAt: current.issuedAt,
         validUntil: current.validUntil,
-        performedAt: status == 'Performed' ? DateTime.now() : current.performedAt,
+        performedAt: status == 'Performed'
+            ? DateTime.now()
+            : current.performedAt,
       );
       _debugPrescriptions[debugIndex] = updated;
       if (status == 'Sent') {
@@ -1658,19 +1795,14 @@ class AppDataService {
       return updated;
     }
 
-    final body = <String, dynamic>{
-      'status': status,
-    };
+    final body = <String, dynamic>{'status': status};
     if (providerNotes != null) {
       body['provider_notes'] = providerNotes;
     }
-    if (finalPrice != null) {
-      body['final_price'] = finalPrice;
+    if (normalizedFinalPrice != null) {
+      body['final_price'] = normalizedFinalPrice;
     }
-    final response = await _apiClient.patch(
-      'prescriptions/$id/',
-      body: body,
-    );
+    final response = await _apiClient.patch('prescriptions/$id/', body: body);
     return PrescriptionModel.fromJson(response);
   }
 
@@ -1681,9 +1813,12 @@ class AppDataService {
     return _debugPrescriptions.where((item) => item.status == status).toList();
   }
 
-  void _upsertAutoApprovedDebugInsuranceRequest(PrescriptionModel prescription) {
-    final existingIndex =
-        _debugInsuranceRequests.indexWhere((item) => item.prescriptionId == prescription.id);
+  void _upsertAutoApprovedDebugInsuranceRequest(
+    PrescriptionModel prescription,
+  ) {
+    final existingIndex = _debugInsuranceRequests.indexWhere(
+      (item) => item.prescriptionId == prescription.id,
+    );
     final request = InsuranceRequestModel(
       id: existingIndex == -1
           ? DateTime.now().millisecondsSinceEpoch
@@ -1725,33 +1860,33 @@ class AppDataService {
     return <PrescriptionModel>[
       PrescriptionModel(
         id: 7001,
-        prescriptionNumber: 'LAB-2026-001',
+        prescriptionNumber: 'RX-2026-001',
         employeeId: 9101,
         employeeName: 'منى صالح',
         employeeRecordNumber: 'MRN-1001',
         doctorId: 9002,
         doctorName: 'د. أحمد خليل',
         status: 'Approved',
-        diagnosis: 'فقر دم ومتابعة مخبرية',
-        notes: 'يرجى إجراء CBC وفحص الحديد خلال 24 ساعة.',
+        diagnosis: 'صداع وحرارة خفيفة',
+        notes: 'مسكن وخافض حرارة لمدة ثلاثة أيام.',
         items: const [
           PrescriptionItemModel(
             id: 1,
-            medicationId: 0,
-            medicationName: 'CBC + Ferritin',
-            dosageInstructions: 'فحص مخبري',
-            quantity: '1',
-            duration: 'مرة واحدة',
+            medicationId: 8001,
+            medicationName: 'Panadol',
+            dosageInstructions: 'حبة واحدة كل 8 ساعات بعد الطعام',
+            quantity: '12 قرص',
+            duration: '3 أيام',
             substitutionAllowed: false,
           ),
         ],
-        serviceType: 'Laboratory',
-        providerName: 'مختبر الجامعة',
-        serviceName: 'فحص CBC والحديد',
+        serviceType: 'Medication',
+        providerName: 'شبكة الصيدليات المتعاقدة',
+        serviceName: 'Panadol',
         coveragePercentage: 90,
-        coveredAmount: 108,
-        employeeShare: 12,
-        finalPrice: 120,
+        coveredAmount: 10.8,
+        employeeShare: 1.2,
+        finalPrice: 12,
         requiresInsuranceApproval: false,
         providerNotes: '',
         reportAttachmentUrl: '',
@@ -1761,33 +1896,33 @@ class AppDataService {
       ),
       PrescriptionModel(
         id: 7002,
-        prescriptionNumber: 'LAB-2026-002',
+        prescriptionNumber: 'RX-2026-002',
         employeeId: 9102,
         employeeName: 'باسل الجعبري',
         employeeRecordNumber: 'MRN-1002',
         doctorId: 9002,
         doctorName: 'د. أحمد خليل',
         status: 'PendingInsuranceApproval',
-        diagnosis: 'اشتباه التهاب',
-        notes: 'زرع بول ووظائف كلى.',
+        diagnosis: 'التهاب تنفسي علوي',
+        notes: 'مضاد حيوي يحتاج موافقة تأمين قبل الصرف.',
         items: const [
           PrescriptionItemModel(
             id: 2,
-            medicationId: 0,
-            medicationName: 'Urine Culture',
-            dosageInstructions: 'فحص مخبري',
-            quantity: '1',
-            duration: 'مرة واحدة',
+            medicationId: 8002,
+            medicationName: 'Augmentin',
+            dosageInstructions: 'حبة كل 12 ساعة بعد الطعام',
+            quantity: '14 حبة',
+            duration: '7 أيام',
             substitutionAllowed: false,
           ),
         ],
-        serviceType: 'Laboratory',
-        providerName: 'مختبر الجامعة',
-        serviceName: 'زرع بول',
+        serviceType: 'Medication',
+        providerName: 'شبكة الصيدليات المتعاقدة',
+        serviceName: 'Augmentin',
         coveragePercentage: 80,
-        coveredAmount: 64,
-        employeeShare: 16,
-        finalPrice: 80,
+        coveredAmount: 27.2,
+        employeeShare: 6.8,
+        finalPrice: 34,
         requiresInsuranceApproval: true,
         providerNotes: '',
         reportAttachmentUrl: '',
@@ -1797,108 +1932,40 @@ class AppDataService {
       ),
       PrescriptionModel(
         id: 7003,
-        prescriptionNumber: 'IMG-2026-003',
+        prescriptionNumber: 'RX-2026-003',
         employeeId: 9103,
         employeeName: 'آية حماد',
         employeeRecordNumber: 'MRN-1003',
         doctorId: 9002,
         doctorName: 'د. أحمد خليل',
         status: 'Approved',
-        diagnosis: 'آلام صدرية',
-        notes: 'أشعة سينية للصدر مع تقرير سريع.',
-        items: const [],
-        serviceType: 'Imaging',
-        providerName: 'مركز التصوير الطبي',
-        serviceName: 'Chest X-Ray',
-        coveragePercentage: 85,
-        coveredAmount: 102,
-        employeeShare: 18,
-        finalPrice: 120,
-        requiresInsuranceApproval: false,
-        providerNotes: '',
+        diagnosis: 'ربو تحسسي مزمن',
+        notes: 'بخاخ وقائي مع متابعة شهرية.',
+        items: const [
+          PrescriptionItemModel(
+            id: 3,
+            medicationId: 8005,
+            medicationName: 'Symbicort',
+            dosageInstructions: 'بختان صباحًا ومساءً',
+            quantity: '1 عبوة',
+            duration: '30 يومًا',
+            substitutionAllowed: false,
+          ),
+        ],
+        serviceType: 'Medication',
+        providerName: 'صيدليات الأمراض المزمنة',
+        serviceName: 'Symbicort',
+        coveragePercentage: 75,
+        coveredAmount: 72,
+        employeeShare: 24,
+        finalPrice: 96,
+        requiresInsuranceApproval: true,
+        providerNotes: 'تمت الموافقة على الصرف.',
         reportAttachmentUrl: '',
         beneficiaryName: 'آية حماد',
         issuedAt: now.subtract(const Duration(hours: 1)),
         validUntil: now.add(const Duration(days: 4)),
-      ),
-      PrescriptionModel(
-        id: 7004,
-        prescriptionNumber: 'IMG-2026-004',
-        employeeId: 9101,
-        employeeName: 'منى صالح',
-        employeeRecordNumber: 'MRN-1001',
-        doctorId: 9002,
-        doctorName: 'د. أحمد خليل',
-        status: 'Performed',
-        diagnosis: 'إصابة بالركبة',
-        notes: 'MRI للركبة اليمنى.',
-        items: const [],
-        serviceType: 'Imaging',
-        providerName: 'مركز التصوير الطبي',
-        serviceName: 'MRI Knee',
-        coveragePercentage: 70,
-        coveredAmount: 210,
-        employeeShare: 90,
-        finalPrice: 300,
-        requiresInsuranceApproval: true,
-        providerNotes: 'تم تنفيذ الفحص وإرسال التقرير.',
-        reportAttachmentUrl: '',
-        beneficiaryName: 'منى صالح',
-        issuedAt: now.subtract(const Duration(days: 1)),
-        validUntil: now.add(const Duration(days: 1)),
-        performedAt: now.subtract(const Duration(hours: 10)),
-      ),
-      PrescriptionModel(
-        id: 7005,
-        prescriptionNumber: 'MED-2026-005',
-        employeeId: 9102,
-        employeeName: 'باسل الجعبري',
-        employeeRecordNumber: 'MRN-1002',
-        doctorId: 9002,
-        doctorName: 'د. أحمد خليل',
-        status: 'Approved',
-        diagnosis: 'جلسات علاج طبيعي',
-        notes: '6 جلسات علاج طبيعي للكتف.',
-        items: const [],
-        serviceType: 'MedicalCenter',
-        providerName: 'المركز الطبي الجامعي',
-        serviceName: 'Physical Therapy',
-        coveragePercentage: 75,
-        coveredAmount: 225,
-        employeeShare: 75,
-        finalPrice: 300,
-        requiresInsuranceApproval: false,
-        providerNotes: '',
-        reportAttachmentUrl: '',
-        beneficiaryName: 'باسل الجعبري',
-        issuedAt: now.subtract(const Duration(hours: 3)),
-        validUntil: now.add(const Duration(days: 7)),
-      ),
-      PrescriptionModel(
-        id: 7006,
-        prescriptionNumber: 'MED-2026-006',
-        employeeId: 9103,
-        employeeName: 'آية حماد',
-        employeeRecordNumber: 'MRN-1003',
-        doctorId: 9002,
-        doctorName: 'د. أحمد خليل',
-        status: 'Rejected',
-        diagnosis: 'إجراء بسيط',
-        notes: 'طلب إجراء بسيط داخل المركز.',
-        items: const [],
-        serviceType: 'MedicalCenter',
-        providerName: 'المركز الطبي الجامعي',
-        serviceName: 'Minor Procedure',
-        coveragePercentage: 60,
-        coveredAmount: 90,
-        employeeShare: 60,
-        finalPrice: 150,
-        requiresInsuranceApproval: true,
-        providerNotes: 'الطلب مرفوض لعدم اكتمال المستندات.',
-        reportAttachmentUrl: '',
-        beneficiaryName: 'آية حماد',
-        issuedAt: now.subtract(const Duration(days: 2)),
-        validUntil: now.add(const Duration(days: 1)),
+        performedAt: now.subtract(const Duration(minutes: 30)),
       ),
     ];
   }
@@ -1924,7 +1991,10 @@ class AppDataService {
     }
 
     final response = await _apiClient.getList('insurance/');
-    return response.whereType<Map<String, dynamic>>().map(InsuranceRequestModel.fromJson).toList();
+    return response
+        .whereType<Map<String, dynamic>>()
+        .map(InsuranceRequestModel.fromJson)
+        .toList();
   }
 
   Future<InsuranceRequestModel> createInsuranceRequest({
@@ -1936,7 +2006,9 @@ class AppDataService {
         orElse: () => _debugPrescriptions.first,
       );
       _upsertAutoApprovedDebugInsuranceRequest(prescription);
-      return _debugInsuranceRequests.firstWhere((item) => item.prescriptionId == prescription.id);
+      return _debugInsuranceRequests.firstWhere(
+        (item) => item.prescriptionId == prescription.id,
+      );
     }
 
     final timestamp = DateTime.now().millisecondsSinceEpoch;
@@ -1957,7 +2029,9 @@ class AppDataService {
     required String status,
     required String notes,
   }) async {
-    final debugIndex = _debugInsuranceRequests.indexWhere((item) => item.id == id);
+    final debugIndex = _debugInsuranceRequests.indexWhere(
+      (item) => item.id == id,
+    );
     if (_shouldUseDemoMode && debugIndex != -1) {
       final current = _debugInsuranceRequests[debugIndex];
       final updated = InsuranceRequestModel(
@@ -1982,8 +2056,9 @@ class AppDataService {
       );
       _debugInsuranceRequests[debugIndex] = updated;
 
-      final prescriptionIndex =
-          _debugPrescriptions.indexWhere((item) => item.id == current.prescriptionId);
+      final prescriptionIndex = _debugPrescriptions.indexWhere(
+        (item) => item.id == current.prescriptionId,
+      );
       if (prescriptionIndex != -1) {
         final prescription = _debugPrescriptions[prescriptionIndex];
         final updatedPrescription = PrescriptionModel(
@@ -1997,8 +2072,8 @@ class AppDataService {
           status: status == 'Approved'
               ? 'Approved'
               : status == 'Rejected'
-                  ? 'Rejected'
-                  : 'NeedsUpdate',
+              ? 'Rejected'
+              : 'NeedsUpdate',
           diagnosis: prescription.diagnosis,
           notes: prescription.notes,
           items: prescription.items,
@@ -2025,10 +2100,7 @@ class AppDataService {
 
     final response = await _apiClient.patch(
       'insurance/$id/',
-      body: {
-        'status': status,
-        'response_notes': notes,
-      },
+      body: {'status': status, 'response_notes': notes},
     );
     return InsuranceRequestModel.fromJson(response);
   }
@@ -2039,7 +2111,10 @@ class AppDataService {
     }
 
     final response = await _apiClient.getList('dispenses/');
-    return response.whereType<Map<String, dynamic>>().map(DispenseModel.fromJson).toList();
+    return response
+        .whereType<Map<String, dynamic>>()
+        .map(DispenseModel.fromJson)
+        .toList();
   }
 
   Future<DispenseModel> createDispense({
@@ -2066,7 +2141,9 @@ class AppDataService {
       );
       _debugDispenses.insert(0, dispense);
 
-      final prescriptionIndex = _debugPrescriptions.indexWhere((item) => item.id == prescriptionId);
+      final prescriptionIndex = _debugPrescriptions.indexWhere(
+        (item) => item.id == prescriptionId,
+      );
       if (prescriptionIndex != -1) {
         final current = _debugPrescriptions[prescriptionIndex];
         _debugPrescriptions[prescriptionIndex] = PrescriptionModel(
@@ -2119,8 +2196,25 @@ class AppDataService {
       return List<UserModel>.from(_debugUsers);
     }
 
-    final response = await _apiClient.getList('users/');
-    return response.whereType<Map<String, dynamic>>().map(UserModel.fromJson).toList();
+    final users = <UserModel>[];
+    var page = 1;
+
+    while (true) {
+      final response = await _apiClient.get('users/?page=$page&page_size=100');
+      final pageResults = (response['results'] as List<dynamic>? ?? const [])
+          .whereType<Map<String, dynamic>>()
+          .map(UserModel.fromJson)
+          .toList();
+      users.addAll(pageResults);
+
+      final nextPage = response['next'] as String?;
+      if (nextPage == null || nextPage.isEmpty || pageResults.isEmpty) {
+        break;
+      }
+      page += 1;
+    }
+
+    return users;
   }
 
   Future<UserModel> createUser(Map<String, dynamic> payload) async {

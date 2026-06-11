@@ -109,11 +109,6 @@ class AppRouteRegistry {
         builder: (_, __) => const EmployeeDependentsView(),
       ),
       GoRoute(
-        path: EmployeeDoctorSearchScreen.routePath,
-        name: EmployeeDoctorSearchScreen.routeName,
-        builder: (_, __) => const EmployeeDoctorSearchScreen(),
-      ),
-      GoRoute(
         path: InsuranceOfficerHomeScreen.routePath,
         name: InsuranceOfficerHomeScreen.routeName,
         builder: (_, __) => const InsuranceOfficerHomeScreen(),
@@ -195,6 +190,11 @@ class AppRouteRegistry {
         path: AdminStatisticsScreen.routePath,
         name: AdminStatisticsScreen.routeName,
         builder: (_, __) => const AdminStatisticsScreen(),
+      ),
+      GoRoute(
+        path: AdminAuditLogScreen.routePath,
+        name: AdminAuditLogScreen.routeName,
+        builder: (_, __) => const AdminAuditLogScreen(),
       ),
       GoRoute(
         path: AdminSettingsScreen.routePath,

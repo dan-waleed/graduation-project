@@ -32,7 +32,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: user == null
           ? const HbEmptyState(
               title: 'لا تتوفر بيانات المستخدم',
-              message: 'تعذر تحميل بيانات الحساب الحالي. يرجى تسجيل الدخول مرة أخرى.',
+              message:
+                  'تعذر تحميل بيانات الحساب الحالي. يرجى تسجيل الدخول مرة أخرى.',
               icon: Icons.person_off_outlined,
             )
           : ListView(
@@ -56,7 +57,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       ],
                     ),
-                    child: const Icon(Icons.person_rounded, color: Colors.white, size: 42),
+                    child: const Icon(
+                      Icons.person_rounded,
+                      color: Colors.white,
+                      size: 42,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 18),
@@ -77,9 +82,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 const SizedBox(height: 6),
                                 Text(
                                   roleLabel(user.role),
-                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                        color: AppTheme.muted,
-                                      ),
+                                  style: Theme.of(context).textTheme.bodyMedium
+                                      ?.copyWith(color: AppTheme.muted),
                                 ),
                               ],
                             ),
@@ -93,29 +97,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       HbInfoRow(label: 'البريد الإلكتروني', value: user.email),
                       HbInfoRow(
                         label: 'رقم الهاتف',
-                        value: user.phoneNumber.isEmpty ? 'غير متوفر' : user.phoneNumber,
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                HbCustomCard(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('معلومات الاستخدام', style: Theme.of(context).textTheme.titleMedium),
-                      const SizedBox(height: 10),
-                      const HbInfoRow(
-                        label: 'نوع التشغيل',
-                        value: 'واجهة Flutter متصلة بخادم Django عبر API',
-                      ),
-                      HbInfoRow(
-                        label: 'حالة الجلسة',
-                        value: authController.isAuthenticated ? 'نشطة' : 'غير نشطة',
-                      ),
-                      const HbInfoRow(
-                        label: 'ملاحظات العرض',
-                        value: 'يمكنك استخدام هذا الحساب مباشرة لاختبار الوظائف الخاصة بدورك.',
+                        value: user.phoneNumber.isEmpty
+                            ? 'غير متوفر'
+                            : user.phoneNumber,
                       ),
                     ],
                   ),

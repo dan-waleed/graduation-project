@@ -1,2 +1,1 @@
-from core.serializers import AuditLogSerializer, NotificationSerializer
-
+from core.serializers import AuditLogSerializer, NotificationSerializer, SystemSettingsSerializer

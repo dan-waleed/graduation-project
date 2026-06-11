@@ -14,6 +14,7 @@ from core.api.serializers import (
     UserSerializer,
 )
 from core.services.dashboard_service import build_dashboard_summary
+from core.utils import create_audit_log
 
 User = get_user_model()
 
@@ -33,6 +34,13 @@ class LoginView(GenericAPIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data["user"]
         token, _ = Token.objects.get_or_create(user=user)
+        create_audit_log(
+            actor=user,
+            action="User login",
+            target_model="User",
+            target_id=user.pk,
+            details=f"username={user.username}",
+        )
         return Response({"token": token.key, "user": UserSerializer(user).data}, status=status.HTTP_200_OK)
 
 
@@ -46,6 +54,13 @@ class LogoutView(GenericAPIView):
         tags=["Authentication"],
     )
     def post(self, request, *args, **kwargs):
+        create_audit_log(
+            actor=request.user,
+            action="User logout",
+            target_model="User",
+            target_id=request.user.pk,
+            details=f"username={request.user.username}",
+        )
         Token.objects.filter(user=request.user).delete()
         logout(request)
         return Response(

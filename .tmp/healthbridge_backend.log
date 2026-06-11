@@ -1,0 +1,20 @@
+Watching for file changes with StatReloader
+Unauthorized: /api/
+[10/Jun/2026 11:43:00] "GET /api/ HTTP/1.1" 401 62
+Unauthorized: /api/
+[10/Jun/2026 11:43:01] "GET /api/ HTTP/1.1" 401 62
+Unauthorized: /api/
+[10/Jun/2026 11:43:02] "GET /api/ HTTP/1.1" 401 62
+[10/Jun/2026 11:43:02,733] - Broken pipe from ('127.0.0.1', 50749)
+Unauthorized: /api/
+[10/Jun/2026 11:43:03] "GET /api/ HTTP/1.1" 401 62
+Unauthorized: /api/
+[10/Jun/2026 11:43:05] "GET /api/ HTTP/1.1" 401 62
+Unauthorized: /api/
+[10/Jun/2026 11:43:06] "GET /api/ HTTP/1.1" 401 62
+[10/Jun/2026 11:43:06,305] - Broken pipe from ('127.0.0.1', 50754)
+Unauthorized: /api/
+[10/Jun/2026 11:43:07] "GET /api/ HTTP/1.1" 401 62
+[10/Jun/2026 11:43:07,507] - Broken pipe from ('127.0.0.1', 50755)
+Unauthorized: /api/
+[10/Jun/2026 11:43:08] "GET /api/ HTTP/1.1" 401 62

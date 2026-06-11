@@ -1,8 +1,10 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../data/models/app_models.dart';
@@ -38,14 +40,15 @@ class PharmacistHomeScreen extends StatelessWidget {
           final actionWidth = constraints.maxWidth > 960
               ? (constraints.maxWidth - 24) / 3
               : constraints.maxWidth > 620
-                  ? (constraints.maxWidth - 12) / 2
-                  : constraints.maxWidth;
+              ? (constraints.maxWidth - 12) / 2
+              : constraints.maxWidth;
 
           return ListView(
             children: [
               const HbDashboardOverview(
                 recentTitle: 'آخر عمليات الصرف',
-                emptyMessage: 'ستظهر هنا أحدث العمليات التي قمت بصرفها أو مراجعتها.',
+                emptyMessage:
+                    'ستظهر هنا أحدث العمليات التي قمت بصرفها أو مراجعتها.',
               ),
               const SizedBox(height: 16),
               Text(
@@ -63,7 +66,9 @@ class PharmacistHomeScreen extends StatelessWidget {
                       title: 'البحث عن وصفة',
                       subtitle: 'البحث برقم الوصفة أو الرمز',
                       icon: Icons.search_rounded,
-                      onTap: () => context.push(PharmacistSearchPrescriptionScreen.routePath),
+                      onTap: () => context.push(
+                        PharmacistSearchPrescriptionScreen.routePath,
+                      ),
                     ),
                   ),
                   SizedBox(
@@ -72,7 +77,9 @@ class PharmacistHomeScreen extends StatelessWidget {
                       title: 'سجل الصرف',
                       subtitle: 'عرض الوصفات التي تم صرفها',
                       icon: Icons.receipt_long_rounded,
-                      onTap: () => context.push(PharmacistDispenseHistoryScreen.routePath),
+                      onTap: () => context.push(
+                        PharmacistDispenseHistoryScreen.routePath,
+                      ),
                     ),
                   ),
                   SizedBox(
@@ -90,7 +97,8 @@ class PharmacistHomeScreen extends StatelessWidget {
                       title: 'التحقق عبر الرمز',
                       subtitle: 'عرض الوصفات الجاهزة للصرف والتحقق من رقمها',
                       icon: Icons.qr_code_scanner_rounded,
-                      onTap: () => context.push(PharmacistQrLookupScreen.routePath),
+                      onTap: () =>
+                          context.push(PharmacistQrLookupScreen.routePath),
                     ),
                   ),
                 ],
@@ -99,7 +107,8 @@ class PharmacistHomeScreen extends StatelessWidget {
               HbCustomButton(
                 label: 'مسح رمز QR',
                 icon: Icons.qr_code_scanner_rounded,
-                onPressed: () => context.push(PharmacistQrLookupScreen.routePath),
+                onPressed: () =>
+                    context.push(PharmacistQrLookupScreen.routePath),
               ),
             ],
           );
@@ -116,10 +125,12 @@ class PharmacistSearchPrescriptionScreen extends StatefulWidget {
   static const routePath = '/pharmacist/search';
 
   @override
-  State<PharmacistSearchPrescriptionScreen> createState() => _PharmacistSearchPrescriptionScreenState();
+  State<PharmacistSearchPrescriptionScreen> createState() =>
+      _PharmacistSearchPrescriptionScreenState();
 }
 
-class _PharmacistSearchPrescriptionScreenState extends State<PharmacistSearchPrescriptionScreen> {
+class _PharmacistSearchPrescriptionScreenState
+    extends State<PharmacistSearchPrescriptionScreen> {
   final _searchController = TextEditingController();
   String _query = '';
   late Future<List<PrescriptionModel>> _prescriptionsFuture;
@@ -146,7 +157,9 @@ class _PharmacistSearchPrescriptionScreenState extends State<PharmacistSearchPre
     super.dispose();
   }
 
-  List<PrescriptionModel> _visiblePrescriptions(List<PrescriptionModel> prescriptions) {
+  List<PrescriptionModel> _visiblePrescriptions(
+    List<PrescriptionModel> prescriptions,
+  ) {
     final normalizedQuery = _query.trim();
     final showDispensedMatches = normalizedQuery.isNotEmpty;
     return prescriptions.where((item) {
@@ -168,7 +181,8 @@ class _PharmacistSearchPrescriptionScreenState extends State<PharmacistSearchPre
       body: FutureBuilder<List<PrescriptionModel>>(
         future: _prescriptionsFuture,
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
+          if (snapshot.connectionState == ConnectionState.waiting &&
+              !snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
@@ -179,7 +193,9 @@ class _PharmacistSearchPrescriptionScreenState extends State<PharmacistSearchPre
             );
           }
 
-          final prescriptions = _visiblePrescriptions(snapshot.data ?? const []);
+          final prescriptions = _visiblePrescriptions(
+            snapshot.data ?? const [],
+          );
           return ListView(
             children: [
               HbCustomCard(
@@ -206,11 +222,14 @@ class _PharmacistSearchPrescriptionScreenState extends State<PharmacistSearchPre
                 icon: Icons.search_rounded,
               ),
               const SizedBox(height: 12),
-              const Text('ملاحظة: يمكنك أيضًا استخدام رمز QR للوصول السريع إلى الوصفة.'),
+              const Text(
+                'ملاحظة: يمكنك أيضًا استخدام رمز QR للوصول السريع إلى الوصفة.',
+              ),
               const SizedBox(height: 12),
               HbCustomButton(
                 label: 'عرض وصفة عبر QR',
-                onPressed: () => context.push(PharmacistQrLookupScreen.routePath),
+                onPressed: () =>
+                    context.push(PharmacistQrLookupScreen.routePath),
                 icon: Icons.qr_code_scanner_rounded,
                 variant: HbButtonVariant.outline,
               ),
@@ -224,31 +243,33 @@ class _PharmacistSearchPrescriptionScreenState extends State<PharmacistSearchPre
                   icon: Icons.search_off_rounded,
                 )
               else
-              ...prescriptions.take(5).map((prescription) {
-                return Card(
-                  child: ListTile(
-                    title: Text(prescription.prescriptionNumber),
-                    subtitle: Text('${prescription.employeeName} • ${_statusLabel(prescription.status)}'),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        HbStatusChip(_statusLabel(prescription.status)),
-                        const SizedBox(width: 8),
-                        TextButton(
-                          onPressed: () async {
-                            await context.push(
-                              '${PharmacistPrescriptionDetailScreen.routePath}?id=${prescription.id}',
-                            );
-                            if (!context.mounted) return;
-                            unawaited(Future<void>.microtask(_refresh));
-                          },
-                          child: const Text('فتح'),
-                        ),
-                      ],
+                ...prescriptions.take(5).map((prescription) {
+                  return Card(
+                    child: ListTile(
+                      title: Text(prescription.prescriptionNumber),
+                      subtitle: Text(
+                        '${prescription.employeeName} • ${_statusLabel(prescription.status)}',
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          HbStatusChip(_statusLabel(prescription.status)),
+                          const SizedBox(width: 8),
+                          TextButton(
+                            onPressed: () async {
+                              await context.push(
+                                '${PharmacistPrescriptionDetailScreen.routePath}?id=${prescription.id}',
+                              );
+                              if (!context.mounted) return;
+                              unawaited(Future<void>.microtask(_refresh));
+                            },
+                            child: const Text('فتح'),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                );
-              }),
+                  );
+                }),
             ],
           );
         },
@@ -264,13 +285,18 @@ class PharmacistQrLookupScreen extends StatefulWidget {
   static const routePath = '/pharmacist/qr';
 
   @override
-  State<PharmacistQrLookupScreen> createState() => _PharmacistQrLookupScreenState();
+  State<PharmacistQrLookupScreen> createState() =>
+      _PharmacistQrLookupScreenState();
 }
 
 class _PharmacistQrLookupScreenState extends State<PharmacistQrLookupScreen> {
   final _codeController = TextEditingController();
+  final MobileScannerController _scannerController = MobileScannerController(
+    formats: const [BarcodeFormat.qrCode],
+  );
   String _lookupQuery = '';
   late Future<List<PrescriptionModel>> _prescriptionsFuture;
+  bool _isHandlingScan = false;
 
   @override
   void initState() {
@@ -284,16 +310,86 @@ class _PharmacistQrLookupScreenState extends State<PharmacistQrLookupScreen> {
         : context.read<AppRepository>().searchPrescriptions(_lookupQuery);
   }
 
-  void _refresh() {
+  @override
+  void dispose() {
+    _codeController.dispose();
+    unawaited(_scannerController.dispose());
+    super.dispose();
+  }
+
+  Future<void> _handleBarcodeCapture(BarcodeCapture capture) async {
+    if (_isHandlingScan) {
+      return;
+    }
+
+    final scannedValue = capture.barcodes
+        .map((barcode) => barcode.rawValue?.trim() ?? '')
+        .firstWhere((value) => value.isNotEmpty, orElse: () => '');
+    if (scannedValue.isEmpty) {
+      return;
+    }
+
+    _isHandlingScan = true;
+    await _scannerController.stop();
+    if (!mounted) {
+      return;
+    }
+
+    _codeController.text = scannedValue;
+    final matchedPrescription = await _findMatchedPrescription(scannedValue);
+    if (!mounted) {
+      return;
+    }
+
+    if (matchedPrescription != null) {
+      await context.push(
+        '${PharmacistPrescriptionDetailScreen.routePath}?id=${matchedPrescription.id}',
+      );
+      if (!mounted) {
+        return;
+      }
+      await _restartScanner();
+      return;
+    }
+
     setState(() {
+      _lookupQuery = scannedValue;
       _prescriptionsFuture = _loadPrescriptions();
     });
   }
 
-  @override
-  void dispose() {
-    _codeController.dispose();
-    super.dispose();
+  Future<PrescriptionModel?> _findMatchedPrescription(String query) async {
+    final results = await context.read<AppRepository>().searchPrescriptions(
+      query,
+    );
+    final exactMatches = results.where((item) {
+      return item.serviceType == 'Medication' &&
+          item.status == 'Approved' &&
+          item.prescriptionNumber.trim().toLowerCase() ==
+              query.trim().toLowerCase();
+    }).toList();
+    if (exactMatches.isNotEmpty) {
+      return exactMatches.first;
+    }
+    final eligibleResults = results
+        .where(
+          (item) =>
+              item.serviceType == 'Medication' && item.status == 'Approved',
+        )
+        .toList();
+    if (eligibleResults.length == 1) {
+      return eligibleResults.first;
+    }
+    return null;
+  }
+
+  Future<void> _restartScanner() async {
+    _isHandlingScan = false;
+    await _scannerController.start();
+    if (!mounted) {
+      return;
+    }
+    setState(() {});
   }
 
   @override
@@ -303,7 +399,8 @@ class _PharmacistQrLookupScreenState extends State<PharmacistQrLookupScreen> {
       body: FutureBuilder<List<PrescriptionModel>>(
         future: _prescriptionsFuture,
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
+          if (snapshot.connectionState == ConnectionState.waiting &&
+              !snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
@@ -316,12 +413,79 @@ class _PharmacistQrLookupScreenState extends State<PharmacistQrLookupScreen> {
 
           final prescriptions = (snapshot.data ?? const [])
               .where(
-                (item) => item.serviceType == 'Medication' && item.status == 'Approved',
+                (item) =>
+                    item.serviceType == 'Medication' &&
+                    item.status == 'Approved',
               )
               .toList();
 
           return ListView(
             children: [
+              HbCustomCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'امسح رمز QR بالكاميرا',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'على iPhone ستظهر الكاميرا مباشرة. وجّهها إلى رمز الوصفة ليتم إدخال الرقم تلقائيًا.',
+                    ),
+                    const SizedBox(height: 14),
+                    if (kIsWeb ||
+                        defaultTargetPlatform == TargetPlatform.iOS ||
+                        defaultTargetPlatform == TargetPlatform.android)
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: SizedBox(
+                          height: 260,
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              MobileScanner(
+                                controller: _scannerController,
+                                onDetect: _handleBarcodeCapture,
+                              ),
+                              IgnorePointer(
+                                child: Container(
+                                  margin: const EdgeInsets.all(36),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(
+                                      color: Colors.white.withValues(
+                                        alpha: 0.9,
+                                      ),
+                                      width: 2,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    else
+                      const HbEmptyState(
+                        title: 'الكاميرا غير مدعومة هنا',
+                        message:
+                            'افتح هذه الشاشة من iPhone أو Android لاستخدام المسح بالكاميرا.',
+                        icon: Icons.qr_code_scanner_rounded,
+                      ),
+                    const SizedBox(height: 12),
+                    HbPrimaryButtonRow(
+                      primaryLabel: 'إعادة المسح',
+                      onPrimaryPressed: _restartScanner,
+                      secondaryLabel: 'فتح البحث المتقدم',
+                      onSecondaryPressed: () => context.push(
+                        PharmacistSearchPrescriptionScreen.routePath,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
               HbCustomCard(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -346,12 +510,15 @@ class _PharmacistQrLookupScreenState extends State<PharmacistQrLookupScreen> {
                     HbPrimaryButtonRow(
                       primaryLabel: 'التحقق',
                       onPrimaryPressed: () {
-                        setState(() => _lookupQuery = _codeController.text.trim());
-                        unawaited(Future<void>.microtask(_refresh));
+                        setState(() {
+                          _lookupQuery = _codeController.text.trim();
+                          _prescriptionsFuture = _loadPrescriptions();
+                        });
                       },
                       secondaryLabel: 'فتح البحث المتقدم',
-                      onSecondaryPressed: () =>
-                          context.push(PharmacistSearchPrescriptionScreen.routePath),
+                      onSecondaryPressed: () => context.push(
+                        PharmacistSearchPrescriptionScreen.routePath,
+                      ),
                     ),
                   ],
                 ),
@@ -376,14 +543,18 @@ class _PharmacistQrLookupScreenState extends State<PharmacistQrLookupScreen> {
                               Expanded(
                                 child: Text(
                                   prescription.prescriptionNumber,
-                                  style: Theme.of(context).textTheme.titleMedium,
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.titleMedium,
                                 ),
                               ),
                               HbStatusChip(_statusLabel(prescription.status)),
                             ],
                           ),
                           const SizedBox(height: 6),
-                          Text('${prescription.employeeName} • ${prescription.doctorName}'),
+                          Text(
+                            '${prescription.employeeName} • ${prescription.doctorName}',
+                          ),
                           const SizedBox(height: 10),
                           HbCustomButton(
                             label: 'فتح الوصفة',
@@ -393,7 +564,9 @@ class _PharmacistQrLookupScreenState extends State<PharmacistQrLookupScreen> {
                                 '${PharmacistPrescriptionDetailScreen.routePath}?id=${prescription.id}',
                               );
                               if (!context.mounted) return;
-                              unawaited(Future<void>.microtask(_refresh));
+                              setState(() {
+                                _prescriptionsFuture = _loadPrescriptions();
+                              });
                             },
                           ),
                         ],
@@ -410,10 +583,7 @@ class _PharmacistQrLookupScreenState extends State<PharmacistQrLookupScreen> {
 }
 
 class PharmacistPrescriptionDetailScreen extends StatefulWidget {
-  const PharmacistPrescriptionDetailScreen({
-    super.key,
-    this.prescriptionId,
-  });
+  const PharmacistPrescriptionDetailScreen({super.key, this.prescriptionId});
 
   static const routeName = 'pharmacist-prescription-detail';
   static const routePath = '/pharmacist/prescriptions/detail';
@@ -421,10 +591,12 @@ class PharmacistPrescriptionDetailScreen extends StatefulWidget {
   final int? prescriptionId;
 
   @override
-  State<PharmacistPrescriptionDetailScreen> createState() => _PharmacistPrescriptionDetailScreenState();
+  State<PharmacistPrescriptionDetailScreen> createState() =>
+      _PharmacistPrescriptionDetailScreenState();
 }
 
-class _PharmacistPrescriptionDetailScreenState extends State<PharmacistPrescriptionDetailScreen> {
+class _PharmacistPrescriptionDetailScreenState
+    extends State<PharmacistPrescriptionDetailScreen> {
   Future<PrescriptionModel>? _prescriptionFuture;
 
   @override
@@ -436,7 +608,9 @@ class _PharmacistPrescriptionDetailScreenState extends State<PharmacistPrescript
   }
 
   Future<PrescriptionModel> _loadPrescription() {
-    return context.read<AppRepository>().getPrescription(widget.prescriptionId!);
+    return context.read<AppRepository>().getPrescription(
+      widget.prescriptionId!,
+    );
   }
 
   @override
@@ -452,7 +626,8 @@ class _PharmacistPrescriptionDetailScreenState extends State<PharmacistPrescript
           : FutureBuilder<PrescriptionModel>(
               future: _prescriptionFuture!,
               builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
+                if (snapshot.connectionState == ConnectionState.waiting &&
+                    !snapshot.hasData) {
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (snapshot.hasError) {
@@ -478,17 +653,34 @@ class _PharmacistPrescriptionDetailScreenState extends State<PharmacistPrescript
                       title: 'ملخص الطلب',
                       child: Column(
                         children: [
-                          HbInfoRow(label: 'رقم الوصفة', value: prescription.prescriptionNumber),
-                          HbInfoRow(label: 'اسم الموظف الجامعي', value: prescription.employeeName),
+                          HbInfoRow(
+                            label: 'رقم الوصفة',
+                            value: prescription.prescriptionNumber,
+                          ),
+                          HbInfoRow(
+                            label: 'اسم الموظف الجامعي',
+                            value: prescription.employeeName,
+                          ),
                           HbInfoRow(
                             label: 'اسم المستفيد',
-                            value: prescription.beneficiaryName ?? prescription.employeeName,
+                            value:
+                                prescription.beneficiaryName ??
+                                prescription.employeeName,
                           ),
-                          HbInfoRow(label: 'اسم الطبيب', value: prescription.doctorName),
-                          HbInfoRow(label: 'نوع الطلب', value: prescription.serviceType),
+                          HbInfoRow(
+                            label: 'اسم الطبيب',
+                            value: prescription.doctorName,
+                          ),
+                          if (prescription.serviceType != 'Medication')
+                            HbInfoRow(
+                              label: 'نوع الطلب',
+                              value: prescription.serviceType,
+                            ),
                           HbInfoRow(
                             label: 'الجهة المختارة',
-                            value: prescription.providerName.isEmpty ? 'غير محدد' : prescription.providerName,
+                            value: prescription.providerName.isEmpty
+                                ? 'غير محدد'
+                                : prescription.providerName,
                           ),
                           HbInfoRow(
                             label: 'حالة التأمين',
@@ -496,28 +688,59 @@ class _PharmacistPrescriptionDetailScreenState extends State<PharmacistPrescript
                                 ? 'يتطلب موافقة تأمينية'
                                 : 'لا يتطلب موافقة مسبقة',
                           ),
-                          HbInfoRow(label: 'حالة الوصفة', value: _statusLabel(prescription.status)),
-                          HbInfoRow(label: 'نسبة التغطية', value: '${prescription.coveragePercentage.toStringAsFixed(0)}%'),
-                          HbInfoRow(label: 'إجمالي السعر', value: prescription.finalPrice.toStringAsFixed(2)),
-                          HbInfoRow(label: 'المبلغ المغطى', value: prescription.coveredAmount.toStringAsFixed(2)),
-                          HbInfoRow(label: 'حصة الموظف', value: prescription.employeeShare.toStringAsFixed(2)),
-                          HbInfoRow(label: 'ملاحظات الطبيب', value: prescription.notes.isEmpty ? 'لا توجد ملاحظات' : prescription.notes),
+                          HbInfoRow(
+                            label: 'حالة الوصفة',
+                            value: _statusLabel(prescription.status),
+                          ),
+                          HbInfoRow(
+                            label: 'نسبة التغطية',
+                            value:
+                                '${prescription.coveragePercentage.toStringAsFixed(0)}%',
+                          ),
+                          HbInfoRow(
+                            label: 'إجمالي السعر',
+                            value: prescription.finalPrice.toStringAsFixed(2),
+                          ),
+                          HbInfoRow(
+                            label: 'المبلغ المغطى',
+                            value: prescription.coveredAmount.toStringAsFixed(
+                              2,
+                            ),
+                          ),
+                          HbInfoRow(
+                            label: 'حصة الموظف',
+                            value: prescription.employeeShare.toStringAsFixed(
+                              2,
+                            ),
+                          ),
+                          HbInfoRow(
+                            label: 'ملاحظات الطبيب',
+                            value: prescription.notes.isEmpty
+                                ? 'لا توجد ملاحظات'
+                                : prescription.notes,
+                          ),
                           HbInfoRow(
                             label: 'ملاحظات الجهة الطبية',
-                            value: prescription.providerNotes.isEmpty ? 'لا توجد ملاحظات' : prescription.providerNotes,
+                            value: prescription.providerNotes.isEmpty
+                                ? 'لا توجد ملاحظات'
+                                : prescription.providerNotes,
                           ),
                         ],
                       ),
                     ),
                     const SizedBox(height: 16),
                     HbSectionCard(
-                      title: prescription.serviceType == 'Medication' ? 'الأدوية' : 'تفاصيل الخدمة',
+                      title: prescription.serviceType == 'Medication'
+                          ? 'الأدوية'
+                          : 'تفاصيل الخدمة',
                       child: prescription.items.isEmpty
                           ? Column(
                               children: [
                                 HbInfoRow(
                                   label: 'التفاصيل',
-                                  value: prescription.serviceName.isEmpty ? 'لا توجد عناصر تفصيلية' : prescription.serviceName,
+                                  value: prescription.serviceName.isEmpty
+                                      ? 'لا توجد عناصر تفصيلية'
+                                      : prescription.serviceName,
                                 ),
                               ],
                             )
@@ -526,7 +749,9 @@ class _PharmacistPrescriptionDetailScreenState extends State<PharmacistPrescript
                                 return ListTile(
                                   contentPadding: EdgeInsets.zero,
                                   title: Text(item.medicationName),
-                                  subtitle: Text('${item.quantity} • ${item.duration}\n${item.dosageInstructions}'),
+                                  subtitle: Text(
+                                    '${item.quantity} • ${item.duration}\n${item.dosageInstructions}',
+                                  ),
                                   isThreeLine: true,
                                 );
                               }).toList(),
@@ -545,7 +770,11 @@ class _PharmacistPrescriptionDetailScreenState extends State<PharmacistPrescript
                                 _prescriptionFuture = _loadPrescription();
                               });
                             },
-                      child: Text(canDispense ? 'تأكيد صرف الدواء' : 'الصرف متاح فقط للوصفات المعتمدة'),
+                      child: Text(
+                        canDispense
+                            ? 'تأكيد صرف الدواء'
+                            : 'الصرف متاح فقط للوصفات المعتمدة',
+                      ),
                     ),
                     const SizedBox(height: 12),
                     HbCustomButton(
@@ -562,10 +791,7 @@ class _PharmacistPrescriptionDetailScreenState extends State<PharmacistPrescript
 }
 
 class PharmacistDispenseConfirmScreen extends StatefulWidget {
-  const PharmacistDispenseConfirmScreen({
-    super.key,
-    this.prescriptionId,
-  });
+  const PharmacistDispenseConfirmScreen({super.key, this.prescriptionId});
 
   static const routeName = 'pharmacist-dispense-confirm';
   static const routePath = '/pharmacist/dispense/confirm';
@@ -573,10 +799,12 @@ class PharmacistDispenseConfirmScreen extends StatefulWidget {
   final int? prescriptionId;
 
   @override
-  State<PharmacistDispenseConfirmScreen> createState() => _PharmacistDispenseConfirmScreenState();
+  State<PharmacistDispenseConfirmScreen> createState() =>
+      _PharmacistDispenseConfirmScreenState();
 }
 
-class _PharmacistDispenseConfirmScreenState extends State<PharmacistDispenseConfirmScreen> {
+class _PharmacistDispenseConfirmScreenState
+    extends State<PharmacistDispenseConfirmScreen> {
   final _notesController = TextEditingController();
   bool _isSubmitting = false;
   Future<PrescriptionModel>? _prescriptionFuture;
@@ -590,7 +818,9 @@ class _PharmacistDispenseConfirmScreenState extends State<PharmacistDispenseConf
   }
 
   Future<PrescriptionModel> _loadPrescription() {
-    return context.read<AppRepository>().getPrescription(widget.prescriptionId!);
+    return context.read<AppRepository>().getPrescription(
+      widget.prescriptionId!,
+    );
   }
 
   @override
@@ -599,7 +829,10 @@ class _PharmacistDispenseConfirmScreenState extends State<PharmacistDispenseConf
     super.dispose();
   }
 
-  Future<void> _submit(BuildContext context, PrescriptionModel prescription) async {
+  Future<void> _submit(
+    BuildContext context,
+    PrescriptionModel prescription,
+  ) async {
     if (prescription.status != 'Approved') {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('يمكن صرف الوصفات المعتمدة فقط.')),
@@ -611,11 +844,12 @@ class _PharmacistDispenseConfirmScreenState extends State<PharmacistDispenseConf
     try {
       final messenger = ScaffoldMessenger.of(context);
       await context.read<AppRepository>().createDispense(
-            prescriptionId: prescription.id,
-            dispenseNumber: 'DSP-${prescription.id}-${DateTime.now().millisecondsSinceEpoch}',
-            status: 'Completed',
-            notes: _notesController.text.trim(),
-          );
+        prescriptionId: prescription.id,
+        dispenseNumber:
+            'DSP-${prescription.id}-${DateTime.now().millisecondsSinceEpoch}',
+        status: 'Completed',
+        notes: _notesController.text.trim(),
+      );
       if (!context.mounted) return;
       messenger.showSnackBar(
         const SnackBar(content: Text('تم تأكيد صرف الدواء بنجاح')),
@@ -623,9 +857,9 @@ class _PharmacistDispenseConfirmScreenState extends State<PharmacistDispenseConf
       context.pop(true);
     } on AppException catch (error) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error.message)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.message)));
     } finally {
       if (mounted) {
         setState(() => _isSubmitting = false);
@@ -650,7 +884,8 @@ class _PharmacistDispenseConfirmScreenState extends State<PharmacistDispenseConf
       body: FutureBuilder<PrescriptionModel>(
         future: _prescriptionFuture!,
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
+          if (snapshot.connectionState == ConnectionState.waiting &&
+              !snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
@@ -671,7 +906,8 @@ class _PharmacistDispenseConfirmScreenState extends State<PharmacistDispenseConf
           if (prescription.status != 'Approved') {
             return HbEmptyState(
               title: 'الصرف غير متاح',
-              message: 'يمكن صرف الوصفات المعتمدة فقط. الحالة الحالية: ${_statusLabel(prescription.status)}',
+              message:
+                  'يمكن صرف الوصفات المعتمدة فقط. الحالة الحالية: ${_statusLabel(prescription.status)}',
               icon: Icons.lock_outline_rounded,
             );
           }
@@ -682,11 +918,20 @@ class _PharmacistDispenseConfirmScreenState extends State<PharmacistDispenseConf
                 title: 'ملخص الوصفة',
                 child: Column(
                   children: [
-                    HbInfoRow(label: 'اسم الموظف الجامعي', value: prescription.employeeName),
-                    HbInfoRow(label: 'رقم الوصفة', value: prescription.prescriptionNumber),
+                    HbInfoRow(
+                      label: 'اسم الموظف الجامعي',
+                      value: prescription.employeeName,
+                    ),
+                    HbInfoRow(
+                      label: 'رقم الوصفة',
+                      value: prescription.prescriptionNumber,
+                    ),
                     HbInfoRow(label: 'حالة الصرف', value: 'مكتمل'),
                     ...prescription.items.map(
-                      (item) => HbInfoRow(label: item.medicationName, value: item.quantity),
+                      (item) => HbInfoRow(
+                        label: item.medicationName,
+                        value: item.quantity,
+                      ),
                     ),
                   ],
                 ),
@@ -708,7 +953,9 @@ class _PharmacistDispenseConfirmScreenState extends State<PharmacistDispenseConf
               const SizedBox(height: 16),
               HbPrimaryButtonRow(
                 primaryLabel: _isSubmitting ? 'جاري التأكيد...' : 'تأكيد الصرف',
-                onPrimaryPressed: _isSubmitting ? null : () => _submit(context, prescription),
+                onPrimaryPressed: _isSubmitting
+                    ? null
+                    : () => _submit(context, prescription),
                 secondaryLabel: 'إلغاء',
                 onSecondaryPressed: () => context.pop(),
               ),
@@ -727,10 +974,12 @@ class PharmacistDispenseHistoryScreen extends StatefulWidget {
   static const routePath = '/pharmacist/dispense/history';
 
   @override
-  State<PharmacistDispenseHistoryScreen> createState() => _PharmacistDispenseHistoryScreenState();
+  State<PharmacistDispenseHistoryScreen> createState() =>
+      _PharmacistDispenseHistoryScreenState();
 }
 
-class _PharmacistDispenseHistoryScreenState extends State<PharmacistDispenseHistoryScreen> {
+class _PharmacistDispenseHistoryScreenState
+    extends State<PharmacistDispenseHistoryScreen> {
   late Future<List<DispenseModel>> _dispensesFuture;
 
   @override
@@ -757,7 +1006,8 @@ class _PharmacistDispenseHistoryScreenState extends State<PharmacistDispenseHist
       body: FutureBuilder<List<DispenseModel>>(
         future: _dispensesFuture,
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
+          if (snapshot.connectionState == ConnectionState.waiting &&
+              !snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
@@ -783,15 +1033,29 @@ class _PharmacistDispenseHistoryScreenState extends State<PharmacistDispenseHist
                       Row(
                         children: [
                           Expanded(
-                            child: Text(item.employeeName, style: Theme.of(context).textTheme.titleMedium),
+                            child: Text(
+                              item.employeeName,
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
                           ),
                           HbStatusChip(_statusLabel(item.status)),
                         ],
                       ),
                       const SizedBox(height: 10),
-                      HbInfoRow(label: 'تاريخ الصرف', value: _formatDate(item.dispensedAt)),
-                      HbInfoRow(label: 'اسم الصيدلي', value: item.pharmacistName),
-                      HbInfoRow(label: 'الملاحظات', value: item.notes.isEmpty ? 'لا توجد ملاحظات' : item.notes),
+                      HbInfoRow(
+                        label: 'تاريخ الصرف',
+                        value: _formatDate(item.dispensedAt),
+                      ),
+                      HbInfoRow(
+                        label: 'اسم الصيدلي',
+                        value: item.pharmacistName,
+                      ),
+                      HbInfoRow(
+                        label: 'الملاحظات',
+                        value: item.notes.isEmpty
+                            ? 'لا توجد ملاحظات'
+                            : item.notes,
+                      ),
                     ],
                   ),
                 ),

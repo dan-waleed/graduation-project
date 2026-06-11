@@ -17,9 +17,6 @@ class UserRole(models.TextChoices):
     DOCTOR = "Doctor", "Doctor"
     EMPLOYEE = "Employee", "Employee"
     PHARMACIST = "Pharmacist", "Pharmacist"
-    LABORATORY = "Laboratory", "Laboratory"
-    IMAGING_CENTER = "ImagingCenter", "Medical Imaging Center"
-    MEDICAL_CENTER = "MedicalCenter", "Medical Center"
     INSURANCE_OFFICER = "InsuranceOfficer", "Insurance Officer"
 
 
@@ -38,13 +35,6 @@ ASSIGNABLE_USER_ROLES = (
     UserRole.INSURANCE_OFFICER,
 )
 
-LEGACY_PROVIDER_ROLES = (
-    UserRole.LABORATORY,
-    UserRole.IMAGING_CENTER,
-    UserRole.MEDICAL_CENTER,
-)
-
-
 class PrescriptionStatus(models.TextChoices):
     DRAFT = "Draft", "Draft"
     SENT = "Sent", "Sent"
@@ -61,9 +51,6 @@ class PrescriptionStatus(models.TextChoices):
 class ProviderType(models.TextChoices):
     DOCTOR = "Doctor", "Doctor"
     PHARMACY = "Pharmacy", "Pharmacy"
-    LABORATORY = "Lab", "Laboratory"
-    IMAGING_CENTER = "ImagingCenter", "Medical Imaging Center"
-    MEDICAL_CENTER = "MedicalCenter", "Medical Center"
 
 
 class ContractStatus(models.TextChoices):
@@ -73,9 +60,6 @@ class ContractStatus(models.TextChoices):
 
 class ServiceType(models.TextChoices):
     MEDICATION = "Medication", "Medication"
-    LAB_TEST = "LabTest", "Lab Test"
-    IMAGING = "Imaging", "Imaging"
-    PROCEDURE = "Procedure", "Procedure"
     CONSULTATION = "Consultation", "Consultation"
 
 
@@ -322,84 +306,6 @@ class Pharmacist(TimeStampedModel):
 
     def __str__(self) -> str:
         return self.user.get_full_name() or self.user.username
-
-
-class Laboratory(TimeStampedModel):
-    """Represents a laboratory user profile tied to a provider."""
-
-    user = models.OneToOneField(
-        User,
-        on_delete=models.CASCADE,
-        related_name="laboratory_profile",
-        verbose_name="User",
-    )
-    provider = models.OneToOneField(
-        Provider,
-        on_delete=models.CASCADE,
-        related_name="laboratory_profile",
-        verbose_name="Provider",
-    )
-    license_number = models.CharField(max_length=50, unique=True, verbose_name="License number")
-
-    class Meta:
-        verbose_name = "Laboratory"
-        verbose_name_plural = "Laboratories"
-        ordering = ["license_number"]
-
-    def __str__(self) -> str:
-        return self.provider.provider_name
-
-
-class MedicalImagingCenter(TimeStampedModel):
-    """Represents an imaging center user profile tied to a provider."""
-
-    user = models.OneToOneField(
-        User,
-        on_delete=models.CASCADE,
-        related_name="imaging_center_profile",
-        verbose_name="User",
-    )
-    provider = models.OneToOneField(
-        Provider,
-        on_delete=models.CASCADE,
-        related_name="imaging_center_profile",
-        verbose_name="Provider",
-    )
-    license_number = models.CharField(max_length=50, unique=True, verbose_name="License number")
-
-    class Meta:
-        verbose_name = "Medical imaging center"
-        verbose_name_plural = "Medical imaging centers"
-        ordering = ["license_number"]
-
-    def __str__(self) -> str:
-        return self.provider.provider_name
-
-
-class MedicalCenter(TimeStampedModel):
-    """Represents a medical center user profile tied to a provider."""
-
-    user = models.OneToOneField(
-        User,
-        on_delete=models.CASCADE,
-        related_name="medical_center_profile",
-        verbose_name="User",
-    )
-    provider = models.OneToOneField(
-        Provider,
-        on_delete=models.CASCADE,
-        related_name="medical_center_profile",
-        verbose_name="Provider",
-    )
-    license_number = models.CharField(max_length=50, unique=True, verbose_name="License number")
-
-    class Meta:
-        verbose_name = "Medical center"
-        verbose_name_plural = "Medical centers"
-        ordering = ["license_number"]
-
-    def __str__(self) -> str:
-        return self.provider.provider_name
 
 
 class InsuranceOfficer(TimeStampedModel):
@@ -720,6 +626,38 @@ class AuditLog(models.Model):
 
     def __str__(self) -> str:
         return f"{self.action} ({self.created_at:%Y-%m-%d %H:%M})"
+
+
+class SystemSettings(models.Model):
+    """Singleton model for lightweight operational system settings."""
+
+    system_name = models.CharField(max_length=255, default="هيلث بريدج", verbose_name="System name")
+    organization_name = models.CharField(max_length=255, default="جامعة بوليتكنك فلسطين", verbose_name="Organization name")
+    short_description = models.TextField(
+        blank=True,
+        default="نظام إلكتروني لإدارة الوصفات الطبية والتأمين والصرف",
+        verbose_name="Short description",
+    )
+    notifications_enabled = models.BooleanField(default=True, verbose_name="Notifications enabled")
+    insurance_workflow_enabled = models.BooleanField(default=True, verbose_name="Insurance workflow enabled")
+    pharmacist_notes_required = models.BooleanField(default=False, verbose_name="Pharmacist notes required")
+    interface_language = models.CharField(max_length=32, default="العربية", verbose_name="Interface language")
+    session_timeout_minutes = models.PositiveIntegerField(default=30, verbose_name="Session timeout in minutes")
+    admin_notes = models.TextField(blank=True, default="", verbose_name="Administrative notes")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Updated at")
+
+    class Meta:
+        verbose_name = "System settings"
+        verbose_name_plural = "System settings"
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def get_solo(cls):
+        settings, _ = cls.objects.get_or_create(pk=1)
+        return settings
 
 
 # Backward-compatible aliases during the employee refactor.

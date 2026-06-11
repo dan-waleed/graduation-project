@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
 
-from core.models import Dependent, Doctor, Employee, InsuranceOfficer, LEGACY_PROVIDER_ROLES, UserRole
+from core.models import Dependent, Doctor, Employee, InsuranceOfficer, UserRole
 from core.services import apply_role_scope, is_admin_user
 from core.api.serializers import (
     DependentSerializer,
@@ -51,8 +51,16 @@ class UserViewSet(BaseOwnedModelViewSet):
     def get_queryset(self):
         user = self.request.user
         if is_admin_user(user):
-            return self.queryset.exclude(role__in=LEGACY_PROVIDER_ROLES)
+            return self.queryset
         return self.queryset.filter(pk=user.pk)
+
+    def perform_destroy(self, instance):
+        if instance.role == UserRole.ADMIN:
+            self.permission_denied(
+                self.request,
+                message="لا يمكن حذف مدير النظام الأساسي.",
+            )
+        super().perform_destroy(instance)
 
 
 class EmployeeViewSet(BaseOwnedModelViewSet):

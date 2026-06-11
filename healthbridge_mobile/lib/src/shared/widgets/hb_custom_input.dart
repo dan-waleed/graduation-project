@@ -28,19 +28,32 @@ class HbCustomInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
-      controller: controller,
-      obscureText: obscureText,
-      validator: validator,
-      readOnly: readOnly,
-      maxLines: maxLines,
-      onTap: onTap,
-      onChanged: onChanged,
-      decoration: InputDecoration(
-        labelText: label,
-        hintText: hint,
-        prefixIcon: prefixIcon != null ? Icon(prefixIcon) : null,
-      ),
+    final labelStyle = Theme.of(
+      context,
+    ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w700);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (label.trim().isNotEmpty) ...[
+          Text(label, style: labelStyle),
+          const SizedBox(height: 8),
+        ],
+        TextFormField(
+          controller: controller,
+          obscureText: obscureText,
+          validator: validator,
+          readOnly: readOnly,
+          maxLines: maxLines,
+          onTap: onTap,
+          onChanged: onChanged,
+          decoration: InputDecoration(
+            hintText: hint,
+            prefixIcon: prefixIcon != null ? Icon(prefixIcon) : null,
+            alignLabelWithHint: maxLines > 1,
+          ),
+        ),
+      ],
     );
   }
 }

@@ -49,13 +49,13 @@ def _doctor_summary(user, display_name):
     prescriptions = Prescription.objects.filter(doctor=doctor) if doctor else Prescription.objects.none()
 
     metrics = [
-        _metric("employees", "إجمالي الموظفين", prescriptions.values("employee").distinct().count(), "people"),
-        _metric("medication_orders", "وصفات دوائية", prescriptions.filter(service_type="Medication").count(), "prescriptions"),
-        _metric("lab_orders", "طلبات مختبر", prescriptions.filter(service_type="LabTest").count(), "lab"),
-        _metric("imaging_orders", "طلبات تصوير", prescriptions.filter(service_type="Imaging").count(), "imaging"),
-        _metric("procedure_orders", "إجراءات واستشارات", prescriptions.filter(service_type__in=["Procedure", "Consultation"]).count(), "medical_center"),
+        _metric("employees", "المرضى", prescriptions.values("employee").distinct().count(), "people"),
+        _metric("orders", "إجمالي الطلبات الطبية", prescriptions.count(), "prescriptions"),
+        _metric("draft_orders", "المسودات", prescriptions.filter(status="Draft").count(), "today"),
+        _metric("sent_orders", "الطلبات المرسلة", prescriptions.filter(status="Sent").count(), "prescriptions"),
         _metric("pending_approvals", "الموافقات المعلّقة", prescriptions.filter(status="PendingInsuranceApproval").count(), "pending"),
         _metric("approved_orders", "طلبات معتمدة", prescriptions.filter(status="Approved").count(), "approved"),
+        _metric("dispensed_orders", "طلبات تم صرفها", prescriptions.filter(status="Dispensed").count(), "done"),
     ]
     activity = [
         _activity(
@@ -67,8 +67,8 @@ def _doctor_summary(user, display_name):
         for item in prescriptions.select_related("employee__user").order_by("-created_at")[:5]
     ]
     return (
-        f"أهلاً بك، {display_name}",
-        "نظرة عامة على نشاطك اليوم",
+        "",
+        "",
         metrics,
         activity,
     )
@@ -112,20 +112,12 @@ def _employee_summary(user, display_name):
 def _pharmacist_summary(user, display_name):
     pharmacist = getattr(user, "pharmacist_profile", None)
     dispenses = Dispense.objects.filter(pharmacist=pharmacist) if pharmacist else Dispense.objects.none()
-    prescription_totals = Prescription.objects.filter(status__in=["Approved", "Dispensed"]).aggregate(
-        total=Sum("final_price"),
-        covered=Sum("covered_amount"),
-        share=Sum("employee_share"),
-    )
 
     metrics = [
         _metric("dispenses", "عمليات الصرف", dispenses.count(), "dispense"),
         _metric("completed", "صرف مكتمل", dispenses.filter(status="Completed").count(), "done"),
         _metric("partial", "صرف جزئي", dispenses.filter(status="Partial").count(), "partial"),
         _metric("approved_rx", "وصفات جاهزة للصرف", Prescription.objects.filter(status="Approved").count(), "approved"),
-        _metric("cost", "إجمالي السعر", int(prescription_totals["total"] or 0), "payments"),
-        _metric("covered", "إجمالي المغطى", int(prescription_totals["covered"] or 0), "insurance"),
-        _metric("share", "إجمالي حصة الموظف", int(prescription_totals["share"] or 0), "payments"),
     ]
     activity = [
         _activity(

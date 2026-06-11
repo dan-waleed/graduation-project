@@ -13,10 +13,7 @@ from core.models import (
     InsuranceOfficer,
     InsuranceRequest,
     InsuranceRequestStatus,
-    Laboratory,
     Medication,
-    MedicalCenter,
-    MedicalImagingCenter,
     MedicalService,
     Notification,
     NotificationType,
@@ -34,6 +31,195 @@ from core.models import (
 )
 
 User = get_user_model()
+
+IMPORTED_DOCTORS = [
+    {
+        "full_name": "شريف الطردة",
+        "specialization": "طب عام",
+        "clinic_name": "عيادات الشريف",
+        "clinic_address": "تفوح",
+        "phone_number": "0599340234",
+    },
+    {
+        "full_name": "جهاد العويوي",
+        "specialization": "طب عام",
+        "clinic_name": "عيادة جهاد العويوي",
+        "clinic_address": "باب الزاوية",
+        "phone_number": "022229645",
+    },
+    {
+        "full_name": "محمود سليمان الطيطي",
+        "specialization": "طب عام",
+        "clinic_name": "عيادة محمود سليمان الطيطي",
+        "clinic_address": "الخليل",
+        "phone_number": "0599887000",
+    },
+    {
+        "full_name": "احمد ابوميالة",
+        "specialization": "طب عام",
+        "clinic_name": "عيادة احمد ابوميالة",
+        "clinic_address": "مفرق العجوري",
+        "phone_number": "0599759517",
+    },
+    {
+        "full_name": "منتصر عبد الرحيم القواسمي",
+        "specialization": "طب عام",
+        "clinic_name": "عيادة منتصر عبد الرحيم القواسمي",
+        "clinic_address": "أبو كتيلة",
+        "phone_number": "0598502501",
+    },
+    {
+        "full_name": "جهاد شاور",
+        "specialization": "جراحة",
+        "clinic_name": "عيادة جهاد شاور",
+        "clinic_address": "عمارة ستي سنتر",
+        "phone_number": "0599873535",
+    },
+    {
+        "full_name": "رفيق سلهب",
+        "specialization": "جراحة",
+        "clinic_name": "عيادة رفيق سلهب",
+        "clinic_address": "عمارة ابو ارميلة",
+        "phone_number": "0599840836",
+    },
+    {
+        "full_name": "محمد جميل الهشلمون",
+        "specialization": "جراحة",
+        "clinic_name": "عيادة محمد جميل الهشلمون",
+        "clinic_address": "عمارة البدر",
+        "phone_number": "022256777",
+    },
+    {
+        "full_name": "رشاد مرشد الزرو",
+        "specialization": "جراحة",
+        "clinic_name": "عيادة رشاد مرشد الزرو",
+        "clinic_address": "عمارة طيبة",
+        "phone_number": "0599368123",
+    },
+    {
+        "full_name": "وسام المحتسب",
+        "specialization": "جراحة",
+        "clinic_name": "عيادة وسام المحتسب",
+        "clinic_address": "طلعة عالية",
+        "phone_number": "0599311545",
+    },
+    {
+        "full_name": "أحمد القواسمي",
+        "specialization": "أطفال",
+        "clinic_name": "عيادة أحمد القواسمي",
+        "clinic_address": "مفرق الجامعة",
+        "phone_number": "022229144",
+    },
+    {
+        "full_name": "بسام مرقه",
+        "specialization": "أطفال",
+        "clinic_name": "عيادة بسام مرقه",
+        "clinic_address": "باب الزاوية",
+        "phone_number": "022226479",
+    },
+    {
+        "full_name": "مهند ابو ساكور",
+        "specialization": "أطفال",
+        "clinic_name": "عيادة مهند ابو ساكور",
+        "clinic_address": "ترقوميا",
+        "phone_number": "0599884443",
+    },
+    {
+        "full_name": "فواز العويوي",
+        "specialization": "أطفال",
+        "clinic_name": "عيادة فواز العويوي",
+        "clinic_address": "وادي التفاح",
+        "phone_number": "022225176",
+    },
+    {
+        "full_name": "احمد محمود ابو اسعد",
+        "specialization": "أطفال",
+        "clinic_name": "عيادة احمد محمود ابو اسعد",
+        "clinic_address": "اذنا",
+        "phone_number": "0599759521",
+    },
+    {
+        "full_name": "خليل العبد",
+        "specialization": "باطني",
+        "clinic_name": "عيادة خليل العبد",
+        "clinic_address": "باب الزاوية",
+        "phone_number": "022225434",
+    },
+    {
+        "full_name": "سمير القاضي",
+        "specialization": "باطني",
+        "clinic_name": "عيادة سمير القاضي",
+        "clinic_address": "عمارة الرشاد",
+        "phone_number": "022251444",
+    },
+    {
+        "full_name": "ماجد الدويك",
+        "specialization": "باطني",
+        "clinic_name": "عيادة ماجد الدويك",
+        "clinic_address": "المستشفى الاهلي - العيادات الخارجية",
+        "phone_number": "022220353",
+    },
+    {
+        "full_name": "صبحي ارشيد",
+        "specialization": "باطني",
+        "clinic_name": "عيادة صبحي ارشيد",
+        "clinic_address": "مجمع الواحة",
+        "phone_number": "0599733799",
+    },
+    {
+        "full_name": "جميل عبد الحافظ الزرو",
+        "specialization": "باطني",
+        "clinic_name": "عيادة جميل عبد الحافظ الزرو",
+        "clinic_address": "مجمع تبارك",
+        "phone_number": "0599759085",
+    },
+]
+
+IMPORTED_PHARMACIES = [
+    {"name": "صيدلية الجامعة", "address": "مفرق الجامعة", "phone_number": "022229301"},
+    {"name": "البشير و القدس و صلاح الدين", "address": "باب الزاوية وراس الجورة", "phone_number": "022228878"},
+    {"name": "صيدلية الانصار", "address": "مقابل محطة الانصار", "phone_number": "022252632"},
+    {"name": "صيدلية الكوثر و المدينة المنورة", "address": "واد التفاح", "phone_number": "022229572"},
+    {"name": "صيدلية الجزيرة", "address": "المناره", "phone_number": "022222237"},
+    {"name": "صيدلية الرحمة", "address": "الشلالة", "phone_number": "022228287"},
+    {"name": "صيدلية السيد", "address": "باب الزاوية", "phone_number": "022220538"},
+    {"name": "صيدلية الشفاء و القواسمي", "address": "باب الزاوية/وادي التفاح", "phone_number": "022228221"},
+    {"name": "صيدلية الرازي", "address": "باب الزاوية", "phone_number": "022229791"},
+    {"name": "صيدلية الفردوس", "address": "الحاووز/ السلام", "phone_number": "022226999"},
+    {"name": "صيدلية البوليتكنك", "address": "واد الهريا", "phone_number": "022234965"},
+    {"name": "صيدلية النجاح", "address": "الحرس", "phone_number": "022212470"},
+    {"name": "صيدلية الايمان", "address": "نمره", "phone_number": "022228210"},
+    {"name": "صيدلية بلسم", "address": "حلحول", "phone_number": "022227476"},
+    {"name": "صيدلية البدر", "address": "الخليل - الجلده - مفرق وادي الكرم", "phone_number": "022229727"},
+    {"name": "صيدلية شروق", "address": "بجانب الرابطة", "phone_number": "022225058"},
+    {"name": "صيدلية الحرية", "address": "وادي الهرية", "phone_number": "022234210"},
+    {"name": "صيدلية ناصر", "address": "دورا", "phone_number": "022280065"},
+    {"name": "صيدلية ابو الفيلات", "address": "بجانب صالة الخيام", "phone_number": "022290464"},
+    {"name": "صيدلية نمره", "address": "حبايل الرياح", "phone_number": "022221749"},
+]
+
+FAKE_EMPLOYEE_NAMES = [
+    "لؤي ناصر التميمي",
+    "سجى عارف الجعبري",
+    "محمود يوسف الرجبي",
+    "ديما سامي القواسمي",
+    "حمزة خالد الشرباتي",
+    "تالا نضال المحتسب",
+    "عمر وائل ابو سنينة",
+    "ريم احمد زلوم",
+    "معاذ فادي زغير",
+    "ياسمين رائد التكروري",
+    "كرم اياد النتشة",
+    "بيان رامي السلايمة",
+    "أوس عبد الرحمن ابو عيشة",
+    "لين محمد الهيموني",
+    "أنس مروان القفيشة",
+    "سارة مؤمن الحلايقة",
+    "باسل طارق دعنا",
+    "هديل مازن الجلدة",
+    "علي أمين نيروخ",
+    "رند بشار مسودة",
+]
 
 
 class Command(BaseCommand):
@@ -68,8 +254,8 @@ class Command(BaseCommand):
             defaults={
                 "license_number": "DOC-DEMO-001",
                 "specialization": "طب الأسرة",
-                "clinic_name": "عيادة الجامعة الطبية",
-                "clinic_address": "الخليل - جامعة بوليتكنك فلسطين - المبنى الطبي",
+                "clinic_name": "العيادة الطبية",
+                "clinic_address": "الخليل - المبنى الطبي",
                 "consultation_price": 80,
                 "contract_status": ContractStatus.ACTIVE,
             },
@@ -122,10 +308,10 @@ class Command(BaseCommand):
         )
 
         doctor_provider = self._upsert_provider(
-            provider_name="عيادة الجامعة الطبية",
+            provider_name="العيادة الطبية",
             provider_type=ProviderType.DOCTOR,
             city="الخليل",
-            address="جامعة بوليتكنك فلسطين - المبنى الطبي",
+            address="الخليل - المبنى الطبي",
             phone="+97022990010",
             google_maps_url="https://maps.google.com/?q=Palestine+Polytechnic+University",
             working_hours="08:00 - 15:00",
@@ -137,14 +323,14 @@ class Command(BaseCommand):
         pharmacy, _ = Pharmacy.objects.update_or_create(
             license_number="PHA-DEMO-001",
             defaults={
-                "name": "صيدلية الجامعة",
+                "name": "صيدلية المشروع",
                 "address": "الخليل - شارع الجامعة",
                 "phone_number": "+97022990011",
                 "is_active": True,
             },
         )
         pharmacy_provider = self._upsert_provider(
-            provider_name="صيدلية الجامعة",
+            provider_name="صيدلية المشروع",
             provider_type=ProviderType.PHARMACY,
             city="الخليل",
             address="الخليل - شارع الجامعة",
@@ -173,84 +359,6 @@ class Command(BaseCommand):
             },
         )
 
-        laboratory_user = self._upsert_user(
-            username="lab_demo",
-            password="demo12345",
-            role=UserRole.LABORATORY,
-            first_name="مختبر",
-            last_name="الجامعة",
-            email="lab_demo@healthbridge.local",
-            phone_number="+970599100105",
-        )
-        laboratory_provider = self._upsert_provider(
-            provider_name="مختبر الجامعة",
-            provider_type=ProviderType.LABORATORY,
-            city="الخليل",
-            address="جامعة بوليتكنك فلسطين - المبنى الصحي",
-            phone="+97022990012",
-            google_maps_url="https://maps.google.com/?q=Hebron+University+Lab",
-            working_hours="08:00 - 15:00",
-        )
-        laboratory, _ = Laboratory.objects.update_or_create(
-            user=laboratory_user,
-            defaults={
-                "provider": laboratory_provider,
-                "license_number": "LAB-DEMO-001",
-            },
-        )
-
-        imaging_user = self._upsert_user(
-            username="imaging_demo",
-            password="demo12345",
-            role=UserRole.IMAGING_CENTER,
-            first_name="مركز",
-            last_name="التصوير",
-            email="imaging_demo@healthbridge.local",
-            phone_number="+970599100106",
-        )
-        imaging_provider = self._upsert_provider(
-            provider_name="مركز التصوير الطبي الجامعي",
-            provider_type=ProviderType.IMAGING_CENTER,
-            city="الخليل",
-            address="الخليل - المنطقة الطبية",
-            phone="+97022990013",
-            google_maps_url="https://maps.google.com/?q=Hebron+Imaging+Center",
-            working_hours="09:00 - 16:00",
-        )
-        imaging_center, _ = MedicalImagingCenter.objects.update_or_create(
-            user=imaging_user,
-            defaults={
-                "provider": imaging_provider,
-                "license_number": "IMG-DEMO-001",
-            },
-        )
-
-        medical_center_user = self._upsert_user(
-            username="medical_center_demo",
-            password="demo12345",
-            role=UserRole.MEDICAL_CENTER,
-            first_name="المركز",
-            last_name="الطبي",
-            email="medical_center_demo@healthbridge.local",
-            phone_number="+970599100107",
-        )
-        medical_center_provider = self._upsert_provider(
-            provider_name="المركز الطبي الجامعي",
-            provider_type=ProviderType.MEDICAL_CENTER,
-            city="الخليل",
-            address="جامعة بوليتكنك فلسطين - المركز الطبي",
-            phone="+97022990014",
-            google_maps_url="https://maps.google.com/?q=Hebron+Medical+Center",
-            working_hours="08:00 - 15:00",
-        )
-        medical_center, _ = MedicalCenter.objects.update_or_create(
-            user=medical_center_user,
-            defaults={
-                "provider": medical_center_provider,
-                "license_number": "MC-DEMO-001",
-            },
-        )
-
         services = {
             "consultation": self._upsert_service(
                 service_name="استشارة طب أسرة",
@@ -268,36 +376,9 @@ class Command(BaseCommand):
                 requires_insurance_approval=False,
                 description="خدمة صرف وصفة دوائية.",
             ),
-            "lab": self._upsert_service(
-                service_name="فحص CBC",
-                service_type=ServiceType.LAB_TEST,
-                default_price=60,
-                coverage_percentage=75,
-                requires_insurance_approval=True,
-                description="فحص مخبري أساسي.",
-            ),
-            "imaging": self._upsert_service(
-                service_name="تصوير X-Ray",
-                service_type=ServiceType.IMAGING,
-                default_price=180,
-                coverage_percentage=50,
-                requires_insurance_approval=True,
-                description="تصوير أشعة سينية.",
-            ),
-            "procedure": self._upsert_service(
-                service_name="إجراء طبي بسيط",
-                service_type=ServiceType.PROCEDURE,
-                default_price=120,
-                coverage_percentage=40,
-                requires_insurance_approval=True,
-                description="إجراء طبي داخل المركز الطبي.",
-            ),
         }
 
         self._upsert_provider_service_price(pharmacy_provider, services["medication"], 100, 50, False)
-        self._upsert_provider_service_price(laboratory_provider, services["lab"], 60, 75, True)
-        self._upsert_provider_service_price(imaging_provider, services["imaging"], 180, 50, True)
-        self._upsert_provider_service_price(medical_center_provider, services["procedure"], 120, 40, True)
 
         medications = {
             "باراسيتامول 500mg": self._upsert_medication(
@@ -368,34 +449,6 @@ class Command(BaseCommand):
             ],
         )
 
-        under_review_rx = self._upsert_prescription(
-            prescription_number="RX-DEMO-002",
-            employee=employee,
-            doctor=doctor,
-            beneficiary=dependent,
-            provider=laboratory_provider,
-            service=services["lab"],
-            service_type=ServiceType.LAB_TEST,
-            status=PrescriptionStatus.PENDING_INSURANCE_APPROVAL,
-            diagnosis="تحسس موسمي وسعال خفيف",
-            notes="تم إرسالها بانتظار قرار التأمين.",
-            issued_at=now - timedelta(days=2),
-            valid_until=now + timedelta(days=5),
-            final_price=60,
-            coverage_percentage=75,
-            covered_amount=45,
-            employee_share=15,
-            requires_insurance_approval=True,
-            items=[
-                {
-                    "medication": medications["أوميبرازول 20mg"],
-                    "dosage_instructions": "كبسولة صباحًا قبل الطعام",
-                    "quantity": "14 كبسولة",
-                    "duration": "14 يومًا",
-                },
-            ],
-        )
-
         dispensed_rx = self._upsert_prescription(
             prescription_number="RX-DEMO-003",
             employee=employee,
@@ -452,49 +505,6 @@ class Command(BaseCommand):
             ],
         )
 
-        imaging_rx = self._upsert_prescription(
-            prescription_number="IMG-DEMO-001",
-            employee=employee,
-            doctor=doctor,
-            beneficiary=None,
-            provider=imaging_provider,
-            service=services["imaging"],
-            service_type=ServiceType.IMAGING,
-            status=PrescriptionStatus.APPROVED,
-            diagnosis="ألم في اليد اليمنى بعد سقوط بسيط",
-            notes="مطلوب تصوير أشعة لليد.",
-            issued_at=now - timedelta(hours=10),
-            valid_until=now + timedelta(days=7),
-            final_price=180,
-            coverage_percentage=50,
-            covered_amount=90,
-            employee_share=90,
-            requires_insurance_approval=True,
-            items=[],
-        )
-
-        procedure_rx = self._upsert_prescription(
-            prescription_number="PROC-DEMO-001",
-            employee=employee,
-            doctor=doctor,
-            beneficiary=dependent,
-            provider=medical_center_provider,
-            service=services["procedure"],
-            service_type=ServiceType.PROCEDURE,
-            status=PrescriptionStatus.PERFORMED,
-            diagnosis="إجراء متابعة علاجية بسيط",
-            notes="تم تنفيذ الإجراء داخل المركز الطبي.",
-            issued_at=now - timedelta(days=3),
-            valid_until=now + timedelta(days=1),
-            final_price=120,
-            coverage_percentage=40,
-            covered_amount=48,
-            employee_share=72,
-            requires_insurance_approval=True,
-            provider_notes="تم تنفيذ الإجراء بنجاح دون مضاعفات.",
-            items=[],
-        )
-
         approved_request = self._upsert_insurance_request(
             prescription=approved_rx,
             reviewed_by=officer,
@@ -503,15 +513,6 @@ class Command(BaseCommand):
             submitted_at=now - timedelta(days=1),
             reviewed_at=now - timedelta(hours=20),
             response_notes="تمت الموافقة على التغطية حسب بنود الوثيقة.",
-        )
-        pending_request = self._upsert_insurance_request(
-            prescription=under_review_rx,
-            reviewed_by=officer,
-            request_number="INSREQ-DEMO-002",
-            status=InsuranceRequestStatus.PENDING,
-            submitted_at=now - timedelta(days=2),
-            reviewed_at=None,
-            response_notes="الطلب قيد المراجعة من موظف التأمين.",
         )
         latest_request = self._upsert_insurance_request(
             prescription=submitted_rx,
@@ -522,25 +523,6 @@ class Command(BaseCommand):
             reviewed_at=None,
             response_notes="تم استلام الطلب وسيتم الرد عليه قريبًا.",
         )
-        imaging_request = self._upsert_insurance_request(
-            prescription=imaging_rx,
-            reviewed_by=officer,
-            request_number="INSREQ-DEMO-004",
-            status=InsuranceRequestStatus.APPROVED,
-            submitted_at=now - timedelta(hours=9),
-            reviewed_at=now - timedelta(hours=8),
-            response_notes="تمت الموافقة على خدمة التصوير الطبي.",
-        )
-        procedure_request = self._upsert_insurance_request(
-            prescription=procedure_rx,
-            reviewed_by=officer,
-            request_number="INSREQ-DEMO-005",
-            status=InsuranceRequestStatus.APPROVED,
-            submitted_at=now - timedelta(days=3),
-            reviewed_at=now - timedelta(days=3) + timedelta(hours=2),
-            response_notes="تمت الموافقة على الإجراء الطبي.",
-        )
-
         self._upsert_dispense(
             prescription=dispensed_rx,
             pharmacist=pharmacist,
@@ -591,35 +573,15 @@ class Command(BaseCommand):
             related_entity_id=latest_request.id,
         )
         self._upsert_notification(
-            user=laboratory_user,
-            notification_type=NotificationType.PRESCRIPTION_CREATED,
-            title="طلب مختبر جديد",
-            message="تم توجيه طلب مختبر جديد إلى مختبر الجامعة.",
-            related_entity_type="Prescription",
-            related_entity_id=under_review_rx.id,
-        )
-        self._upsert_notification(
-            user=imaging_user,
-            notification_type=NotificationType.PRESCRIPTION_CREATED,
-            title="طلب تصوير طبي جديد",
-            message="تمت الموافقة على طلب تصوير جديد وهو جاهز للتنفيذ.",
-            related_entity_type="Prescription",
-            related_entity_id=imaging_rx.id,
-        )
-        self._upsert_notification(
-            user=medical_center_user,
-            notification_type=NotificationType.SYSTEM_ALERT,
-            title="طلب طبي منفذ",
-            message="يوجد طلب طبي تم تنفيذه ويحتاج مراجعة السجل.",
-            related_entity_type="Prescription",
-            related_entity_id=procedure_rx.id,
-        )
-        self._upsert_notification(
             user=admin_user,
             notification_type=NotificationType.SYSTEM_ALERT,
             title="نظام العرض جاهز",
             message="تم تجهيز الحسابات والبيانات الأساسية لعرض مشروع التخرج.",
         )
+
+        imported_doctors = self._seed_imported_doctors()
+        imported_pharmacies = self._seed_imported_pharmacies()
+        fake_employees = self._seed_fake_employees()
 
         self.stdout.write(self.style.SUCCESS("تم تجهيز بيانات العرض بنجاح."))
         self.stdout.write("Admin: admin_demo / admin12345")
@@ -627,18 +589,131 @@ class Command(BaseCommand):
         self.stdout.write("Employee: patient_demo / demo12345")
         self.stdout.write("Pharmacist: pharmacist_demo / demo12345")
         self.stdout.write("Insurance Officer: insurance_demo / demo12345")
-        self.stdout.write("Laboratory: lab_demo / demo12345")
-        self.stdout.write("Imaging Center: imaging_demo / demo12345")
-        self.stdout.write("Medical Center: medical_center_demo / demo12345")
+        self.stdout.write(f"Imported doctors from insurance.ppu.edu: {imported_doctors}")
+        self.stdout.write(f"Imported pharmacies from insurance.ppu.edu: {imported_pharmacies}")
+        self.stdout.write(f"Fake employees added: {fake_employees}")
+        self.stdout.write("Extra login 1: employee_01 / employee123")
+        self.stdout.write("Extra login 2: employee_02 / employee123")
+        self.stdout.write("Extra login 3: employee_03 / employee123")
 
     def _upsert_user(self, **defaults):
         username = defaults.pop("username")
         password = defaults.pop("password")
         defaults.setdefault("is_active", True)
-        user, _ = User.objects.update_or_create(username=username, defaults=defaults)
+        email = defaults.get("email", "")
+        user = User.objects.filter(username=username).first()
+        if user is None and email:
+            user = User.objects.filter(email=email).first()
+
+        if user is None:
+            user = User(username=username)
+
+        user.username = username
+        for attr, value in defaults.items():
+            setattr(user, attr, value)
         user.set_password(password)
         user.save()
         return user
+
+    def _split_full_name(self, full_name):
+        parts = [part for part in full_name.split() if part]
+        if not parts:
+            return "", ""
+        if len(parts) == 1:
+            return parts[0], ""
+        return parts[0], " ".join(parts[1:])
+
+    def _seed_imported_doctors(self):
+        created = 0
+        for index, doctor_data in enumerate(IMPORTED_DOCTORS, start=1):
+            first_name, last_name = self._split_full_name(doctor_data["full_name"])
+            user = self._upsert_user(
+                username=f"ppu_doctor_{index:02d}",
+                password="doctor123",
+                role=UserRole.DOCTOR,
+                first_name=first_name,
+                last_name=last_name,
+                email=f"ppu_doctor_{index:02d}@healthbridge.local",
+                phone_number=doctor_data["phone_number"],
+            )
+            provider = self._upsert_provider(
+                provider_name=doctor_data["clinic_name"],
+                provider_type=ProviderType.DOCTOR,
+                city="الخليل",
+                address=doctor_data["clinic_address"],
+                phone=doctor_data["phone_number"],
+                google_maps_url="",
+                working_hours="09:00 - 17:00",
+            )
+            Doctor.objects.update_or_create(
+                license_number=f"DOC-PPU-{index:03d}",
+                defaults={
+                    "user": user,
+                    "provider": provider,
+                    "specialization": doctor_data["specialization"],
+                    "clinic_name": doctor_data["clinic_name"],
+                    "clinic_address": doctor_data["clinic_address"],
+                    "consultation_price": 70 + (index % 4) * 10,
+                    "contract_status": ContractStatus.ACTIVE,
+                },
+            )
+            created += 1
+        return created
+
+    def _seed_imported_pharmacies(self):
+        created = 0
+        for index, pharmacy_data in enumerate(IMPORTED_PHARMACIES, start=1):
+            provider = self._upsert_provider(
+                provider_name=pharmacy_data["name"],
+                provider_type=ProviderType.PHARMACY,
+                city="الخليل",
+                address=pharmacy_data["address"],
+                phone=pharmacy_data["phone_number"],
+                google_maps_url="",
+                working_hours="08:00 - 22:00",
+            )
+            Pharmacy.objects.update_or_create(
+                name=pharmacy_data["name"],
+                defaults={
+                    "license_number": f"PHA-PPU-{index:03d}",
+                    "name": pharmacy_data["name"],
+                    "provider": provider,
+                    "address": pharmacy_data["address"],
+                    "phone_number": pharmacy_data["phone_number"],
+                    "is_active": True,
+                },
+            )
+            created += 1
+        return created
+
+    def _seed_fake_employees(self):
+        created = 0
+        for index, full_name in enumerate(FAKE_EMPLOYEE_NAMES, start=1):
+            first_name, last_name = self._split_full_name(full_name)
+            user = self._upsert_user(
+                username=f"employee_{index:02d}",
+                password="employee123",
+                role=UserRole.EMPLOYEE,
+                first_name=first_name,
+                last_name=last_name,
+                email=f"employee_{index:02d}@healthbridge.local",
+                phone_number=f"+97059920{index:04d}",
+            )
+            Employee.objects.update_or_create(
+                user=user,
+                defaults={
+                    "national_id": f"90000000{index:03d}",
+                    "university_id": f"PPU-EMP-{index:04d}",
+                    "insurance_number": f"INS-EMP-{index:04d}",
+                    "medical_record_number": f"MRN-EMP-{index:04d}",
+                    "date_of_birth": f"{1982 + (index % 15)}-{((index % 12) + 1):02d}-{((index % 28) + 1):02d}",
+                    "gender": "ذكر" if index % 2 else "أنثى",
+                    "address": f"الخليل - موظف تجريبي رقم {index}",
+                    "insurance_provider": "التأمين الصحي - جامعة بوليتكنك فلسطين",
+                },
+            )
+            created += 1
+        return created
 
     def _upsert_medication(self, **defaults):
         medication, _ = Medication.objects.update_or_create(

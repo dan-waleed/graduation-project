@@ -20,10 +20,7 @@ from .models import (
     InsuranceOfficer,
     InsuranceRequest,
     InsuranceRequestStatus,
-    Laboratory,
     Medication,
-    MedicalCenter,
-    MedicalImagingCenter,
     MedicalService,
     Notification,
     PrescriptionStatus,
@@ -35,6 +32,7 @@ from .models import (
     ProviderServicePrice,
     ProviderType,
     ServiceType,
+    SystemSettings,
     SUPPORTED_USER_ROLES,
     UserRole,
 )
@@ -91,6 +89,11 @@ class UserSerializer(serializers.ModelSerializer):
         if self.instance.role != UserRole.ADMIN and value == UserRole.ADMIN:
             raise serializers.ValidationError("لا يمكن ترقية أي مستخدم إلى مدير نظام جديد.")
 
+        return value
+
+    def validate_is_active(self, value):
+        if self.instance and self.instance.role == UserRole.ADMIN and value is False:
+            raise serializers.ValidationError("لا يمكن تعطيل مدير النظام الأساسي.")
         return value
 
     @transaction.atomic
@@ -177,6 +180,11 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         if self.instance and self.instance.role != UserRole.ADMIN and value == UserRole.ADMIN:
             raise serializers.ValidationError("لا يمكن ترقية أي مستخدم إلى مدير نظام جديد.")
 
+        return value
+
+    def validate_is_active(self, value):
+        if self.instance and self.instance.role == UserRole.ADMIN and value is False:
+            raise serializers.ValidationError("لا يمكن تعطيل مدير النظام الأساسي.")
         return value
 
 
@@ -648,69 +656,6 @@ class PharmacistSerializer(serializers.ModelSerializer):
         read_only_fields = ("id", "created_at", "updated_at", "user_details", "pharmacy_name")
 
 
-class LaboratorySerializer(serializers.ModelSerializer):
-    """Serializer for laboratory profiles."""
-
-    user_details = UserSerializer(source="user", read_only=True)
-    provider_details = ProviderSerializer(source="provider", read_only=True)
-
-    class Meta:
-        model = Laboratory
-        fields = (
-            "id",
-            "user",
-            "user_details",
-            "provider",
-            "provider_details",
-            "license_number",
-            "created_at",
-            "updated_at",
-        )
-        read_only_fields = ("id", "created_at", "updated_at", "user_details", "provider_details")
-
-
-class MedicalImagingCenterSerializer(serializers.ModelSerializer):
-    """Serializer for medical imaging center profiles."""
-
-    user_details = UserSerializer(source="user", read_only=True)
-    provider_details = ProviderSerializer(source="provider", read_only=True)
-
-    class Meta:
-        model = MedicalImagingCenter
-        fields = (
-            "id",
-            "user",
-            "user_details",
-            "provider",
-            "provider_details",
-            "license_number",
-            "created_at",
-            "updated_at",
-        )
-        read_only_fields = ("id", "created_at", "updated_at", "user_details", "provider_details")
-
-
-class MedicalCenterSerializer(serializers.ModelSerializer):
-    """Serializer for medical center profiles."""
-
-    user_details = UserSerializer(source="user", read_only=True)
-    provider_details = ProviderSerializer(source="provider", read_only=True)
-
-    class Meta:
-        model = MedicalCenter
-        fields = (
-            "id",
-            "user",
-            "user_details",
-            "provider",
-            "provider_details",
-            "license_number",
-            "created_at",
-            "updated_at",
-        )
-        read_only_fields = ("id", "created_at", "updated_at", "user_details", "provider_details")
-
-
 class InsuranceOfficerSerializer(serializers.ModelSerializer):
     """Serializer for insurance officer profiles."""
 
@@ -1097,8 +1042,10 @@ class DispenseSerializer(serializers.ModelSerializer):
         )
 
     def validate(self, attrs):
+        settings = SystemSettings.get_solo()
         prescription = attrs.get("prescription", getattr(self.instance, "prescription", None))
         new_status = attrs.get("status", getattr(self.instance, "status", None))
+        notes = attrs.get("notes", getattr(self.instance, "notes", ""))
 
         if self.instance is None:
             if prescription.status != PrescriptionStatus.APPROVED:
@@ -1116,6 +1063,10 @@ class DispenseSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     {"status": f"لا يمكن تغيير حالة الصرف من {current_status} إلى {new_status}."}
                 )
+        if settings.pharmacist_notes_required and not (notes or "").strip():
+            raise serializers.ValidationError(
+                {"notes": "إضافة ملاحظة من الصيدلي مطلوبة حسب إعدادات النظام."}
+            )
         return attrs
 
     @extend_schema_field(str)
@@ -1179,6 +1130,24 @@ class AuditLogSerializer(serializers.ModelSerializer):
             "created_at",
         )
         read_only_fields = ("id", "created_at", "actor_username")
+
+
+class SystemSettingsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SystemSettings
+        fields = (
+            "system_name",
+            "organization_name",
+            "short_description",
+            "notifications_enabled",
+            "insurance_workflow_enabled",
+            "pharmacist_notes_required",
+            "interface_language",
+            "session_timeout_minutes",
+            "admin_notes",
+            "updated_at",
+        )
+        read_only_fields = ("updated_at",)
 
 
 # Backward-compatible aliases while the project migrates from patient naming.

@@ -162,12 +162,6 @@ class HbBottomNav extends StatelessWidget {
             Icons.family_restroom_outlined,
             Icons.family_restroom_rounded,
           ),
-          _NavItem(
-            'الأطباء',
-            EmployeeDoctorSearchScreen.routePath,
-            Icons.medical_services_outlined,
-            Icons.medical_services_rounded,
-          ),
         ];
       case AppRoles.insuranceOfficer:
         return const [
