@@ -303,6 +303,7 @@ class HealthBridgeWorkflowTests(BaseAPITestCase):
             employee=self.employee,
             doctor=self.doctor,
             status=PrescriptionStatus.SENT,
+            requires_insurance_approval=False,
             issued_at=timezone.now(),
         )
         self.auth(self.doctor_user)
@@ -322,6 +323,40 @@ class HealthBridgeWorkflowTests(BaseAPITestCase):
         self.assertEqual(insurance_request.status, InsuranceRequestStatus.APPROVED)
         self.assertIsNotNone(insurance_request.reviewed_at)
         self.assertEqual(prescription.status, PrescriptionStatus.APPROVED)
+
+    def test_sent_prescription_requiring_preapproval_stays_pending_for_insurance(self):
+        self.auth(self.doctor_user)
+        response = self.client.post(
+            "/api/prescriptions/",
+            {
+                "prescription_number": "RX-INS-NEEDS-001",
+                "employee": self.employee.id,
+                "doctor": self.doctor.id,
+                "status": PrescriptionStatus.SENT,
+                "requires_insurance_approval": True,
+                "diagnosis": "Special medication",
+                "notes": "Needs insurance approval",
+                "issued_at": timezone.now().isoformat(),
+                "items": [
+                    {
+                        "medication": self.medication.id,
+                        "dosage_instructions": "Once daily",
+                        "quantity": "10",
+                        "duration": "10 days",
+                        "substitution_allowed": False,
+                    }
+                ],
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        prescription = Prescription.objects.get(prescription_number="RX-INS-NEEDS-001")
+        insurance_request = InsuranceRequest.objects.get(prescription=prescription)
+
+        self.assertEqual(prescription.status, PrescriptionStatus.PENDING_INSURANCE_APPROVAL)
+        self.assertEqual(insurance_request.status, InsuranceRequestStatus.PENDING)
+        self.assertIsNone(insurance_request.reviewed_at)
 
     def test_insurance_officer_can_review_but_cannot_change_request_status(self):
         prescription = Prescription.objects.create(
@@ -344,7 +379,8 @@ class HealthBridgeWorkflowTests(BaseAPITestCase):
             {"status": InsuranceRequestStatus.REJECTED},
             format="json",
         )
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("status", response.data)
 
     def test_pharmacist_completed_dispense_marks_prescription_dispensed(self):
         prescription = Prescription.objects.create(

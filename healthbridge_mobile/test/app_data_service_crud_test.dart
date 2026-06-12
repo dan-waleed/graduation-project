@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:healthbridge_mobile/src/core/network/api_client.dart';
-import 'package:healthbridge_mobile/src/data/models/app_models.dart';
-import 'package:healthbridge_mobile/src/data/services/app_data_service.dart';
+import 'package:healthbridge_mobile/model/core/network/api_client.dart';
+import 'package:healthbridge_mobile/model/models/app_models.dart';
+import 'package:healthbridge_mobile/model/services/app_data_service.dart';
 
 AppDataService _createService() {
   final apiClient = ApiClient()..updateToken('demo-token-test-suite');
@@ -204,7 +204,7 @@ void main() {
         coveredAmount: 32,
         employeeShare: 8,
         finalPrice: 40,
-        requiresInsuranceApproval: true,
+        requiresInsuranceApproval: false,
       );
 
       expect(prescription.serviceType, 'Medication');
@@ -246,10 +246,13 @@ void main() {
           requiresInsuranceApproval: true,
         );
 
+        expect(prescription.status, 'PendingInsuranceApproval');
+
         final createdRequest = await service.createInsuranceRequest(
           prescriptionId: prescription.id,
         );
         expect(createdRequest.prescriptionId, prescription.id);
+        expect(createdRequest.status, 'Pending');
 
         final updatedRequest = await service.updateInsuranceRequest(
           id: createdRequest.id,

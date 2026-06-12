@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:healthbridge_mobile/src/shared/utils/password_strength_validator.dart';
+import 'package:healthbridge_mobile/model/utils/password_strength_validator.dart';
 
 void main() {
   group('PasswordStrengthValidator', () {

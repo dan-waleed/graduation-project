@@ -111,12 +111,15 @@ def _employee_summary(user, display_name):
 
 def _pharmacist_summary(user, display_name):
     pharmacist = getattr(user, "pharmacist_profile", None)
-    dispenses = Dispense.objects.filter(pharmacist=pharmacist) if pharmacist else Dispense.objects.none()
+    dispenses = (
+        Dispense.objects.filter(pharmacist=pharmacist).exclude(status="Partial")
+        if pharmacist
+        else Dispense.objects.none()
+    )
 
     metrics = [
         _metric("dispenses", "عمليات الصرف", dispenses.count(), "dispense"),
         _metric("completed", "صرف مكتمل", dispenses.filter(status="Completed").count(), "done"),
-        _metric("partial", "صرف جزئي", dispenses.filter(status="Partial").count(), "partial"),
         _metric("approved_rx", "وصفات جاهزة للصرف", Prescription.objects.filter(status="Approved").count(), "approved"),
     ]
     activity = [

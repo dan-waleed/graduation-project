@@ -43,6 +43,7 @@ from .services import (
     apply_coverage_calculations,
     build_unique_username,
     ensure_role_profile,
+    resolve_prescription_submission_status,
     split_full_name,
 )
 
@@ -858,6 +859,10 @@ class PrescriptionSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         items_data = validated_data.pop("items", [])
         validated_data = apply_coverage_calculations(validated_data)
+        validated_data["status"] = resolve_prescription_submission_status(
+            validated_data.get("status"),
+            validated_data.get("requires_insurance_approval", False),
+        )
         prescription = Prescription.objects.create(**validated_data)
         self._replace_items(prescription, items_data)
         return prescription
@@ -898,6 +903,13 @@ class PrescriptionSerializer(serializers.ModelSerializer):
                 "employee_share": recalculated.get("employee_share"),
                 "requires_insurance_approval": recalculated.get("requires_insurance_approval"),
             }
+        )
+        validated_data["status"] = resolve_prescription_submission_status(
+            validated_data.get("status", instance.status),
+            validated_data.get(
+                "requires_insurance_approval",
+                instance.requires_insurance_approval,
+            ),
         )
         return validated_data
 

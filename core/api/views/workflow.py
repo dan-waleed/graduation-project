@@ -5,7 +5,15 @@ from django.http import HttpResponse
 from django.utils import timezone
 from rest_framework.decorators import action
 
-from core.models import Dispense, InsuranceRequest, InsuranceRequestStatus, Prescription, SystemSettings, UserRole
+from core.models import (
+    Dispense,
+    InsuranceRequest,
+    InsuranceRequestStatus,
+    Prescription,
+    PrescriptionStatus,
+    SystemSettings,
+    UserRole,
+)
 from core.services import (
     apply_role_scope,
     sync_prescription_status_from_dispense,
@@ -17,7 +25,7 @@ from core.utils import notify_dispense_updated, notify_insurance_updated, notify
 from .common import BaseOwnedModelViewSet
 
 
-def _ensure_auto_approved_insurance_request(viewset, prescription):
+def _ensure_insurance_request_for_prescription(viewset, prescription):
     if prescription.status not in {"Sent", "PendingInsuranceApproval", "Approved"}:
         return
     settings = SystemSettings.get_solo()
@@ -29,12 +37,13 @@ def _ensure_auto_approved_insurance_request(viewset, prescription):
     if hasattr(prescription, "insurance_request"):
         return
 
+    requires_review = prescription.status == PrescriptionStatus.PENDING_INSURANCE_APPROVAL
     insurance_request = InsuranceRequest.objects.create(
         prescription=prescription,
         request_number=f"INS-{prescription.prescription_number}",
-        status=InsuranceRequestStatus.APPROVED,
+        status=InsuranceRequestStatus.PENDING if requires_review else InsuranceRequestStatus.APPROVED,
         submitted_at=timezone.now(),
-        reviewed_at=timezone.now(),
+        reviewed_at=None if requires_review else timezone.now(),
     )
     sync_prescription_status_from_insurance(insurance_request)
     viewset.log_action("Insurance request auto-created", insurance_request)
@@ -104,7 +113,7 @@ class PrescriptionViewSet(BaseOwnedModelViewSet):
             prescription = serializer.save(doctor=self.request.user.doctor_profile)
         else:
             prescription = serializer.save()
-        _ensure_auto_approved_insurance_request(self, prescription)
+        _ensure_insurance_request_for_prescription(self, prescription)
         self.log_action("Prescription created", prescription)
         notify_prescription_created(prescription)
 
@@ -112,7 +121,7 @@ class PrescriptionViewSet(BaseOwnedModelViewSet):
     def perform_update(self, serializer):
         previous_status = serializer.instance.status
         prescription = serializer.save()
-        _ensure_auto_approved_insurance_request(self, prescription)
+        _ensure_insurance_request_for_prescription(self, prescription)
         self.log_action(
             "Prescription updated",
             prescription,
@@ -188,10 +197,14 @@ class InsuranceRequestViewSet(BaseOwnedModelViewSet):
 
     @transaction.atomic
     def perform_create(self, serializer):
+        prescription = serializer.validated_data["prescription"]
+        requires_review = prescription.status == PrescriptionStatus.PENDING_INSURANCE_APPROVAL
         review_payload = {
-            "status": InsuranceRequestStatus.APPROVED,
-            "reviewed_at": timezone.now(),
+            "status": InsuranceRequestStatus.PENDING if requires_review else InsuranceRequestStatus.APPROVED,
+            "submitted_at": timezone.now(),
         }
+        if not requires_review:
+            review_payload["reviewed_at"] = timezone.now()
         insurance_request = serializer.save(**review_payload)
         sync_prescription_status_from_insurance(insurance_request)
         self.log_action("Insurance request created", insurance_request)

@@ -99,6 +99,14 @@ def apply_coverage_calculations(payload):
     return payload
 
 
+def resolve_prescription_submission_status(status, requires_insurance_approval):
+    if status != PrescriptionStatus.SENT:
+        return status
+    if requires_insurance_approval:
+        return PrescriptionStatus.PENDING_INSURANCE_APPROVAL
+    return status
+
+
 def sync_prescription_status_from_insurance(insurance_request) -> None:
     prescription = insurance_request.prescription
     status_map = {

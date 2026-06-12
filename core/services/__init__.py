@@ -8,6 +8,7 @@ from .workflow_service import (
     PRESCRIPTION_ALLOWED_TRANSITIONS,
     apply_coverage_calculations,
     mark_insurance_review,
+    resolve_prescription_submission_status,
     sync_prescription_status_from_dispense,
     sync_prescription_status_from_insurance,
 )

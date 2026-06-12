@@ -3,17 +3,17 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 
-import 'src/app/app.dart';
-import 'src/core/network/api_client.dart';
-import 'src/data/repositories/app_repository.dart';
-import 'src/data/repositories/auth_repository.dart';
-import 'src/data/repositories/dashboard_repository.dart';
-import 'src/data/services/auth_service.dart';
-import 'src/data/services/app_data_service.dart';
-import 'src/data/services/dashboard_service.dart';
-import 'src/data/storage/token_storage.dart';
-import 'src/features/auth/presentation/viewmodels/auth_view_model.dart';
-import 'src/features/common/presentation/viewmodels/notification_center_view_model.dart';
+import 'package:healthbridge_mobile/view/app/app.dart';
+import 'package:healthbridge_mobile/model/core/network/api_client.dart';
+import 'package:healthbridge_mobile/model/repositories/app_repository.dart';
+import 'package:healthbridge_mobile/model/repositories/auth_repository.dart';
+import 'package:healthbridge_mobile/model/repositories/dashboard_repository.dart';
+import 'package:healthbridge_mobile/model/services/auth_service.dart';
+import 'package:healthbridge_mobile/model/services/app_data_service.dart';
+import 'package:healthbridge_mobile/model/services/dashboard_service.dart';
+import 'package:healthbridge_mobile/model/storage/token_storage.dart';
+import 'package:healthbridge_mobile/modelView/features/auth/auth_view_model.dart';
+import 'package:healthbridge_mobile/modelView/features/common/notification_center_view_model.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
